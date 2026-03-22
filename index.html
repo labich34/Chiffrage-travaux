@@ -197,10 +197,12 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Date début</label><input type="date" class="form-input" id="rStart"></div>
       <div class="form-group"><label class="form-label">Date fin</label><input type="date" class="form-input" id="rEnd"></div>
-      <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
+      <div class="form-group full" style="flex-direction:row;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
         <button class="btn btn-primary" onclick="genRapport()">📊 Générer</button>
-        <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimer</button>
-        <button class="btn btn-ghost" onclick="exportJSON()">📥 Export JSON</button>
+        <button class="btn btn-primary" onclick="exportPDF()" id="btnPDF" style="display:none;background:var(--green);color:#000">📄 Exporter PDF</button>
+        <button class="btn btn-danger" onclick="clearRapport()" id="btnClearR" style="display:none">🗑 Effacer rapport</button>
+        <span style="margin-left:auto"></span>
+        <button class="btn btn-ghost" onclick="exportJSON()">📥 JSON</button>
         <button class="btn btn-ghost" onclick="importJSON()">📤 Import</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
       </div>
@@ -259,6 +261,8 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 var LS_KEY='maint_interventions',LS_CFG='maint_config';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
@@ -270,6 +274,7 @@ var TRAVAUX=[
   {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true},
   {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true},
   {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true},
+  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true},
   {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false},
   {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false},
   {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false},
@@ -506,6 +511,66 @@ function genRapport(){
   html+='</tbody></table></div></div>';
 
   document.getElementById('rapportContent').innerHTML=html;
+  document.getElementById('btnPDF').style.display='';
+  document.getElementById('btnClearR').style.display='';
+}
+
+function clearRapport(){
+  document.getElementById('rapportContent').innerHTML='';
+  document.getElementById('btnPDF').style.display='none';
+  document.getElementById('btnClearR').style.display='none';
+  toast('Rapport efface');
+}
+
+function exportPDF(){
+  var el=document.getElementById('rapportContent');
+  if(!el.innerHTML){toast('Genere un rapport d\'abord');return}
+  toast('Generation PDF...');
+  // Temporarily style for PDF capture (white background)
+  el.style.background='#12121a';
+  el.style.padding='20px';
+  html2canvas(el,{backgroundColor:'#12121a',scale:2,useCORS:true,logging:false}).then(function(canvas){
+    var imgData=canvas.toDataURL('image/jpeg',0.95);
+    var pdf=new jspdf.jsPDF('p','mm','a4');
+    var pageW=pdf.internal.pageSize.getWidth();
+    var pageH=pdf.internal.pageSize.getHeight();
+    var margin=10;
+    var usableW=pageW-margin*2;
+    var imgW=canvas.width;
+    var imgH=canvas.height;
+    var ratio=usableW/imgW;
+    var scaledH=imgH*ratio;
+    var usableH=pageH-margin*2;
+    var yPos=0;
+    var pageCount=Math.ceil(scaledH/usableH);
+
+    for(var p=0;p<pageCount;p++){
+      if(p>0)pdf.addPage();
+      var srcY=p*usableH/ratio;
+      var srcH=Math.min(usableH/ratio,imgH-srcY);
+      var destH=srcH*ratio;
+
+      var tempCanvas=document.createElement('canvas');
+      tempCanvas.width=imgW;
+      tempCanvas.height=Math.ceil(srcH);
+      var ctx=tempCanvas.getContext('2d');
+      ctx.drawImage(canvas,0,Math.floor(srcY),imgW,Math.ceil(srcH),0,0,imgW,Math.ceil(srcH));
+      var pageImg=tempCanvas.toDataURL('image/jpeg',0.95);
+      pdf.addImage(pageImg,'JPEG',margin,margin,usableW,destH);
+    }
+
+    var start=document.getElementById('rStart').value;
+    var end=document.getElementById('rEnd').value;
+    pdf.save('Rapport_Maintenance_'+start+'_'+end+'.pdf');
+    el.style.background='';
+    el.style.padding='';
+    toast('PDF exporte');
+  }).catch(function(err){
+    el.style.background='';
+    el.style.padding='';
+    toast('Erreur PDF');
+    console.error(err);
+  });
 }
 
 // ========== EXPORT/IMPORT ==========
