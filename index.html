@@ -8,13 +8,13 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
---bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22222e;
---text:#e8e8f0;--text2:#a0a0b8;--text3:#6a6a82;
---accent:#F59E0B;--accent2:#FBBF24;--accent-dim:rgba(245,158,11,.12);
---red:#DA2C38;--red-dim:rgba(218,44,56,.12);
---green:#34D399;--green-dim:rgba(52,211,153,.12);
---blue:#60A5FA;--blue-dim:rgba(96,165,250,.12);
---purple:#A78BFA;--purple-dim:rgba(167,139,250,.12);
+--bg:#0f172a;--bg2:#1e293b;--bg3:#273548;--bg4:#334155;
+--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+--accent:#F59E0B;--accent2:#FBBF24;--accent-dim:rgba(245,158,11,.15);
+--red:#DA2C38;--red-dim:rgba(218,44,56,.15);
+--green:#34D399;--green-dim:rgba(52,211,153,.15);
+--blue:#60A5FA;--blue-dim:rgba(96,165,250,.15);
+--purple:#A78BFA;--purple-dim:rgba(167,139,250,.15);
 --pink:#F472B6;--cyan:#22D3EE;--orange:#F97316;
 --radius:12px;--radius-sm:8px;
 }
@@ -527,9 +527,9 @@ function exportPDF(){
   if(!el.innerHTML){toast('Genere un rapport d\'abord');return}
   toast('Generation PDF...');
   // Temporarily style for PDF capture (white background)
-  el.style.background='#12121a';
+  el.style.background='#1e293b';
   el.style.padding='20px';
-  html2canvas(el,{backgroundColor:'#12121a',scale:2,useCORS:true,logging:false}).then(function(canvas){
+  html2canvas(el,{backgroundColor:'#1e293b',scale:2,useCORS:true,logging:false}).then(function(canvas){
     var imgData=canvas.toDataURL('image/jpeg',0.95);
     var pdf=new jspdf.jsPDF('p','mm','a4');
     var pageW=pdf.internal.pageSize.getWidth();
