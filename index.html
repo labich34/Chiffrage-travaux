@@ -98,6 +98,17 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 
 /* OBJECTIVE GAUGE */
 .obj-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem}
+
+/* CONTRATS / GLOBAL TABLE */
+.site-block{margin-bottom:1.25rem}
+.site-block-header{display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;background:var(--bg3);border-radius:var(--radius-sm) var(--radius-sm) 0 0;font-weight:600;font-size:.85rem}
+.site-block table{border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden}
+.global-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.global-table th{padding:.65rem .75rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:600;border-bottom:2px solid var(--bg4)}
+.global-table td{padding:.65rem .75rem;border-bottom:1px solid var(--bg3)}
+.global-table tr.total-row{background:var(--bg3);font-weight:700}
+.global-table tr.total-row td{border-bottom:2px solid var(--accent);color:var(--text)}
+.global-table .site-header-row td{background:var(--bg3);font-weight:600;font-size:.78rem;color:var(--accent);padding:.5rem .75rem;border-bottom:1px solid var(--bg4)}
 .obj-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
 .obj-header .card-title{margin-bottom:0}
 .obj-month{font-size:.85rem;color:var(--text2);font-weight:500}
@@ -120,6 +131,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     <button class="nav-tab active" data-page="dashboard">Dashboard</button>
     <button class="nav-tab" data-page="saisie">+ Saisie</button>
     <button class="nav-tab" data-page="interventions">Interventions</button>
+    <button class="nav-tab" data-page="contrats">Contrats</button>
     <button class="nav-tab" data-page="rapport">Rapport</button>
     <button class="nav-tab" data-page="config">Config</button>
   </div>
@@ -141,6 +153,10 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="card">
     <div class="card-title">Dernières interventions</div>
     <div class="table-wrap"><table id="tableLast"><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Type</th><th>Éco.</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏢 Vue globale — Coûts par restaurant (mois en cours)</div>
+    <div class="table-wrap" id="globalCostTable"></div>
   </div>
 </div>
 
@@ -190,6 +206,48 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   </div>
 </div>
 
+<!-- CONTRATS EXTERNES -->
+<div class="page" id="page-contrats">
+  <div class="card">
+    <div class="card-title">Saisir une facture prestataire externe</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="cDate"></div>
+      <div class="form-group"><label class="form-label">Restaurant</label>
+        <select class="form-input" id="cSite"><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Prestataire</label><input type="text" class="form-input" id="cNom" placeholder="Ex: Frigoriste SA"></div>
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-input" id="cType">
+          <option value="clim">❄️ Climatisation / froid</option>
+          <option value="pest">🐛 Pest control (nuisibles)</option>
+          <option value="ascenseur">🛗 Ascenseur</option>
+          <option value="extincteur">🧯 Extincteurs / sécurité incendie</option>
+          <option value="hotte">🌬 Hottes / VMC</option>
+          <option value="debouchage">🚿 Débouchage canalisation</option>
+          <option value="autre_contrat">📋 Autre</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Coût (CHF)</label><input type="number" step="0.01" min="0" class="form-input" id="cMontant" placeholder="Ex: 350"></div>
+      <div class="form-group"><label class="form-label">Remarque (optionnel)</label><input type="text" class="form-input" id="cRemarque" placeholder=""></div>
+      <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="saveContrat()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Factures par restaurant</div>
+    <div class="filter-bar">
+      <select class="form-input" id="cFilterMonth" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="renderContrats()"><option value="all">Tous mois</option></select>
+    </div>
+    <div id="contratsParSite"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏢 Synthèse par restaurant et par mois</div>
+    <div id="contratsSynthese"></div>
+  </div>
+  <p style="font-size:.72rem;color:var(--text3);margin-top:.5rem;text-align:center">ℹ️ Les contrats externes sont informatifs et ne rentrent pas dans le calcul des économies.</p>
+</div>
+
 <!-- RAPPORT -->
 <div class="page" id="page-rapport">
   <div class="card no-print">
@@ -216,17 +274,23 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="card"><div class="card-title">Objectif mensuel</div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 L'objectif se base uniquement sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires et interventions exceptionnelles.</p></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 Basé sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires, interv. except., peinture, rush.</p></div>
     </div>
   </div>
-  <div class="card"><div class="card-title">Tarifs</div>
+  <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
+    <div class="table-wrap"><table><thead><tr><th>Tag</th><th>Taux</th><th>Type</th></tr></thead><tbody>
+      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture, ⚡ Rush</td><td style="color:var(--green);font-weight:600">32 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
+      <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">30 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
+      <tr><td>🍦 Machine à glace</td><td style="color:var(--accent);font-weight:600">32 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="card"><div class="card-title">Tarifs externes & carburant</div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Taux horaire interne (CHF)</label><input type="number" step="0.5" class="form-input" id="cfgInterne" value="32"></div>
       <div class="form-group"><label class="form-label">Taux horaire externe (CHF)</label><input type="number" step="0.5" class="form-input" id="cfgExterne" value="100"></div>
       <div class="form-group"><label class="form-label">Déplacement externe (CHF/interv.)</label><input type="number" step="0.5" class="form-input" id="cfgDeplExt" value="150"></div>
       <div class="form-group"><label class="form-label">Consommation (L/100km)</label><input type="number" step="0.1" class="form-input" id="cfgConso" value="8"></div>
       <div class="form-group"><label class="form-label">Prix carburant (CHF/L)</label><input type="number" step="0.01" class="form-input" id="cfgPrix" value="1.90"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">ℹ️ Dépl. interne = km A/R entre sites. Dépl. externe = forfait fixe.</p></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">ℹ️ Dépl. interne = km A/R entre sites. Dépl. externe = forfait fixe. Taux internes = fixes, non modifiables.</p></div>
       <div class="form-group full" style="margin-top:.5rem"><button class="btn btn-primary" onclick="saveConfig()">Sauvegarder</button></div>
     </div>
   </div>
@@ -264,23 +328,24 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-var LS_KEY='maint_interventions',LS_CFG='maint_config';
+var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
 
 // CHIFFRABLE = compte dans les économies | NON-CHIFFRABLE = suivi uniquement
+// taux = taux horaire interne spécifique au tag
 var TRAVAUX=[
-  {id:'electricite',icon:'💡',label:'Électricité',chiffrable:true},
-  {id:'plomberie',icon:'🔧',label:'Plomberie',chiffrable:true},
-  {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true},
-  {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true},
-  {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true},
-  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true},
-  {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false},
-  {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false},
-  {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false},
-  {id:'pep',icon:'🧹',label:'Nettoyage PEP',chiffrable:false},
-  {id:'glace',icon:'🍦',label:'Machine à glace',chiffrable:false},
-  {id:'stock',icon:'📦',label:'Stock franchise',chiffrable:false}
+  {id:'electricite',icon:'💡',label:'Électricité',chiffrable:true,taux:32},
+  {id:'plomberie',icon:'🔧',label:'Plomberie',chiffrable:true,taux:32},
+  {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true,taux:32},
+  {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32},
+  {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32},
+  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32},
+  {id:'rush',icon:'⚡',label:'Rush',chiffrable:true,taux:32},
+  {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:30},
+  {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:30},
+  {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:30},
+  {id:'pep',icon:'🧹',label:'Nettoyage PEP',chiffrable:false,taux:30},
+  {id:'glace',icon:'🍦',label:'Machine à glace',chiffrable:false,taux:32}
 ];
 var TMAP=Object.fromEntries(TRAVAUX.map(function(t){return[t.id,t]}));
 var CHIFFRABLE_IDS=TRAVAUX.filter(function(t){return t.chiffrable}).map(function(t){return t.id});
@@ -295,7 +360,7 @@ function distKey(a,b){return DIST[a+'-'+b]||DIST[b+'-'+a]||null}
 
 function getConfig(){
   var d=JSON.parse(localStorage.getItem(LS_CFG)||'{}');
-  return{tauxInterne:d.tauxInterne||32,tauxExterne:d.tauxExterne||100,deplExt:d.deplExt||150,conso:d.conso||8,prix:d.prix||1.90,objectif:d.objectif||5000};
+  return{tauxExterne:d.tauxExterne||100,deplExt:d.deplExt||150,conso:d.conso||8,prix:d.prix||1.90,objectif:d.objectif||5000};
 }
 function saveConfigData(c){localStorage.setItem(LS_CFG,JSON.stringify(c))}
 function getData(){return JSON.parse(localStorage.getItem(LS_KEY)||'[]')}
@@ -315,11 +380,32 @@ function heuresChiffrables(i){
   return tv.reduce(function(s,t){return s+(CHIFFRABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0);
 }
 
-// Coût interne (chiffrable uniquement)
-function coutInt(i){var c=getConfig();var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return hc*c.tauxInterne+(i.materiel||0)+(hc>0?dp.cost:0)}
+// Coût interne par tag (utilise le taux spécifique de chaque tag)
+function coutIntTravaux(tv){
+  return(tv||[]).reduce(function(s,t){
+    var def=TMAP[t.id];
+    var taux=def?def.taux:32;
+    return s+((t.heures||0)*taux);
+  },0);
+}
+
+// Coût interne chiffrable uniquement (pour économies)
+function coutIntChiffrable(tv){
+  return(tv||[]).reduce(function(s,t){
+    if(CHIFFRABLE_IDS.indexOf(t.id)<0)return s;
+    var def=TMAP[t.id];
+    var taux=def?def.taux:32;
+    return s+((t.heures||0)*taux);
+  },0);
+}
+
+// Coût interne total d'une intervention (chiffrable seulement pour économies)
+function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntChiffrable(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
 // Coût externe (chiffrable uniquement)
 function coutExt(i){var c=getConfig();var hc=heuresChiffrables(i);if(hc<=0)return 0;return hc*c.tauxExterne+c.deplExt}
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
+// Coût interne TOTAL (tous travaux, pour info)
+function coutIntTotal(i){var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+dp.cost}
 function sumH(tv){return(tv||[]).reduce(function(s,t){return s+(t.heures||0)},0)}
 function totalH(i){return i.heures||sumH(i.travaux)}
 
@@ -327,11 +413,11 @@ function totalH(i){return i.heures||sumH(i.travaux)}
 function buildTags(cid){
   var chiffrables=TRAVAUX.filter(function(t){return t.chiffrable});
   var nonChiffrables=TRAVAUX.filter(function(t){return!t.chiffrable});
-  var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies)</div>';
+  var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies) — 32 CHF/h</div>';
   chiffrables.forEach(function(t){
     html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" step="0.5" min="0.5" placeholder="h" id="'+cid+'_v_'+t.id+'"><label>heures</label></div></div>';
   });
-  html+='<div class="tags-section-label">📋 Suivi uniquement (non chiffrés)</div>';
+  html+='<div class="tags-section-label">📋 Suivi uniquement — 30 CHF/h (machine a glace 32)</div>';
   nonChiffrables.forEach(function(t){
     html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" step="0.5" min="0.5" placeholder="h" id="'+cid+'_v_'+t.id+'"><label>heures</label></div></div>';
   });
@@ -382,8 +468,8 @@ function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(v
 function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));closeEditModal();toast('Supprimee');refresh()}
 
 // ========== CONFIG ==========
-function saveConfig(){saveConfigData({tauxInterne:parseFloat(document.getElementById('cfgInterne').value)||32,tauxExterne:parseFloat(document.getElementById('cfgExterne').value)||100,deplExt:parseFloat(document.getElementById('cfgDeplExt').value)||150,conso:parseFloat(document.getElementById('cfgConso').value)||8,prix:parseFloat(document.getElementById('cfgPrix').value)||1.90,objectif:parseFloat(document.getElementById('cfgObjectif').value)||5000});toast('Sauvegarde');refresh()}
-function loadConfig(){var c=getConfig();document.getElementById('cfgInterne').value=c.tauxInterne;document.getElementById('cfgExterne').value=c.tauxExterne;document.getElementById('cfgDeplExt').value=c.deplExt;document.getElementById('cfgConso').value=c.conso;document.getElementById('cfgPrix').value=c.prix;document.getElementById('cfgObjectif').value=c.objectif;renderDistTable()}
+function saveConfig(){saveConfigData({tauxExterne:parseFloat(document.getElementById('cfgExterne').value)||100,deplExt:parseFloat(document.getElementById('cfgDeplExt').value)||150,conso:parseFloat(document.getElementById('cfgConso').value)||8,prix:parseFloat(document.getElementById('cfgPrix').value)||1.90,objectif:parseFloat(document.getElementById('cfgObjectif').value)||5000});toast('Sauvegarde');refresh()}
+function loadConfig(){var c=getConfig();document.getElementById('cfgExterne').value=c.tauxExterne;document.getElementById('cfgDeplExt').value=c.deplExt;document.getElementById('cfgConso').value=c.conso;document.getElementById('cfgPrix').value=c.prix;document.getElementById('cfgObjectif').value=c.objectif;renderDistTable()}
 function confirmPurge(){if(confirm('Tout supprimer ?')){localStorage.removeItem(LS_KEY);toast('Supprime');refresh()}}
 function renderDistTable(){
   var pairs=Object.entries(DIST).sort(function(a,b){return a[1].km-b[1].km});
@@ -573,13 +659,170 @@ function exportPDF(){
   });
 }
 
+// ========== CONTRATS EXTERNES ==========
+var CONTRAT_TYPES={clim:{icon:'❄️',label:'Climatisation / froid'},pest:{icon:'🐛',label:'Pest control'},ascenseur:{icon:'🛗',label:'Ascenseur'},extincteur:{icon:'🧯',label:'Extincteurs / incendie'},hotte:{icon:'🌬',label:'Hottes / VMC'},debouchage:{icon:'🚿',label:'Débouchage canalisation'},autre_contrat:{icon:'📋',label:'Autre'}};
+
+function getContrats(){return JSON.parse(localStorage.getItem(LS_CTR)||'[]')}
+function setContrats(d){localStorage.setItem(LS_CTR,JSON.stringify(d))}
+
+function saveContrat(){
+  var date=document.getElementById('cDate').value;
+  var nom=document.getElementById('cNom').value.trim();
+  var type=document.getElementById('cType').value;
+  var site=document.getElementById('cSite').value;
+  var montant=parseFloat(document.getElementById('cMontant').value)||0;
+  var remarque=document.getElementById('cRemarque').value.trim();
+  if(!date){toast('Date requise');return}
+  if(!nom){toast('Prestataire requis');return}
+  if(montant<=0){toast('Montant requis');return}
+  var c=getContrats();
+  c.push({id:Date.now(),date:date,nom:nom,type:type,site:site,montant:montant,remarque:remarque});
+  setContrats(c);
+  document.getElementById('cNom').value='';
+  document.getElementById('cMontant').value='';
+  document.getElementById('cRemarque').value='';
+  toast('Facture enregistree');refresh();
+}
+
+function deleteContrat(id){
+  if(!confirm('Supprimer cette facture ?'))return;
+  setContrats(getContrats().filter(function(c){return c.id!==id}));
+  toast('Supprimee');refresh();
+}
+
+function updateContratMonthFilter(){
+  var c=getContrats();var ms=[];
+  c.forEach(function(ct){var m=ct.date.slice(0,7);if(ms.indexOf(m)<0)ms.push(m)});
+  ms.sort().reverse();
+  var sel=document.getElementById('cFilterMonth');var cv=sel.value;
+  sel.innerHTML='<option value="all">Tous mois</option>';
+  ms.forEach(function(m){var p=m.split('-');sel.innerHTML+='<option value="'+m+'">'+new Date(p[0],p[1]-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'</option>'});
+  sel.value=ms.indexOf(cv)>=0?cv:'all';
+}
+
+function renderContrats(){
+  var c=getContrats();
+  var filterM=document.getElementById('cFilterMonth').value;
+  if(filterM!=='all')c=c.filter(function(ct){return ct.date.slice(0,7)===filterM});
+  c.sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0});
+
+  var sites=['GD','NC','ND'];
+  var html='';
+
+  sites.forEach(function(s){
+    var sc=c.filter(function(ct){return ct.site===s});
+    var total=sc.reduce(function(sum,ct){return sum+ct.montant},0);
+    html+='<div class="site-block"><div class="site-block-header"><span class="site-dot" style="background:'+(SITES[s]?SITES[s].color:'#888')+'"></span>'+(SITES[s]?SITES[s].name:s)+'<span style="color:var(--red);margin-left:auto;font-weight:700">'+fmt(total)+'</span></div>';
+    if(sc.length){
+      html+='<table><thead><tr><th>Date</th><th>Prestataire</th><th>Type</th><th>Coût</th><th>Remarque</th><th></th></tr></thead><tbody>';
+      sc.forEach(function(ct){
+        var tp=CONTRAT_TYPES[ct.type]||CONTRAT_TYPES.autre_contrat;
+        html+='<tr><td>'+fD(ct.date)+'</td><td style="font-weight:500">'+ct.nom+'</td><td>'+tp.icon+' '+tp.label+'</td><td style="color:var(--red);font-weight:600">'+fmt(ct.montant)+'</td><td style="color:var(--text3);font-size:.78rem">'+(ct.remarque||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteContrat('+ct.id+')">🗑</button></td></tr>';
+      });
+      html+='</tbody></table>';
+    }else{
+      html+='<div style="padding:.75rem;color:var(--text3);font-size:.82rem">Aucune facture</div>';
+    }
+    html+='</div>';
+  });
+
+  document.getElementById('contratsParSite').innerHTML=html;
+}
+
+function renderContratsSynthese(){
+  var c=getContrats();
+  var sites=['GD','NC','ND'];
+
+  // Get all months
+  var allMonths=[];
+  c.forEach(function(ct){var m=ct.date.slice(0,7);if(allMonths.indexOf(m)<0)allMonths.push(m)});
+  allMonths.sort();
+
+  if(!allMonths.length){
+    document.getElementById('contratsSynthese').innerHTML='<div style="padding:1rem;color:var(--text3);text-align:center;font-size:.85rem">Aucune facture enregistree</div>';
+    return;
+  }
+
+  var html='<table class="global-table"><thead><tr><th>Mois</th>';
+  sites.forEach(function(s){html+='<th><span class="site-dot" style="background:'+(SITES[s]?SITES[s].color:'#888')+'"></span>'+(SITES[s]?SITES[s].name:s)+'</th>'});
+  html+='<th>Total</th></tr></thead><tbody>';
+
+  var siteTotals={};sites.forEach(function(s){siteTotals[s]=0});var grandTotal=0;
+
+  allMonths.forEach(function(m){
+    var rowTotal=0;
+    html+='<tr><td style="font-weight:500">'+fML(m)+'</td>';
+    sites.forEach(function(s){
+      var val=c.filter(function(ct){return ct.site===s&&ct.date.slice(0,7)===m}).reduce(function(sum,ct){return sum+ct.montant},0);
+      siteTotals[s]+=val;rowTotal+=val;
+      html+='<td>'+(val>0?'<span style="color:var(--red)">'+fmt(val)+'</span>':'-')+'</td>';
+    });
+    grandTotal+=rowTotal;
+    html+='<td style="font-weight:600;color:var(--red)">'+fmt(rowTotal)+'</td></tr>';
+  });
+
+  html+='<tr class="total-row"><td>TOTAL</td>';
+  sites.forEach(function(s){html+='<td style="color:var(--red)">'+fmt(siteTotals[s])+'</td>'});
+  html+='<td style="color:var(--red)">'+fmt(grandTotal)+'</td></tr>';
+  html+='</tbody></table>';
+
+  document.getElementById('contratsSynthese').innerHTML=html;
+}
+
+// ========== GLOBAL COST TABLE (Dashboard) ==========
+function renderGlobalCosts(){
+  var now=new Date();var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
+  var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
+  var contrats=getContrats().filter(function(ct){return ct.date.slice(0,7)===curMonth});
+  var sites=['GD','NC','ND'];
+
+  var html='<table class="global-table"><thead><tr><th>Restaurant</th><th>Interne chiffrable</th><th>Interne suivi</th><th>Prestataires ext.</th><th>Total</th><th>Economies</th></tr></thead><tbody>';
+
+  var totCI=0,totCS=0,totCT=0,totAll=0,totEco=0;
+
+  sites.forEach(function(s){
+    var siteData=d.filter(function(i){return i.site===s});
+    var ci=siteData.reduce(function(sum,i){return sum+coutInt(i)},0);
+    var cs=siteData.reduce(function(sum,i){return sum+coutIntTotal(i)-coutInt(i)},0);
+    var ct=contrats.filter(function(c){return c.site===s}).reduce(function(sum,c){return sum+c.montant},0);
+    var eco=siteData.reduce(function(sum,i){return sum+ecoCalc(i)},0);
+    var total=ci+cs+ct;
+    totCI+=ci;totCS+=cs;totCT+=ct;totAll+=total;totEco+=eco;
+
+    html+='<tr><td><span class="site-dot" style="background:'+(SITES[s]?SITES[s].color:'#888')+'"></span><strong>'+(SITES[s]?SITES[s].name:s)+'</strong></td>';
+    html+='<td style="color:var(--green)">'+(ci>0?fmt(ci):'-')+'</td>';
+    html+='<td>'+(cs>0?fmt(cs):'-')+'</td>';
+    html+='<td style="color:var(--red)">'+(ct>0?fmt(ct):'-')+'</td>';
+    html+='<td style="font-weight:600">'+fmt(total)+'</td>';
+    html+='<td style="color:var(--green);font-weight:600">'+(eco>0?fmt(eco):'-')+'</td></tr>';
+  });
+
+  // Autres sites
+  var autresData=d.filter(function(i){return sites.indexOf(i.site)<0});
+  if(autresData.length){
+    var ci2=autresData.reduce(function(sum,i){return sum+coutInt(i)},0);
+    var cs2=autresData.reduce(function(sum,i){return sum+coutIntTotal(i)-coutInt(i)},0);
+    var eco2=autresData.reduce(function(sum,i){return sum+ecoCalc(i)},0);
+    var total2=ci2+cs2;
+    totCI+=ci2;totCS+=cs2;totAll+=total2;totEco+=eco2;
+    html+='<tr><td><span class="site-dot" style="background:var(--purple)"></span><strong>Autres</strong></td>';
+    html+='<td style="color:var(--green)">'+(ci2>0?fmt(ci2):'-')+'</td><td>'+(cs2>0?fmt(cs2):'-')+'</td><td>-</td><td style="font-weight:600">'+fmt(total2)+'</td><td style="color:var(--green);font-weight:600">'+(eco2>0?fmt(eco2):'-')+'</td></tr>';
+  }
+
+  html+='<tr class="total-row"><td>TOTAL '+fML(curMonth).toUpperCase()+'</td><td style="color:var(--green)">'+fmt(totCI)+'</td><td>'+fmt(totCS)+'</td><td style="color:var(--red)">'+fmt(totCT)+'</td><td>'+fmt(totAll)+'</td><td style="color:var(--green)">'+fmt(totEco)+'</td></tr>';
+  html+='</tbody></table>';
+  html+='<p style="font-size:.7rem;color:var(--text3);margin-top:.5rem">* Les prestataires externes sont informatifs et ne comptent pas dans les economies.</p>';
+
+  document.getElementById('globalCostTable').innerHTML=html;
+}
+
 // ========== EXPORT/IMPORT ==========
-function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
-function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));if(j.config)saveConfigData(j.config);toast(nw.length+' importees');refresh()}}catch(err){toast('Invalide')}};r.readAsText(f);e.target.value=''}
+function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc))}toast(nw.length+' importees');refresh()}}catch(err){toast('Invalide')}};r.readAsText(f);e.target.value=''}
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();initRapportDates()}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
