@@ -431,7 +431,7 @@ function coutIntChiffrable(tv){
   },0);
 }
 
-function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntChiffrable(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
+function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
 function heuresExternalisables(i){var tv=i.travaux||[];return tv.reduce(function(s,t){return s+(EXTERNALISABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0)}
 function coutExt(i){var c=getConfig();var he=heuresExternalisables(i);if(he<=0)return 0;return he*c.tauxExterne+c.deplExt}
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
@@ -902,10 +902,11 @@ function openKpiModal(type){
 
   }else if(type==='interne'){
     title='<span style="color:var(--blue)">🔵 Coût interne</span>';
-    formula='<strong>Formule :</strong> (Heures chiffrables × <strong>32.40 CHF/h</strong>) + matériaux + carburant A/R<br>'+
-      '• Seuls les travaux chiffrables entrent dans ce calcul<br>'+
-      '• Carburant = km A/R × <strong>'+c.conso+'L/100</strong> × <strong>'+c.prix+' CHF/L</strong><br>'+
-      '• Matériaux = montant saisi directement lors de la saisie de l\'intervention';
+    formula='<strong>Formule :</strong> Somme de tous les travaux × leur taux horaire + matériaux + carburant A/R<br>'+
+      '• Chiffrables (💡🔧🧱☀️⚠️🎨⚡) = <strong>32.40 CHF/h</strong><br>'+
+      '• Suivi (🏗💦🍽🧹) = <strong>26.90 CHF/h</strong> — 🍦 Machine à glace = <strong>32 CHF/h</strong><br>'+
+      '• Carburant = km A/R × <strong>'+c.conso+'L/100</strong> × <strong>'+c.prix+' CHF/L</strong> (si heures chiffrables)<br>'+
+      '• Matériaux = montant saisi à la saisie';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       var ciTot=sd.reduce(function(sum,i){return sum+coutInt(i)},0);
@@ -919,8 +920,9 @@ function openKpiModal(type){
       var ci=coutInt(i);
       var dp=deplInt(i.depart,i.site);
       var hc=heuresChiffrables(i);
-      var tauxPart=hc*32.40;
-      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc+'h × 32.40='+(Math.round(hc*32.40*100)/100)+' CHF'+(i.materiel>0?' + '+i.materiel+' mat.':'')+(dp.cost>0?' + '+dp.cost.toFixed(2)+' carb.':''),val:ci,valStr:ci>0?'<span style="color:var(--blue);font-weight:600">'+fmt(ci)+'</span>':'<span style="color:var(--text3)">-</span>'};;
+      var ht=totalH(i);
+      var detail=(i.travaux||[]).map(function(t){var def=TMAP[t.id];var tx=def?def.taux:32;return(t.heures||0)+'h×'+tx}).join(' + ')+(i.materiel>0?' + '+i.materiel+' mat.':'')+(dp.cost>0?' + '+dp.cost.toFixed(2)+' carb.':'');
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:detail,val:ci,valStr:ci>0?'<span style="color:var(--blue);font-weight:600">'+fmt(ci)+'</span>':'<span style="color:var(--text3)">-</span>'};
     });
 
   }else if(type==='externe'){
