@@ -34,7 +34,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;animation:fadeIn .3s ease}
 .card-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:.75rem;font-weight:600}
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem;margin-bottom:1.5rem}
-.kpi{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.25rem;animation:fadeIn .3s ease}
+.kpi{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.25rem;animation:fadeIn .3s ease;cursor:pointer;transition:all .2s,border-color .2s}
+.kpi:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .kpi-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600}
 .kpi-value{font-size:1.5rem;font-weight:700;letter-spacing:-.03em}
 .kpi-sub{font-size:.72rem;color:var(--text2)}
@@ -119,7 +120,28 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 .obj-bar-fill{height:100%;border-radius:10px;transition:width .5s ease,background .3s}
 .obj-status{font-size:.78rem;margin-top:.5rem;font-weight:500}
 
-@media print{.nav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000}.card{border:1px solid #ddd;background:#fff}.kpi{background:#f9f9f9;border:1px solid #ddd}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
+/* KPI DETAIL MODAL */
+.kpi-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:210;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.kpi-modal-overlay.open{display:flex}
+.kpi-modal{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1.5rem;width:92%;max-width:640px;max-height:88vh;overflow-y:auto}
+.kpi-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--bg4)}
+.kpi-modal-title{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
+.kpi-formula{background:var(--bg3);border:1px solid var(--bg4);border-radius:var(--radius-sm);padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--text2);line-height:1.7}
+.kpi-formula strong{color:var(--accent)}
+.kpi-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;margin-bottom:1rem}
+.kpi-site-card{background:var(--bg3);border-radius:var(--radius-sm);padding:.6rem .85rem;border-left:3px solid}
+.kpi-site-name{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:600}
+.kpi-site-val{font-size:1.05rem;font-weight:700;margin-top:.15rem}
+.kpi-detail-toggle{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--bg4);border-radius:var(--radius-sm);padding:.6rem .85rem;color:var(--text2);font-size:.82rem;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;transition:background .2s}
+.kpi-detail-toggle:hover{background:var(--bg4);color:var(--text)}
+.kpi-detail-list{display:none;margin-bottom:.75rem}
+.kpi-detail-list.open{display:block}
+.kpi-detail-list table{width:100%;border-collapse:collapse;font-size:.78rem}
+.kpi-detail-list thead th{padding:.45rem .6rem;color:var(--text3);font-weight:600;font-size:.68rem;text-transform:uppercase;border-bottom:1px solid var(--bg4);text-align:left}
+.kpi-detail-list tbody td{padding:.45rem .6rem;border-bottom:1px solid var(--bg3);color:var(--text2)}
+.kpi-detail-list tbody tr:hover td{background:var(--bg3);color:var(--text)}
+
+@media print{.nav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000}.card{border:1px solid #ddd;background:#fff}.kpi{border:1px solid #ddd;background:#f9f9f9}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
 @media(max-width:768px){.nav{flex-wrap:wrap;padding:.5rem .75rem}.nav-tabs{width:100%;overflow-x:auto;margin-left:0}.form-grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:1.2rem}.obj-remaining{font-size:1.5rem}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
@@ -279,8 +301,8 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   </div>
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
     <div class="table-wrap"><table><thead><tr><th>Tag</th><th>Taux</th><th>Type</th></tr></thead><tbody>
-      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture, ⚡ Rush</td><td style="color:var(--green);font-weight:600">32 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
-      <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">30 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
+      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture, ⚡ Rush</td><td style="color:var(--green);font-weight:600">32.40 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
+      <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">26.90 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
       <tr><td>🍦 Machine à glace</td><td style="color:var(--accent);font-weight:600">32 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
     </tbody></table></div>
   </div>
@@ -322,6 +344,18 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     </div>
   </div>
 </div>
+
+<!-- KPI DETAIL MODAL -->
+<div class="kpi-modal-overlay" id="kpiModal">
+  <div class="kpi-modal">
+    <div class="kpi-modal-header">
+      <div class="kpi-modal-title" id="kpiModalTitle"></div>
+      <button class="modal-close" onclick="closeKpiModal()">&times;</button>
+    </div>
+    <div id="kpiModalBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -332,19 +366,18 @@ var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
 
 // CHIFFRABLE = compte dans les économies | NON-CHIFFRABLE = suivi uniquement
-// taux = taux horaire interne spécifique au tag
 var TRAVAUX=[
-  {id:'electricite',icon:'💡',label:'Électricité',chiffrable:true,taux:32},
-  {id:'plomberie',icon:'🔧',label:'Plomberie',chiffrable:true,taux:32},
-  {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true,taux:32},
-  {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32},
-  {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32},
-  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32},
-  {id:'rush',icon:'⚡',label:'Rush',chiffrable:true,taux:32},
-  {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:30},
-  {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:30},
-  {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:30},
-  {id:'pep',icon:'🧹',label:'Nettoyage PEP',chiffrable:false,taux:30},
+  {id:'electricite',icon:'💡',label:'Électricité',chiffrable:true,taux:32.40},
+  {id:'plomberie',icon:'🔧',label:'Plomberie',chiffrable:true,taux:32.40},
+  {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true,taux:32.40},
+  {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32.40},
+  {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32.40},
+  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32.40},
+  {id:'rush',icon:'⚡',label:'Rush',chiffrable:true,taux:32.40},
+  {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:26.90},
+  {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:26.90},
+  {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:26.90},
+  {id:'pep',icon:'🧹',label:'Nettoyage PEP',chiffrable:false,taux:26.90},
   {id:'glace',icon:'🍦',label:'Machine à glace',chiffrable:false,taux:32}
 ];
 var TMAP=Object.fromEntries(TRAVAUX.map(function(t){return[t.id,t]}));
@@ -374,13 +407,11 @@ function deplInt(depart,site){
   return{km:kmAR,cost:Math.round(kmAR*c.conso/100*c.prix*100)/100,min:d.min*2};
 }
 
-// Heures chiffrables d'une intervention
 function heuresChiffrables(i){
   var tv=i.travaux||[];
   return tv.reduce(function(s,t){return s+(CHIFFRABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0);
 }
 
-// Coût interne par tag (utilise le taux spécifique de chaque tag)
 function coutIntTravaux(tv){
   return(tv||[]).reduce(function(s,t){
     var def=TMAP[t.id];
@@ -389,7 +420,6 @@ function coutIntTravaux(tv){
   },0);
 }
 
-// Coût interne chiffrable uniquement (pour économies)
 function coutIntChiffrable(tv){
   return(tv||[]).reduce(function(s,t){
     if(CHIFFRABLE_IDS.indexOf(t.id)<0)return s;
@@ -399,12 +429,9 @@ function coutIntChiffrable(tv){
   },0);
 }
 
-// Coût interne total d'une intervention (chiffrable seulement pour économies)
 function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntChiffrable(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
-// Coût externe (chiffrable uniquement)
 function coutExt(i){var c=getConfig();var hc=heuresChiffrables(i);if(hc<=0)return 0;return hc*c.tauxExterne+c.deplExt}
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
-// Coût interne TOTAL (tous travaux, pour info)
 function coutIntTotal(i){var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+dp.cost}
 function sumH(tv){return(tv||[]).reduce(function(s,t){return s+(t.heures||0)},0)}
 function totalH(i){return i.heures||sumH(i.travaux)}
@@ -413,11 +440,11 @@ function totalH(i){return i.heures||sumH(i.travaux)}
 function buildTags(cid){
   var chiffrables=TRAVAUX.filter(function(t){return t.chiffrable});
   var nonChiffrables=TRAVAUX.filter(function(t){return!t.chiffrable});
-  var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies) — 32 CHF/h</div>';
+  var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies) — 32.40 CHF/h</div>';
   chiffrables.forEach(function(t){
     html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" step="0.5" min="0.5" placeholder="h" id="'+cid+'_v_'+t.id+'"><label>heures</label></div></div>';
   });
-  html+='<div class="tags-section-label">📋 Suivi uniquement — 30 CHF/h (machine a glace 32)</div>';
+  html+='<div class="tags-section-label">📋 Suivi uniquement — 26.90 CHF/h (machine a glace 32)</div>';
   nonChiffrables.forEach(function(t){
     html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" step="0.5" min="0.5" placeholder="h" id="'+cid+'_v_'+t.id+'"><label>heures</label></div></div>';
   });
@@ -523,10 +550,10 @@ function renderKPIs(){
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
   var tDepl=d.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   document.getElementById('kpi-row').innerHTML=
-    '<div class="kpi green"><span class="kpi-label">Economies (chiffrable)</span><span class="kpi-value">'+fmt(tEco)+'</span><span class="kpi-sub">Taux: '+pct.toFixed(1)+'%</span></div>'+
-    '<div class="kpi accent"><span class="kpi-label">Heures totales</span><span class="kpi-value">'+tH+'h</span><span class="kpi-sub">dont '+hChiffr+'h chiffrables</span></div>'+
-    '<div class="kpi blue"><span class="kpi-label">Cout interne</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
-    '<div class="kpi red"><span class="kpi-label">Cout si externe</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/depl.</span></div>';
+    '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies (chiffrable) 🔍</span><span class="kpi-value">'+fmt(tEco)+'</span><span class="kpi-sub">Taux: '+pct.toFixed(1)+'%</span></div>'+
+    '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+tH+'h</span><span class="kpi-sub">dont '+hChiffr+'h chiffrables</span></div>'+
+    '<div class="kpi blue" onclick="openKpiModal(\'interne\')" title="Voir le detail"><span class="kpi-label">Cout interne 🔍</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
+    '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/depl.</span></div>';
 }
 function renderLast(){
   var d=getData().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0}).slice(0,8);
@@ -612,7 +639,6 @@ function exportPDF(){
   var el=document.getElementById('rapportContent');
   if(!el.innerHTML){toast('Genere un rapport d\'abord');return}
   toast('Generation PDF...');
-  // Temporarily style for PDF capture (white background)
   el.style.background='#1e293b';
   el.style.padding='20px';
   html2canvas(el,{backgroundColor:'#1e293b',scale:2,useCORS:true,logging:false}).then(function(canvas){
@@ -627,7 +653,6 @@ function exportPDF(){
     var ratio=usableW/imgW;
     var scaledH=imgH*ratio;
     var usableH=pageH-margin*2;
-    var yPos=0;
     var pageCount=Math.ceil(scaledH/usableH);
 
     for(var p=0;p<pageCount;p++){
@@ -635,7 +660,6 @@ function exportPDF(){
       var srcY=p*usableH/ratio;
       var srcH=Math.min(usableH/ratio,imgH-srcY);
       var destH=srcH*ratio;
-
       var tempCanvas=document.createElement('canvas');
       tempCanvas.width=imgW;
       tempCanvas.height=Math.ceil(srcH);
@@ -733,7 +757,6 @@ function renderContratsSynthese(){
   var c=getContrats();
   var sites=['GD','NC','ND'];
 
-  // Get all months
   var allMonths=[];
   c.forEach(function(ct){var m=ct.date.slice(0,7);if(allMonths.indexOf(m)<0)allMonths.push(m)});
   allMonths.sort();
@@ -797,7 +820,6 @@ function renderGlobalCosts(){
     html+='<td style="color:var(--green);font-weight:600">'+(eco>0?fmt(eco):'-')+'</td></tr>';
   });
 
-  // Autres sites
   var autresData=d.filter(function(i){return sites.indexOf(i.site)<0});
   if(autresData.length){
     var ci2=autresData.reduce(function(sum,i){return sum+coutInt(i)},0);
@@ -820,6 +842,160 @@ function renderGlobalCosts(){
 function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
 function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc))}toast(nw.length+' importees');refresh()}}catch(err){toast('Invalide')}};r.readAsText(f);e.target.value=''}
+
+// ========== KPI DETAIL MODALS ==========
+function openKpiModal(type){
+  var now=new Date();
+  var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
+  var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
+  var c=getConfig();
+  var sites=['GD','NC','ND'];
+  var title='',formula='',siteData={},rows=[];
+
+  if(type==='eco'){
+    title='<span style="color:var(--green)">💰 Économies chiffrables</span>';
+    formula='<strong>Formule :</strong> Coût externe estimé − Coût interne chiffrable<br>'+
+      '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
+      '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant A/R<br>'+
+      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · ⚡ Rush';
+    sites.forEach(function(s){
+      var sd=d.filter(function(i){return i.site===s});
+      siteData[s]={val:sd.reduce(function(sum,i){return sum+ecoCalc(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
+    });
+    var autres=d.filter(function(i){return sites.indexOf(i.site)<0});
+    if(autres.length)siteData['AUTRES']={val:autres.reduce(function(sum,i){return sum+ecoCalc(i)},0),color:'#A78BFA',name:'Autres'};
+    rows=d.map(function(i){
+      var e=ecoCalc(i);
+      var hc=heuresChiffrables(i);
+      var ci=coutInt(i);
+      var ce=coutExt(i);
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc+'h chiffr. | ext: '+fmt(ce)+' | int: '+fmt(ci),val:e,valStr:e>0?'<span style="color:var(--green);font-weight:600">'+fmt(e)+'</span>':'<span style="color:var(--text3)">-</span>'};
+    });
+
+  }else if(type==='heures'){
+    title='<span style="color:var(--accent)">⏱ Heures totales</span>';
+    formula='<strong>Formule :</strong> Somme de toutes les heures saisies sur le mois en cours<br>'+
+      '• Heures <strong>chiffrables</strong> = 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · ⚡ Rush<br>'+
+      '• Heures <strong>suivi</strong> = 🏗 Extérieur · 💦 Kärcher · 🍽 Salle · 🧹 PEP · 🍦 Machine à glace<br>'+
+      '• Total = chiffrables + suivi (les deux comptent dans le total affiché)';
+    sites.forEach(function(s){
+      var sd=d.filter(function(i){return i.site===s});
+      var hTot=sd.reduce(function(sum,i){return sum+totalH(i)},0);
+      var hC=sd.reduce(function(sum,i){return sum+heuresChiffrables(i)},0);
+      siteData[s]={val:hTot,valC:hC,color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s,unit:'h'};
+    });
+    var autres2=d.filter(function(i){return sites.indexOf(i.site)<0});
+    if(autres2.length){
+      var hA=autres2.reduce(function(sum,i){return sum+totalH(i)},0);
+      var hAC=autres2.reduce(function(sum,i){return sum+heuresChiffrables(i)},0);
+      siteData['AUTRES']={val:hA,valC:hAC,color:'#A78BFA',name:'Autres',unit:'h'};
+    }
+    rows=d.map(function(i){
+      var hc=heuresChiffrables(i);
+      var ht=totalH(i);
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc+'h chiffr. / '+(ht-hc)+'h suivi',val:ht,valStr:'<span style="color:var(--accent);font-weight:600">'+ht+'h</span> <span style="color:var(--text3);font-size:.7rem">('+hc+'h chiffr.)</span>'};
+    });
+
+  }else if(type==='interne'){
+    title='<span style="color:var(--blue)">🔵 Coût interne</span>';
+    formula='<strong>Formule :</strong> (Heures chiffrables × <strong>32.40 CHF/h</strong>) + matériaux + carburant A/R<br>'+
+      '• Seuls les travaux chiffrables entrent dans ce calcul<br>'+
+      '• Carburant = km A/R × <strong>'+c.conso+'L/100</strong> × <strong>'+c.prix+' CHF/L</strong><br>'+
+      '• Matériaux = montant saisi directement lors de la saisie de l\'intervention';
+    sites.forEach(function(s){
+      var sd=d.filter(function(i){return i.site===s});
+      var ciTot=sd.reduce(function(sum,i){return sum+coutInt(i)},0);
+      var deplTot=sd.reduce(function(sum,i){return sum+deplInt(i.depart,i.site).cost},0);
+      var matTot=sd.reduce(function(sum,i){return sum+(i.materiel||0)},0);
+      siteData[s]={val:ciTot,deplTot:deplTot,matTot:matTot,color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
+    });
+    var autres3=d.filter(function(i){return sites.indexOf(i.site)<0});
+    if(autres3.length)siteData['AUTRES']={val:autres3.reduce(function(sum,i){return sum+coutInt(i)},0),color:'#A78BFA',name:'Autres'};
+    rows=d.map(function(i){
+      var ci=coutInt(i);
+      var dp=deplInt(i.depart,i.site);
+      var hc=heuresChiffrables(i);
+      var tauxPart=hc*32.40;
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc+'h × 32.40='+(Math.round(hc*32.40*100)/100)+' CHF'+(i.materiel>0?' + '+i.materiel+' mat.':'')+(dp.cost>0?' + '+dp.cost.toFixed(2)+' carb.':''),val:ci,valStr:ci>0?'<span style="color:var(--blue);font-weight:600">'+fmt(ci)+'</span>':'<span style="color:var(--text3)">-</span>'};;
+    });
+
+  }else if(type==='externe'){
+    title='<span style="color:var(--red)">🔴 Coût si externe</span>';
+    formula='<strong>Formule :</strong> Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> de déplacement<br>'+
+      '• Représente ce qu\'aurait coûté un prestataire externe pour le même travail<br>'+
+      '• Calculé uniquement sur les heures chiffrables (pas les heures suivi)<br>'+
+      '• Si aucune heure chiffrable → coût externe = 0 (pas de déplacement facturé non plus)';
+    sites.forEach(function(s){
+      var sd=d.filter(function(i){return i.site===s});
+      siteData[s]={val:sd.reduce(function(sum,i){return sum+coutExt(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
+    });
+    var autres4=d.filter(function(i){return sites.indexOf(i.site)<0});
+    if(autres4.length)siteData['AUTRES']={val:autres4.reduce(function(sum,i){return sum+coutExt(i)},0),color:'#A78BFA',name:'Autres'};
+    rows=d.map(function(i){
+      var ce=coutExt(i);
+      var hc=heuresChiffrables(i);
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc>0?(hc+'h × '+c.tauxExterne+' + '+c.deplExt+' dépl.'):'Aucune h. chiffrable',val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
+    });
+  }
+
+  // Build modal body
+  var isH=(type==='heures');
+  var body='<div class="kpi-formula">'+formula+'</div>';
+
+  // Section titre résumé
+  var now2=new Date();
+  var curLabel=now2.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  body+='<div class="card-title" style="margin-bottom:.5rem;margin-top:.25rem">Résumé — '+curLabel+'</div>';
+  body+='<div class="kpi-summary-grid">';
+  var totalVal=0;
+  Object.keys(siteData).forEach(function(s){
+    var sd=siteData[s];
+    totalVal+=sd.val;
+    var valStr=isH?sd.val+'h':fmt(sd.val);
+    var subStr='';
+    if(isH&&sd.valC!==undefined)subStr='<div style="font-size:.68rem;color:var(--text3);margin-top:2px">dont '+sd.valC+'h chiffr.</div>';
+    body+='<div class="kpi-site-card" style="border-color:'+sd.color+'">'+
+      '<div class="kpi-site-name">'+sd.name+'</div>'+
+      '<div class="kpi-site-val" style="color:'+sd.color+'">'+valStr+'</div>'+
+      subStr+
+      '</div>';
+  });
+  body+='<div class="kpi-site-card" style="border-color:var(--text3)">'+
+    '<div class="kpi-site-name">TOTAL</div>'+
+    '<div class="kpi-site-val" style="color:var(--text)">'+(isH?totalVal+'h':fmt(totalVal))+'</div>'+
+    '</div>';
+  body+='</div>';
+
+  // Liste déroulante
+  if(rows.length){
+    var listId='kpiList_'+Date.now();
+    body+='<button class="kpi-detail-toggle" onclick="var l=document.getElementById(\''+listId+'\');l.classList.toggle(\'open\');this.querySelector(\'.toggle-arrow\').textContent=l.classList.contains(\'open\')?\'▲\':\'▼\'">'+
+      '<span>📋 Détail des interventions — '+rows.length+' ce mois</span>'+
+      '<span class="toggle-arrow">▼</span>'+
+      '</button>';
+    body+='<div class="kpi-detail-list" id="'+listId+'">'+
+      '<table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Détail calcul</th><th>Valeur</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      body+='<tr>'+
+        '<td style="white-space:nowrap">'+r.date+'</td>'+
+        '<td style="white-space:nowrap"><span class="site-dot" style="background:'+r.siteColor+'"></span>'+r.site+'</td>'+
+        '<td><div class="desc-tags">'+r.travaux+'</div></td>'+
+        '<td style="color:var(--text3);font-size:.73rem;white-space:nowrap">'+r.detail+'</td>'+
+        '<td style="white-space:nowrap">'+r.valStr+'</td>'+
+        '</tr>';
+    });
+    body+='</tbody></table></div>';
+  }else{
+    body+='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">📭 Aucune intervention ce mois-ci</div>';
+  }
+
+  document.getElementById('kpiModalTitle').innerHTML=title;
+  document.getElementById('kpiModalBody').innerHTML=body;
+  document.getElementById('kpiModal').classList.add('open');
+}
+
+function closeKpiModal(){document.getElementById('kpiModal').classList.remove('open')}
+document.getElementById('kpiModal').addEventListener('click',function(e){if(e.target===this)closeKpiModal()});
 
 // ========== REFRESH ==========
 function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
