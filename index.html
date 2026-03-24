@@ -296,7 +296,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="card"><div class="card-title">Objectif mensuel</div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 Basé sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires, interv. except., peinture, rush.</p></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 Basé sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires, interv. except., peinture. ⚡ Rush compte dans le coût interne mais pas dans le coût externe.</p></div>
     </div>
   </div>
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
@@ -382,6 +382,8 @@ var TRAVAUX=[
 ];
 var TMAP=Object.fromEntries(TRAVAUX.map(function(t){return[t.id,t]}));
 var CHIFFRABLE_IDS=TRAVAUX.filter(function(t){return t.chiffrable}).map(function(t){return t.id});
+// Rush = chiffrable (compte dans economies/interne) mais jamais sous-traitable a externe
+var EXTERNALISABLE_IDS=CHIFFRABLE_IDS.filter(function(id){return id!=='rush'});
 
 var DIST={
   'GD-NC':{km:5.2,min:8},'GD-ND':{km:8.3,min:12},'NC-ND':{km:2.4,min:5},
@@ -430,7 +432,8 @@ function coutIntChiffrable(tv){
 }
 
 function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntChiffrable(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
-function coutExt(i){var c=getConfig();var hc=heuresChiffrables(i);if(hc<=0)return 0;return hc*c.tauxExterne+c.deplExt}
+function heuresExternalisables(i){var tv=i.travaux||[];return tv.reduce(function(s,t){return s+(EXTERNALISABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0)}
+function coutExt(i){var c=getConfig();var he=heuresExternalisables(i);if(he<=0)return 0;return he*c.tauxExterne+c.deplExt}
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
 function coutIntTotal(i){var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+dp.cost}
 function sumH(tv){return(tv||[]).reduce(function(s,t){return s+(t.heures||0)},0)}
@@ -857,7 +860,8 @@ function openKpiModal(type){
     formula='<strong>Formule :</strong> Coût externe estimé − Coût interne chiffrable<br>'+
       '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
       '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant A/R<br>'+
-      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · ⚡ Rush';
+      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
+      '• ⚡ Rush = chiffrable (compte dans coût interne) mais <strong>exclu du coût externe</strong> (travail interne uniquement)';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       siteData[s]={val:sd.reduce(function(sum,i){return sum+ecoCalc(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
@@ -921,10 +925,10 @@ function openKpiModal(type){
 
   }else if(type==='externe'){
     title='<span style="color:var(--red)">🔴 Coût si externe</span>';
-    formula='<strong>Formule :</strong> Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> de déplacement<br>'+
+    formula='<strong>Formule :</strong> Heures externalisables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> de déplacement<br>'+
       '• Représente ce qu\'aurait coûté un prestataire externe pour le même travail<br>'+
-      '• Calculé uniquement sur les heures chiffrables (pas les heures suivi)<br>'+
-      '• Si aucune heure chiffrable → coût externe = 0 (pas de déplacement facturé non plus)';
+      '• Tags externalisables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
+      '• ⚡ Rush <strong>exclu</strong> : travail interne uniquement, jamais sous-traitable';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       siteData[s]={val:sd.reduce(function(sum,i){return sum+coutExt(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
@@ -933,8 +937,9 @@ function openKpiModal(type){
     if(autres4.length)siteData['AUTRES']={val:autres4.reduce(function(sum,i){return sum+coutExt(i)},0),color:'#A78BFA',name:'Autres'};
     rows=d.map(function(i){
       var ce=coutExt(i);
-      var hc=heuresChiffrables(i);
-      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc>0?(hc+'h × '+c.tauxExterne+' + '+c.deplExt+' dépl.'):'Aucune h. chiffrable',val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
+      var he=heuresExternalisables(i);
+      var hr=heuresChiffrables(i)-he;
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:he>0?(he+'h × '+c.tauxExterne+' + '+c.deplExt+' dépl.'+(hr>0?' (⚡'+hr+'h rush exclu)':'')):'Aucune h. externalisable',val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
     });
   }
 
