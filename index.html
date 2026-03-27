@@ -8,21 +8,21 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
---bg:#142117;--bg2:#1a2e1e;--bg3:#244029;--bg4:#2e5235;
---text:#f2f0e8;--text2:#b8bdaa;--text3:#7e8a6f;
+--bg:#0f172a;--bg2:#1e293b;--bg3:#273548;--bg4:#334155;
+--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
 --accent:#FFC72C;--accent2:#FFD54F;--accent-dim:rgba(255,199,44,.13);
 --red:#DA2C38;--red-dim:rgba(218,44,56,.15);
---green:#5BBD6B;--green-dim:rgba(91,189,107,.15);
+--green:#34D399;--green-dim:rgba(52,211,153,.15);
 --blue:#60A5FA;--blue-dim:rgba(96,165,250,.15);
 --purple:#A78BFA;--purple-dim:rgba(167,139,250,.15);
---pink:#F472B6;--cyan:#7DCEA0;--orange:#F97316;
+--pink:#F472B6;--cyan:#22D3EE;--orange:#F97316;
 --radius:12px;--radius-sm:8px;
 }
 html{font-size:15px}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
 input,select,textarea{font-family:inherit;outline:none}
-.nav{position:sticky;top:0;z-index:100;background:#122418;border-bottom:1px solid var(--accent);backdrop-filter:blur(16px);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem}
+.nav{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--accent);backdrop-filter:blur(16px);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem}
 .nav-logo{font-weight:700;font-size:1.15rem;color:var(--accent);letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem}
 .nav-logo span{font-size:.7rem;background:var(--accent-dim);color:var(--accent2);padding:2px 8px;border-radius:20px;font-weight:500}
 .nav-tabs{display:flex;gap:.25rem;margin-left:auto}
@@ -709,9 +709,9 @@ function exportPDF(){
   var el=document.getElementById('rapportContent');
   if(!el.innerHTML){toast('Genere un rapport d\'abord');return}
   toast('Generation PDF...');
-  el.style.background='#1a2e1e';
+  el.style.background='#1e293b';
   el.style.padding='20px';
-  html2canvas(el,{backgroundColor:'#1a2e1e',scale:2,useCORS:true,logging:false}).then(function(canvas){
+  html2canvas(el,{backgroundColor:'#1e293b',scale:2,useCORS:true,logging:false}).then(function(canvas){
     var imgData=canvas.toDataURL('image/jpeg',0.95);
     var pdf=new jspdf.jsPDF('p','mm','a4');
     var pageW=pdf.internal.pageSize.getWidth();
