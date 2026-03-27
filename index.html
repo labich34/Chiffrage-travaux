@@ -8,21 +8,21 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
---bg:#0f172a;--bg2:#1e293b;--bg3:#273548;--bg4:#334155;
---text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
---accent:#F59E0B;--accent2:#FBBF24;--accent-dim:rgba(245,158,11,.15);
+--bg:#142117;--bg2:#1a2e1e;--bg3:#244029;--bg4:#2e5235;
+--text:#f2f0e8;--text2:#b8bdaa;--text3:#7e8a6f;
+--accent:#FFC72C;--accent2:#FFD54F;--accent-dim:rgba(255,199,44,.13);
 --red:#DA2C38;--red-dim:rgba(218,44,56,.15);
---green:#34D399;--green-dim:rgba(52,211,153,.15);
+--green:#5BBD6B;--green-dim:rgba(91,189,107,.15);
 --blue:#60A5FA;--blue-dim:rgba(96,165,250,.15);
 --purple:#A78BFA;--purple-dim:rgba(167,139,250,.15);
---pink:#F472B6;--cyan:#22D3EE;--orange:#F97316;
+--pink:#F472B6;--cyan:#7DCEA0;--orange:#F97316;
 --radius:12px;--radius-sm:8px;
 }
 html{font-size:15px}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
 input,select,textarea{font-family:inherit;outline:none}
-.nav{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--bg4);backdrop-filter:blur(16px);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem}
+.nav{position:sticky;top:0;z-index:100;background:#122418;border-bottom:1px solid var(--accent);backdrop-filter:blur(16px);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem}
 .nav-logo{font-weight:700;font-size:1.15rem;color:var(--accent);letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem}
 .nav-logo span{font-size:.7rem;background:var(--accent-dim);color:var(--accent2);padding:2px 8px;border-radius:20px;font-weight:500}
 .nav-tabs{display:flex;gap:.25rem;margin-left:auto}
@@ -141,6 +141,20 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 .kpi-detail-list tbody td{padding:.45rem .6rem;border-bottom:1px solid var(--bg3);color:var(--text2)}
 .kpi-detail-list tbody tr:hover td{background:var(--bg3);color:var(--text)}
 
+/* PIECES */
+.pieces-section{margin-top:.5rem}
+.pieces-list{display:flex;flex-direction:column;gap:.4rem}
+.piece-row{display:flex;gap:.4rem;align-items:center;background:var(--bg3);padding:.45rem .6rem;border-radius:var(--radius-sm);border:1px solid var(--bg4)}
+.piece-row input{background:var(--bg);border:1px solid var(--bg4);border-radius:6px;padding:.35rem .5rem;color:var(--text);font-size:.82rem;font-family:inherit}
+.piece-row input:focus{border-color:var(--accent)}
+.piece-row input.piece-nom{flex:1;min-width:80px}
+.piece-row input.piece-prix{width:85px;text-align:right}
+.piece-row .piece-label{font-size:.68rem;color:var(--text3);white-space:nowrap}
+.piece-row .btn-piece-del{background:none;color:var(--red);font-size:1rem;padding:0 .3rem;line-height:1}
+.btn-add-piece{display:inline-flex;align-items:center;gap:.3rem;background:var(--bg3);border:1px dashed var(--accent);border-radius:var(--radius-sm);padding:.4rem .75rem;color:var(--accent);font-size:.8rem;font-weight:500;margin-top:.4rem;cursor:pointer;transition:all .2s}
+.btn-add-piece:hover{background:var(--accent-dim);border-style:solid}
+.eco-piece-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--cyan);color:#000;margin-left:4px}
+
 @media print{.nav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000}.card{border:1px solid #ddd;background:#fff}.kpi{border:1px solid #ddd;background:#f9f9f9}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
 @media(max-width:768px){.nav{flex-wrap:wrap;padding:.5rem .75rem}.nav-tabs{width:100%;overflow-x:auto;margin-left:0}.form-grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:1.2rem}.obj-remaining{font-size:1.5rem}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -148,7 +162,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 </head>
 <body>
 <nav class="nav">
-  <div class="nav-logo">🔧 Maintenance <span>La Côte</span></div>
+  <div class="nav-logo"><span style="font-size:1.3rem;line-height:1">🟡</span> Maintenance <span>La Côte</span></div>
   <div class="nav-tabs">
     <button class="nav-tab active" data-page="dashboard">Dashboard</button>
     <button class="nav-tab" data-page="saisie">+ Saisie</button>
@@ -166,7 +180,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="kpi-row" id="kpi-row"></div>
   <div class="chart-row">
     <div class="card"><div class="card-title">Coût Interne vs Externe par mois (chiffrable)</div><div class="chart-container"><canvas id="chartBar"></canvas></div></div>
-    <div class="card"><div class="card-title">Économies mensuelles (chiffrable)</div><div class="chart-container"><canvas id="chartLine"></canvas></div></div>
+    <div class="card"><div class="card-title">Économies mensuelles (chiffrable + pièces)</div><div class="chart-container"><canvas id="chartLine"></canvas></div></div>
   </div>
   <div class="chart-row">
     <div class="card"><div class="card-title">Heures par site</div><div class="chart-container"><canvas id="chartPie"></canvas></div></div>
@@ -195,6 +209,12 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
         <select class="form-input" id="fType"><option value="standard">Standard</option><option value="specialisee">Spécialisée</option></select>
       </div>
       <div class="form-group"><label class="form-label">Matériaux (CHF)</label><input type="number" step="0.01" min="0" class="form-input" id="fMateriel" value="0"></div>
+      <div class="form-group full">
+        <label class="form-label">🏷 Pièces — prix société externe (optionnel)</label>
+        <p style="font-size:.72rem;color:var(--text3);margin-bottom:.3rem">Si tu achètes des pièces toi-même, indique ici le prix que la société externe facturerait pour calculer l'économie pièces.</p>
+        <div class="pieces-list" id="fPieces"></div>
+        <button type="button" class="btn-add-piece" onclick="addPieceRow('fPieces')">+ Ajouter une pièce</button>
+      </div>
       <div class="form-group"><label class="form-label">Départ depuis</label>
         <select class="form-input" id="fDepart"><option value="">— Pas de trajet —</option><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select>
       </div>
@@ -333,6 +353,11 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
       <div class="form-group"><label class="form-label">Site</label><select class="form-input" id="eSite"><option value="GD">Gland</option><option value="NC">Nyon Centre</option><option value="ND">Nyon Drive</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select></div>
       <div class="form-group"><label class="form-label">Type</label><select class="form-input" id="eType"><option value="standard">Standard</option><option value="specialisee">Spécialisée</option></select></div>
       <div class="form-group"><label class="form-label">Matériaux</label><input type="number" step="0.01" class="form-input" id="eMateriel"></div>
+      <div class="form-group full">
+        <label class="form-label">🏷 Pièces — prix société externe</label>
+        <div class="pieces-list" id="ePieces"></div>
+        <button type="button" class="btn-add-piece" onclick="addPieceRow('ePieces')">+ Ajouter une pièce</button>
+      </div>
       <div class="form-group"><label class="form-label">Départ depuis</label><select class="form-input" id="eDepart"><option value="">— Aucun —</option><option value="GD">Gland</option><option value="NC">Nyon Centre</option><option value="ND">Nyon Drive</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select></div>
       <div class="form-group"><div id="eDeplInfo"></div></div>
       <div class="form-group full"><label class="form-label">Travaux</label><div class="tags-grid" id="eTags"></div></div>
@@ -411,7 +436,7 @@ function deplInt(depart,site){
 
 function heuresChiffrables(i){
   var tv=i.travaux||[];
-  return tv.reduce(function(s,t){return s+(CHIFFRABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0);
+  return rH(tv.reduce(function(s,t){return s+(CHIFFRABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0));
 }
 
 function coutIntTravaux(tv){
@@ -432,12 +457,13 @@ function coutIntChiffrable(tv){
 }
 
 function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
-function heuresExternalisables(i){var tv=i.travaux||[];return tv.reduce(function(s,t){return s+(EXTERNALISABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0)}
+function heuresExternalisables(i){var tv=i.travaux||[];return rH(tv.reduce(function(s,t){return s+(EXTERNALISABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0))}
 function coutExt(i){var c=getConfig();var he=heuresExternalisables(i);if(he<=0)return 0;return he*c.tauxExterne+c.deplExt}
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
 function coutIntTotal(i){var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+dp.cost}
-function sumH(tv){return(tv||[]).reduce(function(s,t){return s+(t.heures||0)},0)}
-function totalH(i){return i.heures||sumH(i.travaux)}
+function rH(n){return Math.round(n*100)/100}
+function sumH(tv){return rH((tv||[]).reduce(function(s,t){return s+(t.heures||0)},0))}
+function totalH(i){return rH(i.heures||sumH(i.travaux))}
 
 // ========== TAGS UI ==========
 function buildTags(cid){
@@ -473,28 +499,61 @@ document.getElementById('fSite').addEventListener('change',function(){showDeplIn
 document.getElementById('eDepart').addEventListener('change',function(){showDeplInfo('eDepart','eSite','eDeplInfo')});
 document.getElementById('eSite').addEventListener('change',function(){showDeplInfo('eDepart','eSite','eDeplInfo')});
 
+// ========== PIECES (prix societe externe) ==========
+function addPieceRow(cid,nom,prix){
+  var list=document.getElementById(cid);
+  var row=document.createElement('div');
+  row.className='piece-row';
+  row.innerHTML='<input type="text" class="piece-nom" placeholder="Nom piece" value="'+(nom||'')+'">'+
+    '<span class="piece-label">Prix ext.</span>'+
+    '<input type="number" step="0.01" min="0" class="piece-prix" placeholder="CHF" value="'+(prix||'')+'">'+
+    '<button type="button" class="btn-piece-del" onclick="this.parentElement.remove()" title="Supprimer">&times;</button>';
+  list.appendChild(row);
+}
+function getPieces(cid){
+  var rows=document.querySelectorAll('#'+cid+' .piece-row');
+  var pieces=[];
+  for(var i=0;i<rows.length;i++){
+    var nom=rows[i].querySelector('.piece-nom').value.trim();
+    var prix=parseFloat(rows[i].querySelector('.piece-prix').value)||0;
+    if(nom||prix>0)pieces.push({nom:nom,prixExt:prix});
+  }
+  return pieces;
+}
+function setPieces(cid,pieces){
+  document.getElementById(cid).innerHTML='';
+  (pieces||[]).forEach(function(p){addPieceRow(cid,p.nom,p.prixExt)});
+}
+function ecoPieces(i){
+  var pieces=i.pieces||[];
+  if(!pieces.length)return 0;
+  var totalPrixExt=pieces.reduce(function(s,p){return s+(p.prixExt||0)},0);
+  return Math.max(0,totalPrixExt-(i.materiel||0));
+}
+
 // ========== NAV ==========
 document.querySelectorAll('.nav-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});tab.classList.add('active');document.getElementById('page-'+tab.dataset.page).classList.add('active');refresh()})});
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
 
 // ========== SAISIE ==========
-function resetForm(){document.getElementById('fDate').value=new Date().toISOString().slice(0,10);document.getElementById('fMateriel').value='0';document.getElementById('fDesc').value='';document.getElementById('fDepart').value='';document.getElementById('fDeplInfo').innerHTML='';setTags('fTags',[])}
+function resetForm(){document.getElementById('fDate').value=new Date().toISOString().slice(0,10);document.getElementById('fMateriel').value='0';document.getElementById('fDesc').value='';document.getElementById('fDepart').value='';document.getElementById('fDeplInfo').innerHTML='';setTags('fTags',[]);setPieces('fPieces',[])}
 resetForm();
 function saveIntervention(){
   var date=document.getElementById('fDate').value,site=document.getElementById('fSite').value,type=document.getElementById('fType').value;
   var materiel=parseFloat(document.getElementById('fMateriel').value)||0;
   var depart=document.getElementById('fDepart').value;
+  var pieces=getPieces('fPieces');
   var travaux=getTags('fTags'),extra=document.getElementById('fDesc').value.trim(),heures=sumH(travaux);
   if(!date){toast('Date requise');return}if(!travaux.length){toast('Coche un travail');return}if(heures<=0){toast('Indique les heures');return}
-  var d=getData();d.push({id:Date.now(),date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:extra});
+  var d=getData();d.push({id:Date.now(),date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:extra,pieces:pieces});
   setData(d);toast('Enregistree');resetForm();refresh();
 }
 
 // ========== EDIT ==========
 var editId=null;
-function openEdit(id){var d=getData().find(function(i){return i.id===id});if(!d)return;editId=id;document.getElementById('eDate').value=d.date;document.getElementById('eSite').value=d.site;document.getElementById('eType').value=d.type;document.getElementById('eMateriel').value=d.materiel||0;document.getElementById('eDepart').value=d.depart||'';setTags('eTags',d.travaux||[]);document.getElementById('eDesc').value=d.extra||'';showDeplInfo('eDepart','eSite','eDeplInfo');document.getElementById('editModal').classList.add('open')}
+function openEdit(id){var d=getData().find(function(i){return i.id===id});if(!d)return;editId=id;document.getElementById('eDate').value=d.date;document.getElementById('eSite').value=d.site;document.getElementById('eType').value=d.type;document.getElementById('eMateriel').value=d.materiel||0;document.getElementById('eDepart').value=d.depart||'';setTags('eTags',d.travaux||[]);setPieces('ePieces',d.pieces||[]);document.getElementById('eDesc').value=d.extra||'';showDeplInfo('eDepart','eSite','eDeplInfo');document.getElementById('editModal').classList.add('open')}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');editId=null}
-function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();setData(d);closeEditModal();toast('Mis a jour');refresh()}
+function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);closeEditModal();toast('Mis a jour');refresh()}
 function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));closeEditModal();toast('Supprimee');refresh()}
 
 // ========== CONFIG ==========
@@ -527,7 +586,7 @@ function renderObjective(){
   var c=getConfig();var obj=c.objectif;
   var now=new Date();var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
   var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
-  var ecoMois=d.reduce(function(s,i){return s+ecoCalc(i)},0);
+  var ecoMois=d.reduce(function(s,i){return s+ecoCalc(i)+ecoPieces(i)},0);
   var restant=Math.max(0,obj-ecoMois);
   var pct=obj>0?Math.min(100,ecoMois/obj*100):0;
   var atteint=ecoMois>=obj;
@@ -546,14 +605,18 @@ function renderObjective(){
 // ========== RENDER DASHBOARD ==========
 function renderKPIs(){
   var d=getData();var c=getConfig();
-  var tH=d.reduce(function(s,i){return s+totalH(i)},0);
-  var hChiffr=d.reduce(function(s,i){return s+heuresChiffrables(i)},0);
+  var tH=rH(d.reduce(function(s,i){return s+totalH(i)},0));
+  var hChiffr=rH(d.reduce(function(s,i){return s+heuresChiffrables(i)},0));
   var tI=d.reduce(function(s,i){return s+coutInt(i)},0);
   var tE=d.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
   var tDepl=d.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
+  var tEcoPieces=d.reduce(function(s,i){return s+ecoPieces(i)},0);
+  var ecoTotale=tEco+tEcoPieces;
+  var subEco='Taux: '+pct.toFixed(1)+'%';
+  if(tEcoPieces>0)subEco+=' · dont '+fmt(tEcoPieces)+' pieces';
   document.getElementById('kpi-row').innerHTML=
-    '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies (chiffrable) 🔍</span><span class="kpi-value">'+fmt(tEco)+'</span><span class="kpi-sub">Taux: '+pct.toFixed(1)+'%</span></div>'+
+    '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies totales 🔍</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEco+'</span></div>'+
     '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+tH+'h</span><span class="kpi-sub">dont '+hChiffr+'h chiffrables</span></div>'+
     '<div class="kpi blue" onclick="openKpiModal(\'interne\')" title="Voir le detail"><span class="kpi-label">Cout interne 🔍</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
     '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/depl.</span></div>';
@@ -562,27 +625,27 @@ function renderLast(){
   var d=getData().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0}).slice(0,8);
   var tb=document.querySelector('#tableLast tbody');
   if(!d.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3)">Aucune donnee</td></tr>';return}
-  tb.innerHTML=d.map(function(i){var e=ecoCalc(i);return '<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+totalH(i)+'h</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td style="color:'+(e>0?'var(--green)':'var(--text3)')+';font-weight:600">'+(e>0?fmt(e):'-')+'</td></tr>'}).join('');
+  tb.innerHTML=d.map(function(i){var e=ecoCalc(i)+ecoPieces(i);return '<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+totalH(i)+'h</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td style="color:'+(e>0?'var(--green)':'var(--text3)')+';font-weight:600">'+(e>0?fmt(e):'-')+'</td></tr>'}).join('');
 }
 function renderList(){
   var d=getFiltered();var tb=document.querySelector('#tableAll tbody');var em=document.getElementById('emptyInt');
   if(!d.length){tb.innerHTML='';em.style.display='block';return}em.style.display='none';
-  tb.innerHTML=d.map(function(i){var ci=coutInt(i),ce=coutExt(i),e=ce-ci;return '<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+totalH(i)+'h</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(e>0?fmt(e):'-')+'</td><td><button class="btn btn-ghost btn-sm" onclick="openEdit('+i.id+')">✏️</button></td></tr>'}).join('');
+  tb.innerHTML=d.map(function(i){var ci=coutInt(i),ce=coutExt(i),ep=ecoPieces(i),e=ce-ci+ep;return '<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+totalH(i)+'h</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(e>0?fmt(e):'-')+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pieces</span>':'')+'</td><td><button class="btn btn-ghost btn-sm" onclick="openEdit('+i.id+')">✏️</button></td></tr>'}).join('');
 }
 
 // ========== CHARTS ==========
 var ch={};function destroyCh(){Object.values(ch).forEach(function(c){if(c)c.destroy()});ch={}}
 Chart.defaults.color='#a0a0b8';Chart.defaults.font.family='DM Sans';Chart.defaults.plugins.legend.labels.boxWidth=12;
-function mData(){var d=getData();var m={};d.forEach(function(i){var k=i.date.slice(0,7);if(!m[k])m[k]={i:0,e:0,eco:0};m[k].i+=coutInt(i);m[k].e+=coutExt(i);m[k].eco+=ecoCalc(i)});var s=Object.keys(m).sort();return{labels:s.map(fM),int:s.map(function(k){return m[k].i}),ext:s.map(function(k){return m[k].e}),eco:s.map(function(k){return m[k].eco})}}
+function mData(){var d=getData();var m={};d.forEach(function(i){var k=i.date.slice(0,7);if(!m[k])m[k]={i:0,e:0,eco:0};m[k].i+=coutInt(i);m[k].e+=coutExt(i);m[k].eco+=ecoCalc(i)+ecoPieces(i)});var s=Object.keys(m).sort();return{labels:s.map(fM),int:s.map(function(k){return m[k].i}),ext:s.map(function(k){return m[k].e}),eco:s.map(function(k){return m[k].eco})}}
 function renderCharts(){
   destroyCh();var md=mData();var d=getData();
   if(md.labels.length){
     ch.bar=new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels:md.labels,datasets:[{label:'Interne',data:md.int,backgroundColor:'#60A5FA',borderRadius:4,barPercentage:.4},{label:'Externe',data:md.ext,backgroundColor:'#DA2C38',borderRadius:4,barPercentage:.4}]},options:{responsive:true,plugins:{legend:{position:'top'}},scales:{y:{ticks:{callback:function(v){return v+' CHF'}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false}}}}});
     ch.line=new Chart(document.getElementById('chartLine'),{type:'line',data:{labels:md.labels,datasets:[{label:'Economies',data:md.eco,borderColor:'#34D399',backgroundColor:'rgba(52,211,153,.1)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#34D399'}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return v+' CHF'}},grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false}}}}});
   }
-  var sd={};d.forEach(function(i){sd[i.site]=(sd[i.site]||0)+totalH(i)});var sk=Object.keys(sd);
+  var sd={};d.forEach(function(i){sd[i.site]=rH((sd[i.site]||0)+totalH(i))});var sk=Object.keys(sd);
   if(sk.length)ch.pie=new Chart(document.getElementById('chartPie'),{type:'doughnut',data:{labels:sk.map(function(s){return SITES[s]?SITES[s].name:s}),datasets:[{data:sk.map(function(s){return sd[s]}),backgroundColor:sk.map(function(s){return SITES[s]?SITES[s].color:'#888'}),borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'right'}}}});
-  var cd={};d.forEach(function(i){(i.travaux||[]).forEach(function(t){cd[t.id]=(cd[t.id]||0)+(t.heures||0)})});var ck=Object.keys(cd).sort(function(a,b){return cd[b]-cd[a]});
+  var cd={};d.forEach(function(i){(i.travaux||[]).forEach(function(t){cd[t.id]=rH((cd[t.id]||0)+(t.heures||0))})});var ck=Object.keys(cd).sort(function(a,b){return cd[b]-cd[a]});
   var cc=['#34D399','#60A5FA','#F472B6','#A78BFA','#DA2C38','#FBBF24','#F97316','#22D3EE','#818CF8','#6EE7B7','#FB923C'];
   if(ck.length)ch.cat=new Chart(document.getElementById('chartCat'),{type:'doughnut',data:{labels:ck.map(function(c){return(TMAP[c]||{label:c}).label+(CHIFFRABLE_IDS.indexOf(c)>=0?' *':'')}),datasets:[{data:ck.map(function(c){return cd[c]}),backgroundColor:cc.slice(0,ck.length),borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'right'}}}});
 }
@@ -594,36 +657,40 @@ function genRapport(){
   if(!start||!end){toast('Dates requises');return}
   var all=getData().filter(function(i){return i.date>=start&&i.date<=end}).sort(function(a,b){return a.date>b.date?1:a.date<b.date?-1:0});
   var c=getConfig();
-  var tH=all.reduce(function(s,i){return s+totalH(i)},0);
-  var hC=all.reduce(function(s,i){return s+heuresChiffrables(i)},0);
+  var tH=rH(all.reduce(function(s,i){return s+totalH(i)},0));
+  var hC=rH(all.reduce(function(s,i){return s+heuresChiffrables(i)},0));
   var tI=all.reduce(function(s,i){return s+coutInt(i)},0);var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
+  var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
+  var ecoTotale=tEco+tEcoPieces;
   var spec=all.filter(function(i){return i.type==='specialisee'});
   var specEco=spec.reduce(function(s,i){return s+ecoCalc(i)},0);
 
-  var months={};all.forEach(function(i){var k=i.date.slice(0,7);if(!months[k])months[k]={h:0,hc:0,ci:0,ce:0,eco:0,n:0,depl:0};months[k].h+=totalH(i);months[k].hc+=heuresChiffrables(i);months[k].ci+=coutInt(i);months[k].ce+=coutExt(i);months[k].eco+=ecoCalc(i);months[k].n++;months[k].depl+=deplInt(i.depart,i.site).cost});
+  var months={};all.forEach(function(i){var k=i.date.slice(0,7);if(!months[k])months[k]={h:0,hc:0,ci:0,ce:0,eco:0,ecoP:0,n:0,depl:0};months[k].h=rH(months[k].h+totalH(i));months[k].hc=rH(months[k].hc+heuresChiffrables(i));months[k].ci+=coutInt(i);months[k].ce+=coutExt(i);months[k].eco+=ecoCalc(i);months[k].ecoP+=ecoPieces(i);months[k].n++;months[k].depl+=deplInt(i.depart,i.site).cost});
   var mKeys=Object.keys(months).sort();
 
   var html='<div style="text-align:center;padding:1.5rem;border-bottom:2px solid var(--accent);margin-bottom:1rem"><h2 style="font-size:1.3rem;color:var(--accent)">🔧 Rapport Maintenance</h2><p style="color:var(--text2);font-size:.85rem">Periode : '+fD(start)+' au '+fD(end)+'</p></div>';
 
+  var subEcoR=''+pct.toFixed(1)+'%';
+  if(tEcoPieces>0)subEcoR+=' · dont '+fmt(tEcoPieces)+' pieces';
   html+='<div class="kpi-row" style="margin-top:1rem">'+
-    '<div class="kpi green"><span class="kpi-label">Economies (chiffrable)</span><span class="kpi-value">'+fmt(tEco)+'</span><span class="kpi-sub">'+pct.toFixed(1)+'%</span></div>'+
+    '<div class="kpi green"><span class="kpi-label">Economies totales</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEcoR+'</span></div>'+
     '<div class="kpi accent"><span class="kpi-label">Heures</span><span class="kpi-value">'+tH+'h</span><span class="kpi-sub">dont '+hC+'h chiffrables</span></div>'+
     '<div class="kpi blue"><span class="kpi-label">Cout interne</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
     '<div class="kpi red"><span class="kpi-label">Cout externe</span><span class="kpi-value">'+fmt(tE)+'</span></div></div>';
 
   if(mKeys.length>1){
-    html+='<div class="card"><div class="card-title">Detail mensuel</div><div class="table-wrap"><table><thead><tr><th>Mois</th><th>Interv.</th><th>Heures</th><th>Chiffr.</th><th>Interne</th><th>Externe</th><th>Economie</th><th>%</th></tr></thead><tbody>';
-    mKeys.forEach(function(k){var m=months[k];var p=m.ce>0?(m.eco/m.ce*100):0;
-      html+='<tr><td>'+fML(k)+'</td><td>'+m.n+'</td><td>'+m.h+'h</td><td>'+m.hc+'h</td><td>'+fmt(m.ci)+'</td><td style="color:var(--red)">'+fmt(m.ce)+'</td><td style="color:var(--green);font-weight:600">'+fmt(m.eco)+'</td><td>'+p.toFixed(1)+'%</td></tr>'});
-    html+='<tr style="font-weight:700;border-top:2px solid var(--bg4)"><td>TOTAL</td><td>'+all.length+'</td><td>'+tH+'h</td><td>'+hC+'h</td><td>'+fmt(tI)+'</td><td style="color:var(--red)">'+fmt(tE)+'</td><td style="color:var(--green)">'+fmt(tEco)+'</td><td>'+pct.toFixed(1)+'%</td></tr>';
+    html+='<div class="card"><div class="card-title">Detail mensuel</div><div class="table-wrap"><table><thead><tr><th>Mois</th><th>Interv.</th><th>Heures</th><th>Chiffr.</th><th>Interne</th><th>Externe</th><th>Eco. chiffr.</th><th>Eco. pieces</th><th>Eco. totale</th><th>%</th></tr></thead><tbody>';
+    mKeys.forEach(function(k){var m=months[k];var p=m.ce>0?(m.eco/m.ce*100):0;var mTot=m.eco+m.ecoP;
+      html+='<tr><td>'+fML(k)+'</td><td>'+m.n+'</td><td>'+m.h+'h</td><td>'+m.hc+'h</td><td>'+fmt(m.ci)+'</td><td style="color:var(--red)">'+fmt(m.ce)+'</td><td style="color:var(--green)">'+fmt(m.eco)+'</td><td style="color:var(--cyan)">'+(m.ecoP>0?fmt(m.ecoP):'-')+'</td><td style="color:var(--green);font-weight:600">'+fmt(mTot)+'</td><td>'+p.toFixed(1)+'%</td></tr>'});
+    html+='<tr style="font-weight:700;border-top:2px solid var(--bg4)"><td>TOTAL</td><td>'+all.length+'</td><td>'+tH+'h</td><td>'+hC+'h</td><td>'+fmt(tI)+'</td><td style="color:var(--red)">'+fmt(tE)+'</td><td style="color:var(--green)">'+fmt(tEco)+'</td><td style="color:var(--cyan)">'+(tEcoPieces>0?fmt(tEcoPieces):'-')+'</td><td style="color:var(--green)">'+fmt(ecoTotale)+'</td><td>'+pct.toFixed(1)+'%</td></tr>';
     html+='</tbody></table></div></div>';
   }
 
   html+='<div class="card"><div class="card-title">Liste complete ('+all.length+')</div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Type</th><th>Int.</th><th>Ext.</th><th>Eco.</th></tr></thead><tbody>';
-  all.forEach(function(i){var ci=coutInt(i),ce=coutExt(i);html+='<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+totalH(i)+'h</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(ce-ci>0?fmt(ce-ci):'-')+'</td></tr>'});
+  all.forEach(function(i){var ci=coutInt(i),ce=coutExt(i),ep=ecoPieces(i),eTotal=ce-ci+ep;html+='<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+totalH(i)+'h</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(eTotal>0?fmt(eTotal):'-')+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pieces</span>':'')+'</td></tr>'});
   html+='</tbody></table></div></div>';
 
   document.getElementById('rapportContent').innerHTML=html;
@@ -642,9 +709,9 @@ function exportPDF(){
   var el=document.getElementById('rapportContent');
   if(!el.innerHTML){toast('Genere un rapport d\'abord');return}
   toast('Generation PDF...');
-  el.style.background='#1e293b';
+  el.style.background='#1a2e1e';
   el.style.padding='20px';
-  html2canvas(el,{backgroundColor:'#1e293b',scale:2,useCORS:true,logging:false}).then(function(canvas){
+  html2canvas(el,{backgroundColor:'#1a2e1e',scale:2,useCORS:true,logging:false}).then(function(canvas){
     var imgData=canvas.toDataURL('image/jpeg',0.95);
     var pdf=new jspdf.jsPDF('p','mm','a4');
     var pageW=pdf.internal.pageSize.getWidth();
@@ -811,7 +878,7 @@ function renderGlobalCosts(){
     var ci=siteData.reduce(function(sum,i){return sum+coutInt(i)},0);
     var cs=siteData.reduce(function(sum,i){return sum+coutIntTotal(i)-coutInt(i)},0);
     var ct=contrats.filter(function(c){return c.site===s}).reduce(function(sum,c){return sum+c.montant},0);
-    var eco=siteData.reduce(function(sum,i){return sum+ecoCalc(i)},0);
+    var eco=siteData.reduce(function(sum,i){return sum+ecoCalc(i)+ecoPieces(i)},0);
     var total=ci+cs+ct;
     totCI+=ci;totCS+=cs;totCT+=ct;totAll+=total;totEco+=eco;
 
@@ -827,7 +894,7 @@ function renderGlobalCosts(){
   if(autresData.length){
     var ci2=autresData.reduce(function(sum,i){return sum+coutInt(i)},0);
     var cs2=autresData.reduce(function(sum,i){return sum+coutIntTotal(i)-coutInt(i)},0);
-    var eco2=autresData.reduce(function(sum,i){return sum+ecoCalc(i)},0);
+    var eco2=autresData.reduce(function(sum,i){return sum+ecoCalc(i)+ecoPieces(i)},0);
     var total2=ci2+cs2;
     totCI+=ci2;totCS+=cs2;totAll+=total2;totEco+=eco2;
     html+='<tr><td><span class="site-dot" style="background:var(--purple)"></span><strong>Autres</strong></td>';
@@ -856,24 +923,36 @@ function openKpiModal(type){
   var title='',formula='',siteData={},rows=[];
 
   if(type==='eco'){
-    title='<span style="color:var(--green)">💰 Économies chiffrables</span>';
-    formula='<strong>Formule :</strong> Coût externe estimé − Coût interne chiffrable<br>'+
+    title='<span style="color:var(--green)">💰 Économies totales</span>';
+    formula='<strong>Formule :</strong> Éco. chiffrables + Éco. pièces<br>'+
+      '• <strong>Éco. chiffrables</strong> = Coût externe estimé − Coût interne chiffrable<br>'+
       '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
       '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant A/R<br>'+
+      '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux<br>'+
       '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
       '• ⚡ Rush = chiffrable (compte dans coût interne) mais <strong>exclu du coût externe</strong> (travail interne uniquement)';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
-      siteData[s]={val:sd.reduce(function(sum,i){return sum+ecoCalc(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
+      var ecoC=sd.reduce(function(sum,i){return sum+ecoCalc(i)},0);
+      var ecoP=sd.reduce(function(sum,i){return sum+ecoPieces(i)},0);
+      siteData[s]={val:ecoC+ecoP,ecoP:ecoP,color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
     });
     var autres=d.filter(function(i){return sites.indexOf(i.site)<0});
-    if(autres.length)siteData['AUTRES']={val:autres.reduce(function(sum,i){return sum+ecoCalc(i)},0),color:'#A78BFA',name:'Autres'};
+    if(autres.length){
+      var ecoCA=autres.reduce(function(sum,i){return sum+ecoCalc(i)},0);
+      var ecoPA=autres.reduce(function(sum,i){return sum+ecoPieces(i)},0);
+      siteData['AUTRES']={val:ecoCA+ecoPA,ecoP:ecoPA,color:'#A78BFA',name:'Autres'};
+    }
     rows=d.map(function(i){
       var e=ecoCalc(i);
+      var ep=ecoPieces(i);
+      var eTotal=e+ep;
       var hc=heuresChiffrables(i);
       var ci=coutInt(i);
       var ce=coutExt(i);
-      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:hc+'h chiffr. | ext: '+fmt(ce)+' | int: '+fmt(ci),val:e,valStr:e>0?'<span style="color:var(--green);font-weight:600">'+fmt(e)+'</span>':'<span style="color:var(--text3)">-</span>'};
+      var detailStr=hc+'h chiffr. | ext: '+fmt(ce)+' | int: '+fmt(ci);
+      if(ep>0)detailStr+=' | pieces: +'+fmt(ep);
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:detailStr,val:eTotal,valStr:eTotal>0?'<span style="color:var(--green);font-weight:600">'+fmt(eTotal)+'</span>'+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pieces</span>':''):'<span style="color:var(--text3)">-</span>'};
     });
 
   }else if(type==='heures'){
@@ -884,14 +963,14 @@ function openKpiModal(type){
       '• Total = chiffrables + suivi (les deux comptent dans le total affiché)';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
-      var hTot=sd.reduce(function(sum,i){return sum+totalH(i)},0);
-      var hC=sd.reduce(function(sum,i){return sum+heuresChiffrables(i)},0);
+      var hTot=rH(sd.reduce(function(sum,i){return sum+totalH(i)},0));
+      var hC=rH(sd.reduce(function(sum,i){return sum+heuresChiffrables(i)},0));
       siteData[s]={val:hTot,valC:hC,color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s,unit:'h'};
     });
     var autres2=d.filter(function(i){return sites.indexOf(i.site)<0});
     if(autres2.length){
-      var hA=autres2.reduce(function(sum,i){return sum+totalH(i)},0);
-      var hAC=autres2.reduce(function(sum,i){return sum+heuresChiffrables(i)},0);
+      var hA=rH(autres2.reduce(function(sum,i){return sum+totalH(i)},0));
+      var hAC=rH(autres2.reduce(function(sum,i){return sum+heuresChiffrables(i)},0));
       siteData['AUTRES']={val:hA,valC:hAC,color:'#A78BFA',name:'Autres',unit:'h'};
     }
     rows=d.map(function(i){
@@ -961,6 +1040,7 @@ function openKpiModal(type){
     var valStr=isH?sd.val+'h':fmt(sd.val);
     var subStr='';
     if(isH&&sd.valC!==undefined)subStr='<div style="font-size:.68rem;color:var(--text3);margin-top:2px">dont '+sd.valC+'h chiffr.</div>';
+    if(sd.ecoP!==undefined&&sd.ecoP>0)subStr='<div style="font-size:.68rem;color:var(--cyan);margin-top:2px">dont '+fmt(sd.ecoP)+' pieces</div>';
     body+='<div class="kpi-site-card" style="border-color:'+sd.color+'">'+
       '<div class="kpi-site-name">'+sd.name+'</div>'+
       '<div class="kpi-site-val" style="color:'+sd.color+'">'+valStr+'</div>'+
