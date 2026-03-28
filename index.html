@@ -156,6 +156,26 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 .btn-add-piece:hover{background:var(--accent-dim);border-style:solid}
 .eco-piece-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--cyan);color:#000;margin-left:4px}
 
+/* TEMPS DE TRAVAIL SAISIE */
+.tt-site-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem}
+.tt-site-btn{border:2px solid var(--bg4);background:var(--bg3);border-radius:var(--radius-sm);padding:.7rem .4rem;display:flex;flex-direction:column;align-items:center;gap:.3rem;cursor:pointer;transition:all .18s;font-family:inherit}
+.tt-site-btn:hover{border-color:var(--text3)}
+.tt-site-btn.selected{border-color:var(--tt-color);background:rgba(255,255,255,.05)}
+.tt-site-btn .tt-dot{width:10px;height:10px;border-radius:50%;background:var(--tt-color)}
+.tt-site-btn .tt-name{font-size:.78rem;font-weight:700;color:var(--text)}
+.tt-site-btn .tt-code{font-size:.65rem;color:var(--text3);font-weight:500}
+.tt-time-row{display:flex;gap:.5rem;align-items:center}
+.tt-time-row .tt-input{flex:1;background:var(--bg3);border:1px solid var(--bg4);border-radius:var(--radius-sm);padding:.6rem .7rem;color:var(--accent);font-size:1.1rem;font-weight:600;text-align:center;font-family:inherit}
+.tt-time-row .tt-input:focus{border-color:var(--accent)}
+.tt-time-row .tt-sep{font-size:1.2rem;font-weight:700;color:var(--text3)}
+.tt-dur{text-align:center;padding:.6rem;background:var(--bg3);border-radius:var(--radius-sm);margin-top:.5rem}
+.tt-dur-val{font-size:1.3rem;font-weight:700;color:var(--accent)}
+.tt-dur-lbl{font-size:.68rem;color:var(--text3)}
+.tt-rush-toggle{display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;background:var(--bg3);border:1px solid var(--bg4);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;margin-top:.5rem;font-family:inherit;color:var(--text2);font-size:.85rem;font-weight:500}
+.tt-rush-toggle.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.tt-rush-toggle .rush-indicator{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:background .2s}
+.tt-rush-toggle.on .rush-indicator{background:var(--accent)}
+
 /* CLASSEUR MENSUEL */
 .classeur-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--bg4)}
 .classeur-tab{padding:.45rem .85rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;color:var(--text3);background:var(--bg3);border:1px solid var(--bg4);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.35rem}
@@ -213,6 +233,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     <button class="nav-tab" data-page="saisie">+ Saisie</button>
     <button class="nav-tab" data-page="interventions">Interventions</button>
     <button class="nav-tab" data-page="contrats">Contrats</button>
+    <button class="nav-tab" data-page="temps">⏱ Temps</button>
     <button class="nav-tab" data-page="rapport">Rapport</button>
     <button class="nav-tab" data-page="config">Config</button>
   </div>
@@ -275,6 +296,43 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
       </div>
     </div>
   </div>
+  <div class="card" style="margin-top:.5rem">
+    <div class="card-title">⏱ Saisie temps de travail</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="ttDate"></div>
+      <div class="form-group"><div></div></div>
+      <div class="form-group full">
+        <label class="form-label">Site</label>
+        <div class="tt-site-grid" id="ttSiteGrid"></div>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Horaires</label>
+        <div class="tt-time-row">
+          <input type="time" class="tt-input" id="ttStart" oninput="calcTTDuration()">
+          <span class="tt-sep">→</span>
+          <input type="time" class="tt-input" id="ttEnd" oninput="calcTTDuration()">
+        </div>
+        <div class="tt-dur" id="ttDurBox" style="display:none">
+          <div class="tt-dur-val" id="ttDurVal"></div>
+          <div class="tt-dur-lbl">durée</div>
+        </div>
+      </div>
+      <div class="form-group full">
+        <button type="button" class="tt-rush-toggle" id="ttRushBtn" onclick="toggleTTRush()">
+          <span class="rush-indicator"></span> ⚡ Rush
+        </button>
+      </div>
+      <div class="form-group full"><label class="form-label">Note (optionnel)</label><input type="text" class="form-input" id="ttNote" placeholder="Ex: Nettoyage, travaux..."></div>
+      <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="saveTTEntry()">💾 Enregistrer temps</button>
+        <button class="btn btn-ghost" onclick="resetTTForm()">Effacer</button>
+      </div>
+    </div>
+    <div style="margin-top:.75rem">
+      <div class="card-title" style="font-size:.7rem">Dernières saisies</div>
+      <div id="ttLastEntries"></div>
+    </div>
+  </div>
 </div>
 
 <!-- INTERVENTIONS -->
@@ -335,6 +393,21 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <p style="font-size:.72rem;color:var(--text3);margin-top:.5rem;text-align:center">ℹ️ Les contrats externes sont informatifs et ne rentrent pas dans le calcul des économies.</p>
 </div>
 
+<!-- TEMPS DE TRAVAIL -->
+<div class="page" id="page-temps">
+  <div class="card">
+    <div class="card-title">⏱ Temps de travail — Synthèse</div>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Données importées automatiquement depuis l'app Temps de Travail (localStorage partagé).</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem">
+      <select class="form-input" id="ttFilterMonth" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="renderTemps()"><option value="all">Tous mois</option></select>
+      <span style="margin-left:auto"></span>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ttImportFile').click()">📤 Importer JSON Temps de Travail</button>
+      <input type="file" id="ttImportFile" accept=".json" style="display:none" onchange="importTTJSON(event)">
+    </div>
+    <div id="tempsContent"></div>
+  </div>
+</div>
+
 <!-- RAPPORT -->
 <div class="page" id="page-rapport">
   <div class="card no-print">
@@ -367,12 +440,12 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="card"><div class="card-title">Objectif mensuel</div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 Basé sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires, interv. except., peinture. ⚡ Rush compte dans le coût interne mais pas dans le coût externe.</p></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 Basé sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires, interv. except., peinture.</p></div>
     </div>
   </div>
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
     <div class="table-wrap"><table><thead><tr><th>Tag</th><th>Taux</th><th>Type</th></tr></thead><tbody>
-      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture, ⚡ Rush</td><td style="color:var(--green);font-weight:600">32.40 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
+      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture</td><td style="color:var(--green);font-weight:600">32.40 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
       <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">26.90 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
       <tr><td>🍦 Machine à glace</td><td style="color:var(--accent);font-weight:600">32 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
     </tbody></table></div>
@@ -390,7 +463,6 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   <div class="card"><div class="card-title">Distances inter-sites (aller simple)</div>
     <div class="table-wrap"><table id="tableDistances"><thead><tr><th>De → Vers</th><th>km</th><th>~min</th></tr></thead><tbody></tbody></table></div>
   </div>
-  <div class="card"><div class="card-title">Données</div><button class="btn btn-danger" onclick="confirmPurge()">🗑 Tout supprimer</button></div>
 </div>
 
 </div>
@@ -449,7 +521,6 @@ var TRAVAUX=[
   {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32.40},
   {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32.40},
   {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32.40},
-  {id:'rush',icon:'⚡',label:'Rush',chiffrable:true,taux:32.40},
   {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:26.90},
   {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:26.90},
   {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:26.90},
@@ -458,8 +529,8 @@ var TRAVAUX=[
 ];
 var TMAP=Object.fromEntries(TRAVAUX.map(function(t){return[t.id,t]}));
 var CHIFFRABLE_IDS=TRAVAUX.filter(function(t){return t.chiffrable}).map(function(t){return t.id});
-// Rush = chiffrable (compte dans economies/interne) mais jamais sous-traitable a externe
-var EXTERNALISABLE_IDS=CHIFFRABLE_IDS.filter(function(id){return id!=='rush'});
+// Tous les chiffrables sont externalisables (rush est maintenant dans la saisie Temps de Travail)
+var EXTERNALISABLE_IDS=CHIFFRABLE_IDS.slice();
 
 var DIST={
   'GD-NC':{km:5.2,min:8},'GD-ND':{km:8.3,min:12},'NC-ND':{km:2.4,min:5},
@@ -591,6 +662,27 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 // ========== SAISIE ==========
 function resetForm(){document.getElementById('fDate').value=new Date().toISOString().slice(0,10);document.getElementById('fMateriel').value='0';document.getElementById('fDesc').value='';document.getElementById('fDepart').value='';document.getElementById('fDeplInfo').innerHTML='';setTags('fTags',[]);setPieces('fPieces',[])}
 resetForm();
+// Mapping sites Maintenance -> sites Temps de Travail
+var MAINT_TO_TT={GD:'GD',NC:'NC',ND:'ND',DIVERS:'CRECHE',SIEGE:'THIB'};
+
+function createTTFromIntervention(date,site,heures,note,maintId){
+  var ttSite=MAINT_TO_TT[site];
+  if(!ttSite)return;
+  var totalMin=Math.round(heures*60);
+  if(totalMin<=0)return;
+  var startH=7,startM=0;
+  var endMin=startH*60+startM+totalMin;
+  var endH=Math.floor(endMin/60);
+  var endM=endMin%60;
+  var startStr=(startH<10?'0':'')+startH+':'+(startM<10?'0':'')+startM;
+  var endStr=(endH<10?'0':'')+endH+':'+(endM<10?'0':'')+endM;
+
+  var entries=getTTEntries();
+  entries.push({id:Date.now()+1,date:date,site:ttSite,start:startStr,end:endStr,hours:heures,note:note||'Via intervention maintenance',rush:false,maintId:maintId});
+  entries.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
+  localStorage.setItem('tt_entries',JSON.stringify(entries));
+}
+
 function saveIntervention(){
   var date=document.getElementById('fDate').value,site=document.getElementById('fSite').value,type=document.getElementById('fType').value;
   var materiel=parseFloat(document.getElementById('fMateriel').value)||0;
@@ -598,16 +690,21 @@ function saveIntervention(){
   var pieces=getPieces('fPieces');
   var travaux=getTags('fTags'),extra=document.getElementById('fDesc').value.trim(),heures=sumH(travaux);
   if(!date){toast('Date requise');return}if(!travaux.length){toast('Coche un travail');return}if(heures<=0){toast('Indique les heures');return}
-  var d=getData();d.push({id:Date.now(),date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:extra,pieces:pieces});
-  setData(d);toast('Enregistree');resetForm();refresh();
+  var d=getData();var intId=Date.now();
+  d.push({id:intId,date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:extra,pieces:pieces});
+  setData(d);
+  // Auto-création entrée Temps de Travail
+  var travauxLabel=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');
+  createTTFromIntervention(date,site,heures,travauxLabel+(extra?' — '+extra:''),intId);
+  toast('Enregistree + temps synchro');resetForm();refresh();
 }
 
 // ========== EDIT ==========
 var editId=null;
 function openEdit(id){var d=getData().find(function(i){return i.id===id});if(!d)return;editId=id;document.getElementById('eDate').value=d.date;document.getElementById('eSite').value=d.site;document.getElementById('eType').value=d.type;document.getElementById('eMateriel').value=d.materiel||0;document.getElementById('eDepart').value=d.depart||'';setTags('eTags',d.travaux||[]);setPieces('ePieces',d.pieces||[]);document.getElementById('eDesc').value=d.extra||'';showDeplInfo('eDepart','eSite','eDeplInfo');document.getElementById('editModal').classList.add('open')}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');editId=null}
-function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);closeEditModal();toast('Mis a jour');refresh()}
-function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));closeEditModal();toast('Supprimee');refresh()}
+function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');createTTFromIntervention(d[idx].date,d[idx].site,d[idx].heures,tvLbl+(d[idx].extra?' — '+d[idx].extra:''),editId);closeEditModal();toast('Mis a jour');refresh()}
+function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Supprimee');refresh()}
 
 // ========== CONFIG ==========
 function saveConfig(){saveConfigData({tauxExterne:parseFloat(document.getElementById('cfgExterne').value)||100,deplExt:parseFloat(document.getElementById('cfgDeplExt').value)||150,conso:parseFloat(document.getElementById('cfgConso').value)||8,prix:parseFloat(document.getElementById('cfgPrix').value)||1.90,objectif:parseFloat(document.getElementById('cfgObjectif').value)||5000});toast('Sauvegarde');refresh()}
@@ -855,6 +952,14 @@ function genRapport(){
   });
   html+='</tbody></table></div></div></div>';
 
+  // 8b. TEMPS DE TRAVAIL
+  var ttData2=buildTTSummary(start,end);
+  if(ttData2){
+    html+='<div class="rpt-section"><div class="rpt-section-title">⏱ Temps de travail — Présence sites</div>';
+    html+=renderTTKpiHtml(ttData2);
+    html+='</div>';
+  }
+
   // 9. FOOTER
   html+='<div style="text-align:center;padding:1.25rem;margin-top:1rem;border-top:1px solid var(--bg4);color:var(--text3);font-size:.75rem">'+
     'Rapport généré le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Côte · Service maintenance interne'+
@@ -1085,6 +1190,14 @@ function genRapportInto(start,end,targetId){
   });
   html+='</tbody></table></div></div></div>';
 
+  // TEMPS DE TRAVAIL
+  var ttData=buildTTSummary(start,end);
+  if(ttData){
+    html+='<div class="rpt-section"><div class="rpt-section-title">⏱ Temps de travail — Présence sites</div>';
+    html+=renderTTKpiHtml(ttData);
+    html+='</div>';
+  }
+
   // FOOTER
   html+='<div style="text-align:center;padding:1rem;margin-top:.75rem;border-top:1px solid var(--bg4);color:var(--text3);font-size:.72rem">'+
     'Rapport généré le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Côte'+
@@ -1314,6 +1427,322 @@ function renderGlobalCosts(){
   document.getElementById('globalCostTable').innerHTML=html;
 }
 
+// ========== TEMPS DE TRAVAIL (lecture localStorage app externe) ==========
+var TT_SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},CRECHE:{name:'Divers',color:'#F97316'},THIB:{name:'Siège',color:'#60A5FA'},FORM:{name:'Formation',color:'#A78BFA'}};
+var TT_DIST={'GD-NC':5.2,'NC-GD':5.2,'GD-ND':8.3,'ND-GD':8.3,'NC-ND':2.4,'ND-NC':2.4,'CRECHE-ND':1.3,'ND-CRECHE':1.3,'CRECHE-NC':2.0,'NC-CRECHE':2.0,'CRECHE-GD':7.2,'GD-CRECHE':7.2,'GD-THIB':8.9,'THIB-GD':8.9,'NC-THIB':10.9,'THIB-NC':10.9,'ND-THIB':10.7,'THIB-ND':10.7,'CRECHE-THIB':12.6,'THIB-CRECHE':12.6};
+
+function getTTEntries(){try{return JSON.parse(localStorage.getItem('tt_entries')||'[]')}catch(e){return[]}}
+function getTTExcTrips(){try{return JSON.parse(localStorage.getItem('tt_exc_trips')||'[]')}catch(e){return[]}}
+function getTTSettings(){try{var s=JSON.parse(localStorage.getItem('tt_settings')||'{}');return{fuelPrice:s.fuelPrice||1.90,fuelConso:s.fuelConso||8}}catch(e){return{fuelPrice:1.90,fuelConso:8}}}
+
+function calcTTTransports(entries,ttSettings){
+  var totalKm=0,totalCost=0,trips=0;
+  var byDate={};
+  entries.forEach(function(e){
+    if(!byDate[e.date])byDate[e.date]=[];
+    byDate[e.date].push(e);
+  });
+  Object.keys(byDate).forEach(function(d){
+    var dayE=byDate[d].sort(function(a,b){return(a.start||'').localeCompare(b.start||'')});
+    for(var i=1;i<dayE.length;i++){
+      if(dayE[i].site!==dayE[i-1].site&&dayE[i].site!=='FORM'&&dayE[i-1].site!=='FORM'){
+        var key=dayE[i-1].site+'-'+dayE[i].site;
+        var km=TT_DIST[key]||0;
+        if(km>0){
+          totalKm+=km;
+          totalCost+=km/100*ttSettings.fuelConso*ttSettings.fuelPrice;
+          trips++;
+        }
+      }
+    }
+  });
+  return{km:Math.round(totalKm*10)/10,cost:Math.round(totalCost*100)/100,trips:trips};
+}
+
+function buildTTSummary(startDate,endDate){
+  var entries=getTTEntries();
+  var excTrips=getTTExcTrips();
+  var ttS=getTTSettings();
+  var filtered=entries.filter(function(e){return e.date>=startDate&&e.date<=endDate});
+  var excF=excTrips.filter(function(t){return t.date>=startDate&&t.date<=endDate});
+
+  if(!filtered.length&&!excF.length)return null;
+
+  var totalH2=0,rushH=0,siteH={},siteCount={};
+  filtered.forEach(function(e){
+    var h=e.hours||0;
+    totalH2+=h;
+    if(e.rush)rushH+=h;
+    siteH[e.site]=(siteH[e.site]||0)+h;
+    siteCount[e.site]=(siteCount[e.site]||0)+1;
+  });
+
+  var transport=calcTTTransports(filtered,ttS);
+  var excKm=excF.reduce(function(s,t){return s+(t.km||0)},0);
+  var excCost=excF.reduce(function(s,t){return s+(t.cost||0)},0);
+
+  return{
+    entries:filtered.length,totalH:rH(totalH2),rushH:rH(rushH),workH:rH(totalH2-rushH),
+    rushCostInt:Math.round(rH(rushH)*32.40*100)/100,
+    rushTaux:32.40,
+    siteH:siteH,siteCount:siteCount,
+    interSiteKm:transport.km,interSiteCost:transport.cost,interSiteTrips:transport.trips,
+    excKm:Math.round(excKm*10)/10,excCost:Math.round(excCost*100)/100,excTrips:excF.length,
+    totalKm:Math.round((transport.km+excKm)*10)/10,
+    totalFuel:Math.round((transport.cost+excCost)*100)/100,
+    fuelPrice:ttS.fuelPrice,fuelConso:ttS.fuelConso
+  };
+}
+
+function renderTTKpiHtml(tt){
+  if(!tt)return '<div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">📭 Aucune donnée Temps de Travail sur cette période.<br><span style="font-size:.75rem">Vérifiez que l\'app Temps de Travail est sur le même domaine GitHub Pages.</span></div>';
+
+  var html='<div class="rpt-kpi-grid" style="margin-top:.75rem">';
+  html+='<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures travaillées</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tt.totalH)+'</div><div class="rpt-kpi-sub">'+fH(tt.workH)+' travail · '+fH(tt.rushH)+' rush</div></div>';
+  if(tt.rushH>0){
+    html+='<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">⚡ Rush (chiffrable)</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tt.rushCostInt)+'</div><div class="rpt-kpi-sub">'+fH(tt.rushH)+' x '+tt.rushTaux+' CHF/h — coût interne uniquement</div></div>';
+  }
+  html+='<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Saisies</div><div class="rpt-kpi-val" style="color:var(--purple)">'+tt.entries+'</div><div class="rpt-kpi-sub">entrées enregistrées</div></div>';
+  html+='<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Kilomètres</div><div class="rpt-kpi-val" style="color:var(--orange)">'+tt.totalKm+' km</div><div class="rpt-kpi-sub">'+tt.interSiteKm+' inter-sites · '+tt.excKm+' except.</div></div>';
+  html+='<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Frais gazoil</div><div class="rpt-kpi-val" style="color:var(--red)">'+tt.totalFuel.toFixed(2)+' CHF</div><div class="rpt-kpi-sub">'+tt.fuelConso+'L/100km × '+tt.fuelPrice.toFixed(2)+' CHF/L</div></div>';
+  html+='</div>';
+
+  // Site breakdown
+  var sKeys=Object.keys(tt.siteH).sort(function(a,b){return tt.siteH[b]-tt.siteH[a]});
+  if(sKeys.length){
+    html+='<div style="margin-top:.75rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:600;margin-bottom:.4rem">Répartition par site</div>';
+    var maxSH=tt.siteH[sKeys[0]]||1;
+    html+='<div class="rpt-top-list">';
+    sKeys.forEach(function(s,idx){
+      var si=TT_SITES[s];var lbl=si?si.name:s;var col=si?si.color:'#888';
+      var pctW=Math.max(5,(tt.siteH[s]/maxSH)*100);
+      html+='<div class="rpt-top-item">'+
+        '<span class="site-dot" style="background:'+col+'"></span>'+
+        '<span style="font-size:.82rem;min-width:110px">'+lbl+'</span>'+
+        '<div class="rpt-top-bar-bg"><div class="rpt-top-bar-fill" style="width:'+pctW+'%;background:'+col+'"></div></div>'+
+        '<span class="rpt-top-val" style="color:'+col+'">'+fH(rH(tt.siteH[s]))+'</span>'+
+        '<span style="font-size:.7rem;color:var(--text3);min-width:30px;text-align:right">('+tt.siteCount[s]+')</span>'+
+        '</div>';
+    });
+    html+='</div>';
+  }
+
+  return html;
+}
+
+function updateTTMonthFilter(){
+  var entries=getTTEntries();
+  var ms=[];
+  entries.forEach(function(e){var m=e.date.slice(0,7);if(ms.indexOf(m)<0)ms.push(m)});
+  ms.sort().reverse();
+  var sel=document.getElementById('ttFilterMonth');
+  if(!sel)return;
+  var cv=sel.value;
+  sel.innerHTML='<option value="all">Tous mois</option>';
+  ms.forEach(function(m){var p=m.split('-');sel.innerHTML+='<option value="'+m+'">'+new Date(p[0],p[1]-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'</option>'});
+  sel.value=ms.indexOf(cv)>=0?cv:'all';
+}
+
+function renderTemps(){
+  updateTTMonthFilter();
+  var fm=document.getElementById('ttFilterMonth').value;
+  var start,end;
+  if(fm==='all'){start='2000-01-01';end='2099-12-31'}
+  else{var p=fm.split('-');start=fm+'-01';end=new Date(parseInt(p[0]),parseInt(p[1]),0).toISOString().slice(0,10)}
+  var tt=buildTTSummary(start,end);
+  document.getElementById('tempsContent').innerHTML=renderTTKpiHtml(tt);
+}
+
+function importTTJSON(event){
+  var f=event.target.files[0];
+  if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var j=JSON.parse(ev.target.result);
+      var imported=0;
+
+      // Format 1: direct array of entries (export JSON from TT app)
+      var newEntries=[];
+      if(Array.isArray(j)){
+        newEntries=j;
+      }
+      // Format 2: object with entries key
+      else if(j.entries&&Array.isArray(j.entries)){
+        newEntries=j.entries;
+      }
+      // Format 3: full backup with tt_entries key
+      else if(j.tt_entries&&Array.isArray(j.tt_entries)){
+        newEntries=j.tt_entries;
+      }
+
+      if(newEntries.length){
+        var existing=getTTEntries();
+        var existIds={};
+        existing.forEach(function(e){existIds[e.id]=true});
+        var added=newEntries.filter(function(e){return e.id&&!existIds[e.id]&&e.date&&e.site});
+        if(added.length){
+          existing=existing.concat(added);
+          existing.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
+          localStorage.setItem('tt_entries',JSON.stringify(existing));
+          imported+=added.length;
+        }
+      }
+
+      // Import exc trips if present
+      var newExc=j.excTrips||j.tt_exc_trips||[];
+      if(Array.isArray(newExc)&&newExc.length){
+        var existExc=getTTExcTrips();
+        var excIds={};
+        existExc.forEach(function(t){excIds[t.id]=true});
+        var addedExc=newExc.filter(function(t){return t.id&&!excIds[t.id]});
+        if(addedExc.length){
+          existExc=existExc.concat(addedExc);
+          localStorage.setItem('tt_exc_trips',JSON.stringify(existExc));
+          imported+=addedExc.length;
+        }
+      }
+
+      // Import settings if present
+      var newS=j.settings||j.tt_settings||null;
+      if(newS&&newS.fuelPrice){
+        localStorage.setItem('tt_settings',JSON.stringify(newS));
+      }
+
+      toast(imported+' saisies importees');
+      renderTemps();
+      renderTTLastEntries();
+    }catch(err){
+      toast('Fichier invalide');
+      console.error(err);
+    }
+  };
+  reader.readAsText(f);
+  event.target.value='';
+}
+
+// ========== SAISIE TEMPS DE TRAVAIL ==========
+var ttRush=false;
+var ttSelectedSite=null;
+var TT_SITE_LIST=[
+  {id:'GD',name:'Gland',code:'GD',color:'#F472B6'},
+  {id:'NC',name:'Nyon Centre',code:'NC',color:'#34D399'},
+  {id:'ND',name:'Nyon Drive',code:'ND',color:'#FBBF24'},
+  {id:'CRECHE',name:'Divers',code:'DV',color:'#F97316'},
+  {id:'THIB',name:'Siège',code:'SG',color:'#60A5FA'},
+  {id:'FORM',name:'Formation',code:'FO',color:'#A78BFA'}
+];
+
+function buildTTSiteGrid(){
+  var grid=document.getElementById('ttSiteGrid');
+  if(!grid)return;
+  var html='';
+  TT_SITE_LIST.forEach(function(s){
+    html+='<button type="button" class="tt-site-btn" id="ttSbtn_'+s.id+'" style="--tt-color:'+s.color+'" onclick="selectTTSite(\''+s.id+'\')">'+
+      '<span class="tt-dot"></span>'+
+      '<span class="tt-name">'+s.name+'</span>'+
+      '<span class="tt-code">'+s.code+'</span>'+
+      '</button>';
+  });
+  grid.innerHTML=html;
+}
+
+function selectTTSite(id){
+  ttSelectedSite=id;
+  document.querySelectorAll('.tt-site-btn').forEach(function(b){b.classList.remove('selected')});
+  document.getElementById('ttSbtn_'+id).classList.add('selected');
+}
+
+function toggleTTRush(){
+  ttRush=!ttRush;
+  var btn=document.getElementById('ttRushBtn');
+  btn.classList.toggle('on',ttRush);
+}
+
+function resetTTForm(){
+  document.getElementById('ttDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ttStart').value='';
+  document.getElementById('ttEnd').value='';
+  document.getElementById('ttNote').value='';
+  document.getElementById('ttDurBox').style.display='none';
+  ttRush=false;
+  document.getElementById('ttRushBtn').classList.remove('on');
+  ttSelectedSite=null;
+  document.querySelectorAll('.tt-site-btn').forEach(function(b){b.classList.remove('selected')});
+}
+
+function calcTTDuration(){
+  var s=document.getElementById('ttStart').value;
+  var e=document.getElementById('ttEnd').value;
+  var box=document.getElementById('ttDurBox');
+  var val=document.getElementById('ttDurVal');
+  if(!s||!e){box.style.display='none';return}
+  var sp=s.split(':').map(Number);var ep=e.split(':').map(Number);
+  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
+  if(diff<=0){box.style.display='none';return}
+  var h=Math.floor(diff/60);var m=diff%60;
+  val.textContent=h+'h'+(m>0?(m<10?'0':'')+m:'');
+  box.style.display='';
+}
+
+function saveTTEntry(){
+  var date=document.getElementById('ttDate').value;
+  var site=ttSelectedSite;
+  var start=document.getElementById('ttStart').value;
+  var end=document.getElementById('ttEnd').value;
+  var note=document.getElementById('ttNote').value.trim();
+  if(!date){toast('Date requise');return}
+  if(!site){toast('Selectionne un site');return}
+  if(!start||!end){toast('Heures requises');return}
+  var sp=start.split(':').map(Number);var ep=end.split(':').map(Number);
+  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
+  if(diff<=0){toast('Heure fin doit etre apres debut');return}
+  var hours=diff/60;
+
+  var entries=getTTEntries();
+  entries.push({id:Date.now(),date:date,site:site,start:start,end:end,hours:hours,note:note,rush:ttRush});
+  entries.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
+  localStorage.setItem('tt_entries',JSON.stringify(entries));
+  toast('Temps enregistre');
+  resetTTForm();
+  renderTTLastEntries();
+  renderTemps();
+}
+
+function deleteTTEntry(id){
+  if(!confirm('Supprimer cette saisie ?'))return;
+  var entries=getTTEntries().filter(function(e){return e.id!==id});
+  localStorage.setItem('tt_entries',JSON.stringify(entries));
+  toast('Supprime');
+  renderTTLastEntries();
+  renderTemps();
+}
+
+function renderTTLastEntries(){
+  var el=document.getElementById('ttLastEntries');
+  if(!el)return;
+  var entries=getTTEntries().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:(b.start||'').localeCompare(a.start||'')}).slice(0,8);
+  if(!entries.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:.5rem">Aucune saisie</div>';return}
+  var html='<table style="width:100%;font-size:.78rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--bg4)">Date</th><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--bg4)">Site</th><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--bg4)">Horaires</th><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--bg4)">Durée</th><th style="padding:.35rem .5rem;border-bottom:1px solid var(--bg4)"></th></tr></thead><tbody>';
+  entries.forEach(function(e){
+    var si=TT_SITES[e.site];
+    var h=Math.floor(e.hours);var m=Math.round((e.hours-h)*60);
+    var dur=h+'h'+(m>0?(m<10?'0':'')+m:'');
+    html+='<tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3);color:var(--text2)">'+fD(e.date)+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3)"><span class="site-dot" style="background:'+(si?si.color:'#888')+'"></span>'+(si?si.name:e.site)+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3);color:var(--text2)">'+(e.start||'')+' - '+(e.end||'')+(e.rush?' ⚡':'')+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3);color:var(--accent);font-weight:600">'+dur+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3)"><button class="btn btn-danger btn-sm" onclick="deleteTTEntry('+e.id+')">🗑</button></td></tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+// Init TT form
+buildTTSiteGrid();
+resetTTForm();
+renderTTLastEntries();
+
 // ========== EXPORT/IMPORT ==========
 function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
@@ -1335,8 +1764,7 @@ function openKpiModal(type){
       '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
       '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant A/R<br>'+
       '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux<br>'+
-      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
-      '• ⚡ Rush = chiffrable (compte dans coût interne) mais <strong>exclu du coût externe</strong> (travail interne uniquement)';
+      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       var ecoC=sd.reduce(function(sum,i){return sum+ecoCalc(i)},0);
@@ -1364,7 +1792,7 @@ function openKpiModal(type){
   }else if(type==='heures'){
     title='<span style="color:var(--accent)">⏱ Heures totales</span>';
     formula='<strong>Formule :</strong> Somme de toutes les heures saisies sur le mois en cours<br>'+
-      '• Heures <strong>chiffrables</strong> = 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · ⚡ Rush<br>'+
+      '• Heures <strong>chiffrables</strong> = 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
       '• Heures <strong>suivi</strong> = 🏗 Extérieur · 💦 Kärcher · 🍽 Salle · 🧹 PEP · 🍦 Machine à glace<br>'+
       '• Total = chiffrables + suivi (les deux comptent dans le total affiché)';
     sites.forEach(function(s){
@@ -1414,8 +1842,7 @@ function openKpiModal(type){
     title='<span style="color:var(--red)">🔴 Coût si externe</span>';
     formula='<strong>Formule :</strong> Heures externalisables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> de déplacement<br>'+
       '• Représente ce qu\'aurait coûté un prestataire externe pour le même travail<br>'+
-      '• Tags externalisables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
-      '• ⚡ Rush <strong>exclu</strong> : travail interne uniquement, jamais sous-traitable';
+      '• Tags externalisables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       siteData[s]={val:sd.reduce(function(sum,i){return sum+coutExt(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
@@ -1425,8 +1852,7 @@ function openKpiModal(type){
     rows=d.map(function(i){
       var ce=coutExt(i);
       var he=heuresExternalisables(i);
-      var hr=heuresChiffrables(i)-he;
-      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:he>0?(fH(he)+' × '+c.tauxExterne+' + '+c.deplExt+' dépl.'+(hr>0?' (⚡'+fH(hr)+' rush exclu)':'')):'Aucune h. externalisable',val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:he>0?(fH(he)+' x '+c.tauxExterne+' + '+c.deplExt+' depl.'):'Aucune h. externalisable',val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
     });
   }
 
@@ -1491,7 +1917,7 @@ function closeKpiModal(){document.getElementById('kpiModal').classList.remove('o
 document.getElementById('kpiModal').addEventListener('click',function(e){if(e.target===this)closeKpiModal()});
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
