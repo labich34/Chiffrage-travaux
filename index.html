@@ -83,9 +83,10 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 .tag-check.chiffrable input:checked+span{background:var(--green-dim);border-color:var(--green);color:var(--green)}
 .tag-check.nonchiffrable input:checked+span{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .tag-check:hover span{border-color:var(--text3)}
-.tag-hours{display:none;align-items:center;gap:.3rem;padding-left:.25rem}
+.tag-hours{display:none;align-items:center;gap:.25rem;padding-left:.25rem}
 .tag-hours.visible{display:flex}
-.tag-hours input{width:58px;background:var(--bg);border:1px solid var(--accent);border-radius:6px;padding:.3rem .4rem;color:var(--accent);font-size:.8rem;font-weight:600;text-align:center}
+.tag-hours input{width:42px;background:var(--bg);border:1px solid var(--accent);border-radius:6px;padding:.3rem .3rem;color:var(--accent);font-size:.8rem;font-weight:600;text-align:center}
+.tag-hours select{width:56px;background:var(--bg);border:1px solid var(--accent);border-radius:6px;padding:.3rem .2rem;color:var(--accent);font-size:.8rem;font-weight:600;text-align:center;appearance:none}
 .tag-hours label{font-size:.7rem;color:var(--text3)}
 .desc-tags{display:flex;flex-wrap:wrap;gap:.25rem;align-items:center}
 .desc-tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.68rem;font-weight:500;background:var(--accent-dim);color:var(--accent)}
@@ -520,19 +521,20 @@ function totalH(i){return rH(i.heures||sumH(i.travaux))}
 function buildTags(cid){
   var chiffrables=TRAVAUX.filter(function(t){return t.chiffrable});
   var nonChiffrables=TRAVAUX.filter(function(t){return!t.chiffrable});
+  var minOpts='<option value="0">00</option><option value="5">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>';
   var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies) — 32.40 CHF/h</div>';
   chiffrables.forEach(function(t){
-    html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" step="0.5" min="0.5" placeholder="h" id="'+cid+'_v_'+t.id+'"><label>heures</label></div></div>';
+    html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" min="0" max="99" placeholder="0" id="'+cid+'_vh_'+t.id+'"><label>h</label><select id="'+cid+'_vm_'+t.id+'">'+minOpts+'</select><label>min</label></div></div>';
   });
   html+='<div class="tags-section-label">📋 Suivi uniquement — 26.90 CHF/h (machine a glace 32)</div>';
   nonChiffrables.forEach(function(t){
-    html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" step="0.5" min="0.5" placeholder="h" id="'+cid+'_v_'+t.id+'"><label>heures</label></div></div>';
+    html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" min="0" max="99" placeholder="0" id="'+cid+'_vh_'+t.id+'"><label>h</label><select id="'+cid+'_vm_'+t.id+'">'+minOpts+'</select><label>min</label></div></div>';
   });
   document.getElementById(cid).innerHTML=html;
 }
-function togH(cb,cid){var hd=document.getElementById(cid+'_h_'+cb.value);if(cb.checked){hd.classList.add('visible');hd.querySelector('input').focus()}else{hd.classList.remove('visible');hd.querySelector('input').value=''}}
-function getTags(cid){var r=[];TRAVAUX.forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb&&cb.checked)r.push({id:t.id,heures:parseFloat(document.getElementById(cid+'_v_'+t.id).value)||0})});return r}
-function setTags(cid,tv){document.querySelectorAll('#'+cid+' input[type="checkbox"]').forEach(function(c){c.checked=false});document.querySelectorAll('#'+cid+' .tag-hours').forEach(function(d){d.classList.remove('visible')});(tv||[]).forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb){cb.checked=true;document.getElementById(cid+'_h_'+t.id).classList.add('visible');document.getElementById(cid+'_v_'+t.id).value=t.heures||''}})}
+function togH(cb,cid){var hd=document.getElementById(cid+'_h_'+cb.value);if(cb.checked){hd.classList.add('visible');document.getElementById(cid+'_vh_'+cb.value).focus()}else{hd.classList.remove('visible');document.getElementById(cid+'_vh_'+cb.value).value='';document.getElementById(cid+'_vm_'+cb.value).value='0'}}
+function getTags(cid){var r=[];TRAVAUX.forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb&&cb.checked){var h=parseInt(document.getElementById(cid+'_vh_'+t.id).value)||0;var m=parseInt(document.getElementById(cid+'_vm_'+t.id).value)||0;r.push({id:t.id,heures:rH(h+m/60)})}});return r}
+function setTags(cid,tv){document.querySelectorAll('#'+cid+' input[type="checkbox"]').forEach(function(c){c.checked=false});document.querySelectorAll('#'+cid+' .tag-hours').forEach(function(d){d.classList.remove('visible')});(tv||[]).forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb){cb.checked=true;document.getElementById(cid+'_h_'+t.id).classList.add('visible');var dec=t.heures||0;var hPart=Math.floor(dec);var mPart=Math.round((dec-hPart)*60);if(mPart>=60){hPart++;mPart=0}var mSnap=Math.round(mPart/5)*5;if(mSnap>=60){hPart++;mSnap=0}document.getElementById(cid+'_vh_'+t.id).value=hPart;document.getElementById(cid+'_vm_'+t.id).value=String(mSnap)}})}
 buildTags('fTags');buildTags('eTags');
 
 // ========== DEPART INFO ==========
