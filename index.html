@@ -155,6 +155,50 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 .btn-add-piece:hover{background:var(--accent-dim);border-style:solid}
 .eco-piece-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--cyan);color:#000;margin-left:4px}
 
+/* CLASSEUR MENSUEL */
+.classeur-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--bg4)}
+.classeur-tab{padding:.45rem .85rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;color:var(--text3);background:var(--bg3);border:1px solid var(--bg4);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.35rem}
+.classeur-tab:hover{color:var(--text);border-color:var(--text3)}
+.classeur-tab.active{color:var(--accent);background:var(--accent-dim);border-color:var(--accent);font-weight:600}
+.classeur-tab .tab-dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.classeur-tab.active .tab-dot{background:var(--accent)}
+.classeur-empty{text-align:center;padding:2rem;color:var(--text3);font-size:.85rem}
+
+/* RAPPORT PRO */
+.rpt-header{text-align:center;padding:2rem 1.5rem;border-bottom:3px solid var(--accent);margin-bottom:1.5rem;background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:var(--radius)}
+.rpt-header h2{font-size:1.5rem;color:var(--accent);margin-bottom:.25rem;letter-spacing:-.02em}
+.rpt-header .rpt-subtitle{color:var(--text2);font-size:.9rem}
+.rpt-header .rpt-period{display:inline-block;margin-top:.5rem;padding:.3rem 1rem;background:var(--accent-dim);border:1px solid var(--accent);border-radius:20px;color:var(--accent);font-size:.82rem;font-weight:600}
+.rpt-section{margin-bottom:1.5rem}
+.rpt-section-title{font-size:.85rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:1px solid var(--bg4);display:flex;align-items:center;gap:.5rem}
+.rpt-highlight{background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(52,211,153,.02));border:1px solid rgba(52,211,153,.2);border-radius:var(--radius);padding:1.25rem;text-align:center;margin-bottom:1.5rem}
+.rpt-highlight .rpt-big{font-size:2.2rem;font-weight:800;color:var(--green);letter-spacing:-.03em}
+.rpt-highlight .rpt-big-label{font-size:.82rem;color:var(--text2);margin-top:.15rem}
+.rpt-highlight .rpt-big-sub{font-size:.78rem;color:var(--text3);margin-top:.25rem}
+.rpt-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem;margin-bottom:1.25rem}
+.rpt-kpi-card{background:var(--bg3);border-radius:var(--radius-sm);padding:.85rem;border-left:3px solid var(--accent)}
+.rpt-kpi-card .rpt-kpi-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:600}
+.rpt-kpi-card .rpt-kpi-val{font-size:1.15rem;font-weight:700;margin-top:.15rem}
+.rpt-kpi-card .rpt-kpi-sub{font-size:.7rem;color:var(--text3);margin-top:.1rem}
+.rpt-chart-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+.rpt-chart-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1rem}
+.rpt-chart-box .card-title{margin-bottom:.5rem}
+.rpt-chart-box canvas{width:100%!important;max-height:260px}
+.rpt-site-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.rpt-site-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:1rem;border-top:3px solid}
+.rpt-site-card .rpt-site-name{font-size:.85rem;font-weight:700;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem}
+.rpt-site-card .rpt-site-row{display:flex;justify-content:space-between;padding:.25rem 0;font-size:.8rem;border-bottom:1px solid var(--bg3)}
+.rpt-site-card .rpt-site-row:last-child{border-bottom:none}
+.rpt-site-card .rpt-site-row .label{color:var(--text3)}
+.rpt-site-card .rpt-site-row .value{font-weight:600}
+.rpt-top-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.rpt-top-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;background:var(--bg3);border-radius:var(--radius-sm)}
+.rpt-top-rank{font-size:.75rem;font-weight:700;color:var(--accent);min-width:22px}
+.rpt-top-bar-bg{flex:1;height:10px;background:var(--bg4);border-radius:6px;overflow:hidden}
+.rpt-top-bar-fill{height:100%;border-radius:6px;transition:width .5s}
+.rpt-top-val{font-size:.78rem;font-weight:600;min-width:45px;text-align:right}
+@media(max-width:768px){.rpt-chart-row{grid-template-columns:1fr}.rpt-site-grid{grid-template-columns:1fr}}
+
 @media print{.nav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000}.card{border:1px solid #ddd;background:#fff}.kpi{border:1px solid #ddd;background:#f9f9f9}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
 @media(max-width:768px){.nav{flex-wrap:wrap;padding:.5rem .75rem}.nav-tabs{width:100%;overflow-x:auto;margin-left:0}.form-grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:1.2rem}.obj-remaining{font-size:1.5rem}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -298,9 +342,9 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
       <div class="form-group"><label class="form-label">Date début</label><input type="date" class="form-input" id="rStart"></div>
       <div class="form-group"><label class="form-label">Date fin</label><input type="date" class="form-input" id="rEnd"></div>
       <div class="form-group full" style="flex-direction:row;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
-        <button class="btn btn-primary" onclick="genRapport()">📊 Générer</button>
+        <button class="btn btn-primary" onclick="genRapport()">📊 Rapport personnalisé</button>
         <button class="btn btn-primary" onclick="exportPDF()" id="btnPDF" style="display:none;background:var(--green);color:#000">📄 Exporter PDF</button>
-        <button class="btn btn-danger" onclick="clearRapport()" id="btnClearR" style="display:none">🗑 Effacer rapport</button>
+        <button class="btn btn-danger" onclick="clearRapport()" id="btnClearR" style="display:none">🗑 Effacer</button>
         <span style="margin-left:auto"></span>
         <button class="btn btn-ghost" onclick="exportJSON()">📥 JSON</button>
         <button class="btn btn-ghost" onclick="importJSON()">📤 Import</button>
@@ -309,6 +353,12 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     </div>
   </div>
   <div id="rapportContent"></div>
+  <div class="card" style="margin-top:1.5rem">
+    <div class="card-title">📒 Classeur mensuel — Tenue de compte</div>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Rapports mensuels générés automatiquement. Sélectionnez un mois pour consulter le rapport détaillé.</p>
+    <div class="classeur-tabs" id="classeurTabs"></div>
+    <div id="classeurContent"></div>
+  </div>
 </div>
 
 <!-- CONFIG -->
@@ -660,43 +710,197 @@ function genRapport(){
   var c=getConfig();
   var tH=rH(all.reduce(function(s,i){return s+totalH(i)},0));
   var hC=rH(all.reduce(function(s,i){return s+heuresChiffrables(i)},0));
-  var tI=all.reduce(function(s,i){return s+coutInt(i)},0);var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
+  var hS=rH(tH-hC);
+  var tI=all.reduce(function(s,i){return s+coutInt(i)},0);
+  var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
   var ecoTotale=tEco+tEcoPieces;
-  var spec=all.filter(function(i){return i.type==='specialisee'});
-  var specEco=spec.reduce(function(s,i){return s+ecoCalc(i)},0);
+  var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
+  var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
+  var nStd=all.length-nSpec;
 
-  var months={};all.forEach(function(i){var k=i.date.slice(0,7);if(!months[k])months[k]={h:0,hc:0,ci:0,ce:0,eco:0,ecoP:0,n:0,depl:0};months[k].h=rH(months[k].h+totalH(i));months[k].hc=rH(months[k].hc+heuresChiffrables(i));months[k].ci+=coutInt(i);months[k].ce+=coutExt(i);months[k].eco+=ecoCalc(i);months[k].ecoP+=ecoPieces(i);months[k].n++;months[k].depl+=deplInt(i.depart,i.site).cost});
+  // Monthly data
+  var months={};all.forEach(function(i){
+    var k=i.date.slice(0,7);
+    if(!months[k])months[k]={h:0,hc:0,ci:0,ce:0,eco:0,ecoP:0,n:0,depl:0,mat:0};
+    months[k].h=rH(months[k].h+totalH(i));months[k].hc=rH(months[k].hc+heuresChiffrables(i));
+    months[k].ci+=coutInt(i);months[k].ce+=coutExt(i);months[k].eco+=ecoCalc(i);
+    months[k].ecoP+=ecoPieces(i);months[k].n++;
+    months[k].depl+=deplInt(i.depart,i.site).cost;months[k].mat+=(i.materiel||0);
+  });
   var mKeys=Object.keys(months).sort();
 
-  var html='<div style="text-align:center;padding:1.5rem;border-bottom:2px solid var(--accent);margin-bottom:1rem"><h2 style="font-size:1.3rem;color:var(--accent)">🔧 Rapport Maintenance</h2><p style="color:var(--text2);font-size:.85rem">Periode : '+fD(start)+' au '+fD(end)+'</p></div>';
+  // Site data
+  var sites=['GD','NC','ND','DIVERS','SIEGE'];
+  var sData={};sites.forEach(function(s){
+    var sd=all.filter(function(i){return i.site===s});
+    if(!sd.length)return;
+    sData[s]={n:sd.length,h:rH(sd.reduce(function(x,i){return x+totalH(i)},0)),
+      hc:rH(sd.reduce(function(x,i){return x+heuresChiffrables(i)},0)),
+      ci:sd.reduce(function(x,i){return x+coutInt(i)},0),
+      ce:sd.reduce(function(x,i){return x+coutExt(i)},0),
+      eco:sd.reduce(function(x,i){return x+ecoCalc(i)+ecoPieces(i)},0),
+      depl:sd.reduce(function(x,i){return x+deplInt(i.depart,i.site).cost},0)};
+  });
 
-  var subEcoR=''+pct.toFixed(1)+'%';
-  if(tEcoPieces>0)subEcoR+=' · dont '+fmt(tEcoPieces)+' pieces';
-  html+='<div class="kpi-row" style="margin-top:1rem">'+
-    '<div class="kpi green"><span class="kpi-label">Economies totales</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEcoR+'</span></div>'+
-    '<div class="kpi accent"><span class="kpi-label">Heures</span><span class="kpi-value">'+fH(tH)+'</span><span class="kpi-sub">dont '+fH(hC)+' chiffrables</span></div>'+
-    '<div class="kpi blue"><span class="kpi-label">Cout interne</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
-    '<div class="kpi red"><span class="kpi-label">Cout externe</span><span class="kpi-value">'+fmt(tE)+'</span></div></div>';
+  // Category data
+  var catH={};all.forEach(function(i){(i.travaux||[]).forEach(function(t){
+    catH[t.id]=rH((catH[t.id]||0)+(t.heures||0));
+  })});
+  var catKeys=Object.keys(catH).sort(function(a,b){return catH[b]-catH[a]});
 
-  if(mKeys.length>1){
-    html+='<div class="card"><div class="card-title">Detail mensuel</div><div class="table-wrap"><table><thead><tr><th>Mois</th><th>Interv.</th><th>Heures</th><th>Chiffr.</th><th>Interne</th><th>Externe</th><th>Eco. chiffr.</th><th>Eco. pieces</th><th>Eco. totale</th><th>%</th></tr></thead><tbody>';
-    mKeys.forEach(function(k){var m=months[k];var p=m.ce>0?(m.eco/m.ce*100):0;var mTot=m.eco+m.ecoP;
-      html+='<tr><td>'+fML(k)+'</td><td>'+m.n+'</td><td>'+fH(m.h)+'</td><td>'+fH(m.hc)+'</td><td>'+fmt(m.ci)+'</td><td style="color:var(--red)">'+fmt(m.ce)+'</td><td style="color:var(--green)">'+fmt(m.eco)+'</td><td style="color:var(--cyan)">'+(m.ecoP>0?fmt(m.ecoP):'-')+'</td><td style="color:var(--green);font-weight:600">'+fmt(mTot)+'</td><td>'+p.toFixed(1)+'%</td></tr>'});
-    html+='<tr style="font-weight:700;border-top:2px solid var(--bg4)"><td>TOTAL</td><td>'+all.length+'</td><td>'+fH(tH)+'</td><td>'+fH(hC)+'</td><td>'+fmt(tI)+'</td><td style="color:var(--red)">'+fmt(tE)+'</td><td style="color:var(--green)">'+fmt(tEco)+'</td><td style="color:var(--cyan)">'+(tEcoPieces>0?fmt(tEcoPieces):'-')+'</td><td style="color:var(--green)">'+fmt(ecoTotale)+'</td><td>'+pct.toFixed(1)+'%</td></tr>';
-    html+='</tbody></table></div></div>';
+  // ========== BUILD HTML ==========
+  var html='';
+
+  // 1. HEADER
+  html+='<div class="rpt-header">'+
+    '<h2>🔧 Rapport de Maintenance</h2>'+
+    '<div class="rpt-subtitle">McDonald\'s La Côte — Service technique interne</div>'+
+    '<div class="rpt-period">'+fD(start)+' — '+fD(end)+'</div>'+
+    '</div>';
+
+  // 2. HIGHLIGHT ECONOMIES
+  html+='<div class="rpt-highlight">'+
+    '<div class="rpt-big">'+fmt(ecoTotale)+'</div>'+
+    '<div class="rpt-big-label">d\'économies réalisées sur la période</div>'+
+    '<div class="rpt-big-sub">Taux d\'économie : '+pct.toFixed(1)+'% · '+all.length+' interventions · '+fH(tH)+' travaillées</div>'+
+    (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
+    '</div>';
+
+  // 3. KPIs DETAILLES
+  html+='<div class="rpt-section"><div class="rpt-section-title">📊 Indicateurs clés</div>';
+  html+='<div class="rpt-kpi-grid">'+
+    '<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">Économie chiffrable</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tEco)+'</div><div class="rpt-kpi-sub">Ext. '+fmt(tE)+' − Int. '+fmt(tI)+'</div></div>'+
+    (tEcoPieces>0?'<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">Économie pièces</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tEcoPieces)+'</div><div class="rpt-kpi-sub">Achat direct vs sous-traitant</div></div>':'')+
+    '<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures totales</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tH)+'</div><div class="rpt-kpi-sub">'+fH(hC)+' chiffr. · '+fH(hS)+' suivi</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/dépl.</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+tKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant</div></div>'+
+    '</div></div>';
+
+  // 4. GRAPHIQUES
+  html+='<div class="rpt-section"><div class="rpt-section-title">📈 Évolution</div>';
+  html+='<div class="rpt-chart-row">'+
+    '<div class="rpt-chart-box"><div class="card-title">Interne vs Externe par mois</div><canvas id="rptChartBar"></canvas></div>'+
+    '<div class="rpt-chart-box"><div class="card-title">Économies mensuelles</div><canvas id="rptChartEco"></canvas></div>'+
+    '</div>';
+  html+='<div class="rpt-chart-row">'+
+    '<div class="rpt-chart-box"><div class="card-title">Répartition heures par site</div><canvas id="rptChartSite"></canvas></div>'+
+    '<div class="rpt-chart-box"><div class="card-title">Répartition par type de travaux</div><canvas id="rptChartCat"></canvas></div>'+
+    '</div></div>';
+
+  // 5. DETAIL PAR SITE
+  html+='<div class="rpt-section"><div class="rpt-section-title">🏢 Détail par restaurant</div>';
+  html+='<div class="rpt-site-grid">';
+  var siteKeys=Object.keys(sData);
+  siteKeys.forEach(function(s){
+    var sd=sData[s];var sn=SITES[s]?SITES[s].name:s;var sc=SITES[s]?SITES[s].color:'#888';
+    html+='<div class="rpt-site-card" style="border-top-color:'+sc+'">'+
+      '<div class="rpt-site-name"><span class="site-dot" style="background:'+sc+'"></span>'+sn+'</div>'+
+      '<div class="rpt-site-row"><span class="label">Interventions</span><span class="value">'+sd.n+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Heures</span><span class="value" style="color:var(--accent)">'+fH(sd.h)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">dont chiffrables</span><span class="value">'+fH(sd.hc)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Coût interne</span><span class="value" style="color:var(--blue)">'+fmt(sd.ci)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Coût si externe</span><span class="value" style="color:var(--red)">'+fmt(sd.ce)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Économie</span><span class="value" style="color:var(--green)">'+fmt(sd.eco)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Déplacements</span><span class="value">'+fmt2(sd.depl)+'</span></div>'+
+      '</div>';
+  });
+  html+='</div></div>';
+
+  // 6. TOP TRAVAUX
+  if(catKeys.length){
+    var maxCat=catH[catKeys[0]]||1;
+    html+='<div class="rpt-section"><div class="rpt-section-title">🏆 Top travaux réalisés</div>';
+    html+='<div class="rpt-top-list">';
+    var cc2=['#34D399','#60A5FA','#F472B6','#A78BFA','#DA2C38','#FBBF24','#F97316','#22D3EE','#818CF8','#6EE7B7','#FB923C','#94a3b8'];
+    catKeys.forEach(function(cid,idx){
+      var def=TMAP[cid];var lbl=def?(def.icon+' '+def.label):cid;
+      var isC=CHIFFRABLE_IDS.indexOf(cid)>=0;
+      var pctW=Math.max(5,(catH[cid]/maxCat)*100);
+      var col=cc2[idx%cc2.length];
+      html+='<div class="rpt-top-item">'+
+        '<span class="rpt-top-rank">#'+(idx+1)+'</span>'+
+        '<span style="font-size:.82rem;min-width:130px">'+lbl+(isC?' <span class="badge badge-chiffrable" style="font-size:.6rem">chiffr.</span>':'')+'</span>'+
+        '<div class="rpt-top-bar-bg"><div class="rpt-top-bar-fill" style="width:'+pctW+'%;background:'+col+'"></div></div>'+
+        '<span class="rpt-top-val" style="color:'+col+'">'+fH(catH[cid])+'</span>'+
+        '</div>';
+    });
+    html+='</div></div>';
   }
 
-  html+='<div class="card"><div class="card-title">Liste complete ('+all.length+')</div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Type</th><th>Int.</th><th>Ext.</th><th>Eco.</th></tr></thead><tbody>';
-  all.forEach(function(i){var ci=coutInt(i),ce=coutExt(i),ep=ecoPieces(i),eTotal=ce-ci+ep;html+='<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+fH(totalH(i))+'</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(eTotal>0?fmt(eTotal):'-')+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pieces</span>':'')+'</td></tr>'});
-  html+='</tbody></table></div></div>';
+  // 7. TABLEAU MENSUEL
+  if(mKeys.length){
+    html+='<div class="rpt-section"><div class="rpt-section-title">📅 Synthèse mensuelle</div>';
+    html+='<div class="card"><div class="table-wrap"><table><thead><tr><th>Mois</th><th>Interv.</th><th>Heures</th><th>Chiffr.</th><th>Interne</th><th>Externe</th><th>Eco. chiffr.</th>'+(tEcoPieces>0?'<th>Eco. pièces</th>':'')+'<th>Eco. totale</th><th>%</th></tr></thead><tbody>';
+    mKeys.forEach(function(k){var m=months[k];var p=m.ce>0?(m.eco/m.ce*100):0;var mTot=m.eco+m.ecoP;
+      html+='<tr><td style="font-weight:500">'+fML(k)+'</td><td>'+m.n+'</td><td>'+fH(m.h)+'</td><td>'+fH(m.hc)+'</td><td>'+fmt(m.ci)+'</td><td style="color:var(--red)">'+fmt(m.ce)+'</td><td style="color:var(--green)">'+fmt(m.eco)+'</td>'+(tEcoPieces>0?'<td style="color:var(--cyan)">'+(m.ecoP>0?fmt(m.ecoP):'-')+'</td>':'')+'<td style="color:var(--green);font-weight:700">'+fmt(mTot)+'</td><td>'+p.toFixed(1)+'%</td></tr>';
+    });
+    html+='<tr style="font-weight:700;border-top:2px solid var(--accent)"><td>TOTAL</td><td>'+all.length+'</td><td>'+fH(tH)+'</td><td>'+fH(hC)+'</td><td>'+fmt(tI)+'</td><td style="color:var(--red)">'+fmt(tE)+'</td><td style="color:var(--green)">'+fmt(tEco)+'</td>'+(tEcoPieces>0?'<td style="color:var(--cyan)">'+fmt(tEcoPieces)+'</td>':'')+'<td style="color:var(--green)">'+fmt(ecoTotale)+'</td><td>'+pct.toFixed(1)+'%</td></tr>';
+    html+='</tbody></table></div></div></div>';
+  }
+
+  // 8. LISTE COMPLETE
+  html+='<div class="rpt-section"><div class="rpt-section-title">📋 Liste des interventions ('+all.length+')</div>';
+  html+='<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Type</th><th>Int.</th><th>Ext.</th><th>Éco.</th></tr></thead><tbody>';
+  all.forEach(function(i){
+    var ci=coutInt(i),ce=coutExt(i),ep=ecoPieces(i),eTotal=ce-ci+ep;
+    html+='<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+fH(totalH(i))+'</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(eTotal>0?fmt(eTotal):'-')+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pièces</span>':'')+'</td></tr>';
+  });
+  html+='</tbody></table></div></div></div>';
+
+  // 9. FOOTER
+  html+='<div style="text-align:center;padding:1.25rem;margin-top:1rem;border-top:1px solid var(--bg4);color:var(--text3);font-size:.75rem">'+
+    'Rapport généré le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Côte · Service maintenance interne'+
+    '</div>';
 
   document.getElementById('rapportContent').innerHTML=html;
   document.getElementById('btnPDF').style.display='';
   document.getElementById('btnClearR').style.display='';
+
+  // ========== RENDER CHARTS IN RAPPORT ==========
+  setTimeout(function(){
+    var chartOpts={responsive:true,plugins:{legend:{labels:{color:'#a0a0b8',font:{family:'DM Sans',size:11},boxWidth:10}}},scales:{y:{ticks:{color:'#64748b',callback:function(v){return v+' CHF'}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748b'},grid:{display:false}}}};
+
+    // Bar: Interne vs Externe
+    if(mKeys.length){
+      new Chart(document.getElementById('rptChartBar'),{type:'bar',data:{
+        labels:mKeys.map(fM),
+        datasets:[
+          {label:'Interne',data:mKeys.map(function(k){return Math.round(months[k].ci)}),backgroundColor:'#60A5FA',borderRadius:4,barPercentage:.5},
+          {label:'Externe',data:mKeys.map(function(k){return Math.round(months[k].ce)}),backgroundColor:'#DA2C38',borderRadius:4,barPercentage:.5}
+        ]},options:chartOpts});
+
+      // Line: Economies
+      var ecoLine={responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748b',callback:function(v){return v+' CHF'}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#64748b'},grid:{display:false}}}};
+      new Chart(document.getElementById('rptChartEco'),{type:'line',data:{
+        labels:mKeys.map(fM),
+        datasets:[{label:'Économies',data:mKeys.map(function(k){return Math.round(months[k].eco+months[k].ecoP)}),borderColor:'#34D399',backgroundColor:'rgba(52,211,153,.1)',fill:true,tension:.35,pointRadius:5,pointBackgroundColor:'#34D399',pointBorderWidth:2}]
+      },options:ecoLine});
+    }
+
+    // Doughnut: Sites
+    var sKeys2=Object.keys(sData);
+    if(sKeys2.length){
+      new Chart(document.getElementById('rptChartSite'),{type:'doughnut',data:{
+        labels:sKeys2.map(function(s){return SITES[s]?SITES[s].name:s}),
+        datasets:[{data:sKeys2.map(function(s){return sData[s].h}),backgroundColor:sKeys2.map(function(s){return SITES[s]?SITES[s].color:'#888'}),borderWidth:0}]
+      },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#a0a0b8',font:{family:'DM Sans',size:11},boxWidth:10}}}}});
+    }
+
+    // Doughnut: Categories
+    if(catKeys.length){
+      var cc3=['#34D399','#60A5FA','#F472B6','#A78BFA','#DA2C38','#FBBF24','#F97316','#22D3EE','#818CF8','#6EE7B7','#FB923C','#94a3b8'];
+      new Chart(document.getElementById('rptChartCat'),{type:'doughnut',data:{
+        labels:catKeys.map(function(cid){var d2=TMAP[cid];return d2?(d2.icon+' '+d2.label):cid}),
+        datasets:[{data:catKeys.map(function(cid){return catH[cid]}),backgroundColor:cc3.slice(0,catKeys.length),borderWidth:0}]
+      },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#a0a0b8',font:{family:'DM Sans',size:11},boxWidth:10}}}}});
+    }
+  },100);
 }
 
 function clearRapport(){
@@ -704,6 +908,205 @@ function clearRapport(){
   document.getElementById('btnPDF').style.display='none';
   document.getElementById('btnClearR').style.display='none';
   toast('Rapport efface');
+}
+
+// ========== CLASSEUR MENSUEL ==========
+var classeurActiveMonth=null;
+
+function getAvailableMonths(){
+  var d=getData();var ms=[];
+  d.forEach(function(i){var m=i.date.slice(0,7);if(ms.indexOf(m)<0)ms.push(m)});
+  return ms.sort().reverse();
+}
+
+function renderClasseur(){
+  var ms=getAvailableMonths();
+  var tabsEl=document.getElementById('classeurTabs');
+  var contentEl=document.getElementById('classeurContent');
+  if(!ms.length){
+    tabsEl.innerHTML='';
+    contentEl.innerHTML='<div class="classeur-empty">📭 Aucune donnée disponible. Ajoutez des interventions pour voir les rapports mensuels.</div>';
+    return;
+  }
+  // Default to most recent month
+  if(!classeurActiveMonth||ms.indexOf(classeurActiveMonth)<0)classeurActiveMonth=ms[0];
+
+  // Render tabs
+  var tabsHtml='';
+  ms.forEach(function(m){
+    var active=m===classeurActiveMonth?' active':'';
+    var d=getData().filter(function(i){return i.date.slice(0,7)===m});
+    tabsHtml+='<button class="classeur-tab'+active+'" onclick="openClasseurMonth(\''+m+'\')">'
+      +'<span class="tab-dot"></span>'
+      +fML(m)
+      +' <span style="font-size:.68rem;color:var(--text3)">('+d.length+')</span>'
+      +'</button>';
+  });
+  tabsEl.innerHTML=tabsHtml;
+
+  // Generate rapport for active month
+  var p=classeurActiveMonth.split('-');
+  var mStart=classeurActiveMonth+'-01';
+  var mEnd=new Date(parseInt(p[0]),parseInt(p[1]),0).toISOString().slice(0,10);
+  contentEl.innerHTML='<div id="classeurRpt"></div>';
+  genRapportInto(mStart,mEnd,'classeurRpt');
+}
+
+function openClasseurMonth(m){
+  classeurActiveMonth=m;
+  renderClasseur();
+}
+
+function genRapportInto(start,end,targetId){
+  var all=getData().filter(function(i){return i.date>=start&&i.date<=end}).sort(function(a,b){return a.date>b.date?1:a.date<b.date?-1:0});
+  var c=getConfig();
+  var tH=rH(all.reduce(function(s,i){return s+totalH(i)},0));
+  var hC=rH(all.reduce(function(s,i){return s+heuresChiffrables(i)},0));
+  var hS=rH(tH-hC);
+  var tI=all.reduce(function(s,i){return s+coutInt(i)},0);
+  var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
+  var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
+  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
+  var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
+  var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
+  var ecoTotale=tEco+tEcoPieces;
+  var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
+  var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
+  var nStd=all.length-nSpec;
+  var uid=targetId+'_'+Date.now();
+
+  // Site data
+  var sites=['GD','NC','ND','DIVERS','SIEGE'];
+  var sData={};sites.forEach(function(s){
+    var sd=all.filter(function(i){return i.site===s});
+    if(!sd.length)return;
+    sData[s]={n:sd.length,h:rH(sd.reduce(function(x,i){return x+totalH(i)},0)),
+      hc:rH(sd.reduce(function(x,i){return x+heuresChiffrables(i)},0)),
+      ci:sd.reduce(function(x,i){return x+coutInt(i)},0),
+      ce:sd.reduce(function(x,i){return x+coutExt(i)},0),
+      eco:sd.reduce(function(x,i){return x+ecoCalc(i)+ecoPieces(i)},0),
+      depl:sd.reduce(function(x,i){return x+deplInt(i.depart,i.site).cost},0)};
+  });
+
+  // Category data
+  var catH2={};all.forEach(function(i){(i.travaux||[]).forEach(function(t){
+    catH2[t.id]=rH((catH2[t.id]||0)+(t.heures||0));
+  })});
+  var catKeys2=Object.keys(catH2).sort(function(a,b){return catH2[b]-catH2[a]});
+
+  if(!all.length){
+    document.getElementById(targetId).innerHTML='<div class="classeur-empty">📭 Aucune intervention sur cette période.</div>';
+    return;
+  }
+
+  var html='';
+
+  // HEADER
+  html+='<div class="rpt-header">'+
+    '<h2>🔧 Rapport de Maintenance</h2>'+
+    '<div class="rpt-subtitle">McDonald\'s La Côte — Service technique interne</div>'+
+    '<div class="rpt-period">'+fD(start)+' — '+fD(end)+'</div>'+
+    '</div>';
+
+  // HIGHLIGHT
+  html+='<div class="rpt-highlight">'+
+    '<div class="rpt-big">'+fmt(ecoTotale)+'</div>'+
+    '<div class="rpt-big-label">d\'économies réalisées sur la période</div>'+
+    '<div class="rpt-big-sub">Taux : '+pct.toFixed(1)+'% · '+all.length+' interventions · '+fH(tH)+' travaillées</div>'+
+    (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
+    '</div>';
+
+  // KPIs
+  html+='<div class="rpt-section"><div class="rpt-section-title">📊 Indicateurs clés</div>';
+  html+='<div class="rpt-kpi-grid">'+
+    '<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">Économie chiffrable</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tEco)+'</div><div class="rpt-kpi-sub">Ext. '+fmt(tE)+' − Int. '+fmt(tI)+'</div></div>'+
+    (tEcoPieces>0?'<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">Économie pièces</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tEcoPieces)+'</div><div class="rpt-kpi-sub">Achat direct vs sous-traitant</div></div>':'')+
+    '<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures totales</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tH)+'</div><div class="rpt-kpi-sub">'+fH(hC)+' chiffr. · '+fH(hS)+' suivi</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/dépl.</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+tKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant</div></div>'+
+    '</div></div>';
+
+  // CHARTS
+  html+='<div class="rpt-section"><div class="rpt-section-title">📈 Répartition visuelle</div>';
+  html+='<div class="rpt-chart-row">'+
+    '<div class="rpt-chart-box"><div class="card-title">Heures par site</div><canvas id="'+uid+'_site"></canvas></div>'+
+    '<div class="rpt-chart-box"><div class="card-title">Heures par type de travaux</div><canvas id="'+uid+'_cat"></canvas></div>'+
+    '</div></div>';
+
+  // DETAIL PAR SITE
+  html+='<div class="rpt-section"><div class="rpt-section-title">🏢 Détail par restaurant</div>';
+  html+='<div class="rpt-site-grid">';
+  var siteKeys2=Object.keys(sData);
+  siteKeys2.forEach(function(s){
+    var sd=sData[s];var sn=SITES[s]?SITES[s].name:s;var sc=SITES[s]?SITES[s].color:'#888';
+    html+='<div class="rpt-site-card" style="border-top-color:'+sc+'">'+
+      '<div class="rpt-site-name"><span class="site-dot" style="background:'+sc+'"></span>'+sn+'</div>'+
+      '<div class="rpt-site-row"><span class="label">Interventions</span><span class="value">'+sd.n+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Heures</span><span class="value" style="color:var(--accent)">'+fH(sd.h)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">dont chiffrables</span><span class="value">'+fH(sd.hc)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Coût interne</span><span class="value" style="color:var(--blue)">'+fmt(sd.ci)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Coût si externe</span><span class="value" style="color:var(--red)">'+fmt(sd.ce)+'</span></div>'+
+      '<div class="rpt-site-row"><span class="label">Économie</span><span class="value" style="color:var(--green)">'+fmt(sd.eco)+'</span></div>'+
+      '</div>';
+  });
+  html+='</div></div>';
+
+  // TOP TRAVAUX
+  if(catKeys2.length){
+    var maxC=catH2[catKeys2[0]]||1;
+    html+='<div class="rpt-section"><div class="rpt-section-title">🏆 Top travaux</div>';
+    html+='<div class="rpt-top-list">';
+    var cc4=['#34D399','#60A5FA','#F472B6','#A78BFA','#DA2C38','#FBBF24','#F97316','#22D3EE','#818CF8','#6EE7B7','#FB923C','#94a3b8'];
+    catKeys2.forEach(function(cid,idx){
+      var def=TMAP[cid];var lbl=def?(def.icon+' '+def.label):cid;
+      var isC=CHIFFRABLE_IDS.indexOf(cid)>=0;
+      var pctW=Math.max(5,(catH2[cid]/maxC)*100);
+      var col=cc4[idx%cc4.length];
+      html+='<div class="rpt-top-item">'+
+        '<span class="rpt-top-rank">#'+(idx+1)+'</span>'+
+        '<span style="font-size:.82rem;min-width:130px">'+lbl+(isC?' <span class="badge badge-chiffrable" style="font-size:.6rem">chiffr.</span>':'')+'</span>'+
+        '<div class="rpt-top-bar-bg"><div class="rpt-top-bar-fill" style="width:'+pctW+'%;background:'+col+'"></div></div>'+
+        '<span class="rpt-top-val" style="color:'+col+'">'+fH(catH2[cid])+'</span>'+
+        '</div>';
+    });
+    html+='</div></div>';
+  }
+
+  // LISTE
+  html+='<div class="rpt-section"><div class="rpt-section-title">📋 Interventions ('+all.length+')</div>';
+  html+='<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Type</th><th>Int.</th><th>Ext.</th><th>Éco.</th></tr></thead><tbody>';
+  all.forEach(function(i){
+    var ci=coutInt(i),ce=coutExt(i),ep=ecoPieces(i),eTotal=ce-ci+ep;
+    html+='<tr><td>'+fD(i.date)+'</td><td><span class="site-dot" style="background:'+(SITES[i.site]?SITES[i.site].color:'#888')+'"></span>'+(SITES[i.site]?SITES[i.site].name:i.site)+'</td><td><div class="desc-tags">'+tvLabel(i)+'</div></td><td>'+fH(totalH(i))+'</td><td><span class="badge '+(i.type==='specialisee'?'badge-spec':'badge-std')+'">'+(i.type==='specialisee'?'Spec.':'Std')+'</span></td><td>'+(ci>0?fmt(ci):'-')+'</td><td style="color:var(--red)">'+(ce>0?fmt(ce):'-')+'</td><td style="color:var(--green);font-weight:600">'+(eTotal>0?fmt(eTotal):'-')+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pièces</span>':'')+'</td></tr>';
+  });
+  html+='</tbody></table></div></div></div>';
+
+  // FOOTER
+  html+='<div style="text-align:center;padding:1rem;margin-top:.75rem;border-top:1px solid var(--bg4);color:var(--text3);font-size:.72rem">'+
+    'Rapport généré le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Côte'+
+    '</div>';
+
+  document.getElementById(targetId).innerHTML=html;
+
+  // Render charts
+  setTimeout(function(){
+    var sKeys3=Object.keys(sData);
+    if(sKeys3.length){
+      new Chart(document.getElementById(uid+'_site'),{type:'doughnut',data:{
+        labels:sKeys3.map(function(s){return SITES[s]?SITES[s].name:s}),
+        datasets:[{data:sKeys3.map(function(s){return sData[s].h}),backgroundColor:sKeys3.map(function(s){return SITES[s]?SITES[s].color:'#888'}),borderWidth:0}]
+      },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#a0a0b8',font:{family:'DM Sans',size:11},boxWidth:10}}}}});
+    }
+    if(catKeys2.length){
+      var cc5=['#34D399','#60A5FA','#F472B6','#A78BFA','#DA2C38','#FBBF24','#F97316','#22D3EE','#818CF8','#6EE7B7','#FB923C','#94a3b8'];
+      new Chart(document.getElementById(uid+'_cat'),{type:'doughnut',data:{
+        labels:catKeys2.map(function(cid){var d2=TMAP[cid];return d2?(d2.icon+' '+d2.label):cid}),
+        datasets:[{data:catKeys2.map(function(cid){return catH2[cid]}),backgroundColor:cc5.slice(0,catKeys2.length),borderWidth:0}]
+      },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#a0a0b8',font:{family:'DM Sans',size:11},boxWidth:10}}}}});
+    }
+  },100);
 }
 
 function exportPDF(){
@@ -1086,7 +1489,7 @@ function closeKpiModal(){document.getElementById('kpiModal').classList.remove('o
 document.getElementById('kpiModal').addEventListener('click',function(e){if(e.target===this)closeKpiModal()});
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
