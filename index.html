@@ -504,6 +504,29 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   </div>
 </div>
 
+<!-- TT EDIT MODAL -->
+<div class="modal-overlay" id="ttEditModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Modifier saisie temps</h3><button class="modal-close" onclick="closeTTEditModal()">&times;</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="tteDate"></div>
+      <div class="form-group"><label class="form-label">Site</label>
+        <select class="form-input" id="tteSite"><option value="GD">Gland</option><option value="NC">Nyon Centre</option><option value="ND">Nyon Drive</option><option value="CRECHE">Divers</option><option value="THIB">Siège</option><option value="FORM">Formation</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Début</label><input type="time" class="form-input" id="tteStart"></div>
+      <div class="form-group"><label class="form-label">Fin</label><input type="time" class="form-input" id="tteEnd"></div>
+      <div class="form-group"><label class="form-label">Rush</label>
+        <button type="button" class="tt-rush-toggle" id="tteRushBtn" onclick="toggleTTEditRush()"><span class="rush-indicator"></span> ⚡ Rush</button>
+      </div>
+      <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-input" id="tteNote"></div>
+      <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="updateTTEntry()">Mettre à jour</button>
+        <button class="btn btn-danger" onclick="deleteTTFromModal()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -536,7 +559,7 @@ var DIST={
   'GD-NC':{km:5.2,min:8},'GD-ND':{km:8.3,min:12},'NC-ND':{km:2.4,min:5},
   'GD-SIEGE':{km:8.9,min:13},'NC-SIEGE':{km:10.9,min:17},'ND-SIEGE':{km:10.7,min:15},
   'DIVERS-SIEGE':{km:12.6,min:17},
-  'GD-DIVERS':{km:12,min:16},'NC-DIVERS':{km:10,min:14},'ND-DIVERS':{km:11,min:15}
+  'GD-DIVERS':{km:12,min:16},'NC-DIVERS':{km:10,min:14},'ND-DIVERS':{km:2.5,min:5}
 };
 function distKey(a,b){return DIST[a+'-'+b]||DIST[b+'-'+a]||null}
 
@@ -870,6 +893,9 @@ function genRapport(){
     '</div>';
 
   // 3. KPIs DETAILLES
+  var ttForDepl=buildTTSummary(start,end);
+  var combinedKm=tKm+(ttForDepl?ttForDepl.totalKm:0);
+  var combinedFuel=tDepl+(ttForDepl?ttForDepl.totalFuel:0);
   html+='<div class="rpt-section"><div class="rpt-section-title">📊 Indicateurs clés</div>';
   html+='<div class="rpt-kpi-grid">'+
     '<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">Économie chiffrable</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tEco)+'</div><div class="rpt-kpi-sub">Ext. '+fmt(tE)+' − Int. '+fmt(tI)+'</div></div>'+
@@ -878,7 +904,7 @@ function genRapport(){
     '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/dépl.</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
-    '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+tKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+combinedKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(combinedFuel)+' carburant</div></div>'+
     '</div></div>';
 
   // 4. GRAPHIQUES
@@ -1124,6 +1150,9 @@ function genRapportInto(start,end,targetId){
     '</div>';
 
   // KPIs
+  var ttForDepl2=buildTTSummary(start,end);
+  var combinedKm2=tKm+(ttForDepl2?ttForDepl2.totalKm:0);
+  var combinedFuel2=tDepl+(ttForDepl2?ttForDepl2.totalFuel:0);
   html+='<div class="rpt-section"><div class="rpt-section-title">📊 Indicateurs clés</div>';
   html+='<div class="rpt-kpi-grid">'+
     '<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">Économie chiffrable</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tEco)+'</div><div class="rpt-kpi-sub">Ext. '+fmt(tE)+' − Int. '+fmt(tI)+'</div></div>'+
@@ -1132,7 +1161,7 @@ function genRapportInto(start,end,targetId){
     '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/dépl.</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
-    '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+tKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+combinedKm2.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(combinedFuel2)+' carburant</div></div>'+
     '</div></div>';
 
   // CHARTS
@@ -1732,11 +1761,70 @@ function renderTTLastEntries(){
     html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3)"><span class="site-dot" style="background:'+(si?si.color:'#888')+'"></span>'+(si?si.name:e.site)+'</td>';
     html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3);color:var(--text2)">'+(e.start||'')+' - '+(e.end||'')+(e.rush?' ⚡':'')+'</td>';
     html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3);color:var(--accent);font-weight:600">'+dur+'</td>';
-    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3)"><button class="btn btn-danger btn-sm" onclick="deleteTTEntry('+e.id+')">🗑</button></td></tr>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid var(--bg3);white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="openTTEdit('+e.id+')" style="padding:.2rem .4rem">✏️</button> <button class="btn btn-danger btn-sm" onclick="deleteTTEntry('+e.id+')" style="padding:.2rem .4rem">🗑</button></td></tr>';
   });
   html+='</tbody></table>';
   el.innerHTML=html;
 }
+
+// ========== TT EDIT MODAL ==========
+var tteId=null;
+var tteRush=false;
+
+function openTTEdit(id){
+  var entries=getTTEntries();
+  var e=null;
+  for(var i=0;i<entries.length;i++){if(entries[i].id===id){e=entries[i];break}}
+  if(!e)return;
+  tteId=id;
+  document.getElementById('tteDate').value=e.date||'';
+  document.getElementById('tteSite').value=e.site||'GD';
+  document.getElementById('tteStart').value=e.start||'';
+  document.getElementById('tteEnd').value=e.end||'';
+  document.getElementById('tteNote').value=e.note||'';
+  tteRush=!!e.rush;
+  document.getElementById('tteRushBtn').classList.toggle('on',tteRush);
+  document.getElementById('ttEditModal').classList.add('open');
+}
+
+function closeTTEditModal(){document.getElementById('ttEditModal').classList.remove('open');tteId=null}
+
+function toggleTTEditRush(){
+  tteRush=!tteRush;
+  document.getElementById('tteRushBtn').classList.toggle('on',tteRush);
+}
+
+function updateTTEntry(){
+  if(!tteId)return;
+  var entries=getTTEntries();
+  var idx=-1;
+  for(var i=0;i<entries.length;i++){if(entries[i].id===tteId){idx=i;break}}
+  if(idx<0)return;
+  var start=document.getElementById('tteStart').value;
+  var end=document.getElementById('tteEnd').value;
+  if(!start||!end){toast('Heures requises');return}
+  var sp=start.split(':').map(Number);var ep=end.split(':').map(Number);
+  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
+  if(diff<=0){toast('Heure fin doit etre apres debut');return}
+  entries[idx].date=document.getElementById('tteDate').value;
+  entries[idx].site=document.getElementById('tteSite').value;
+  entries[idx].start=start;
+  entries[idx].end=end;
+  entries[idx].hours=diff/60;
+  entries[idx].note=document.getElementById('tteNote').value.trim();
+  entries[idx].rush=tteRush;
+  localStorage.setItem('tt_entries',JSON.stringify(entries));
+  closeTTEditModal();toast('Mis a jour');renderTTLastEntries();renderTemps();
+}
+
+function deleteTTFromModal(){
+  if(!tteId||!confirm('Supprimer ?'))return;
+  var entries=getTTEntries().filter(function(e){return e.id!==tteId});
+  localStorage.setItem('tt_entries',JSON.stringify(entries));
+  closeTTEditModal();toast('Supprime');renderTTLastEntries();renderTemps();
+}
+
+document.getElementById('ttEditModal').addEventListener('click',function(e){if(e.target===this)closeTTEditModal()});
 
 // Init TT form
 buildTTSiteGrid();
