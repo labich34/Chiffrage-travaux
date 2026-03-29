@@ -456,7 +456,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
       <div class="form-group"><label class="form-label">Déplacement externe (CHF/interv.)</label><input type="number" step="0.5" class="form-input" id="cfgDeplExt" value="150"></div>
       <div class="form-group"><label class="form-label">Consommation (L/100km)</label><input type="number" step="0.1" class="form-input" id="cfgConso" value="8"></div>
       <div class="form-group"><label class="form-label">Prix carburant (CHF/L)</label><input type="number" step="0.01" class="form-input" id="cfgPrix" value="1.90"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">ℹ️ Dépl. interne = km A/R entre sites. Dépl. externe = forfait fixe. Taux internes = fixes, non modifiables.</p></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">ℹ️ Dépl. interne = km aller entre sites. Dépl. externe = forfait fixe. Taux internes = fixes, non modifiables.</p></div>
       <div class="form-group full" style="margin-top:.5rem"><button class="btn btn-primary" onclick="saveConfig()">Sauvegarder</button></div>
     </div>
   </div>
@@ -575,8 +575,8 @@ function deplInt(depart,site){
   if(!depart||depart===site)return{km:0,cost:0,min:0};
   var d=distKey(depart,site);
   if(!d)return{km:0,cost:0,min:0};
-  var c=getConfig();var kmAR=d.km*2;
-  return{km:kmAR,cost:Math.round(kmAR*c.conso/100*c.prix*100)/100,min:d.min*2};
+  var c=getConfig();var kmAS=d.km;
+  return{km:kmAS,cost:Math.round(kmAS*c.conso/100*c.prix*100)/100,min:d.min};
 }
 
 function heuresChiffrables(i){
@@ -639,7 +639,7 @@ function showDeplInfo(selectId,siteId,infoId){
   if(!dep||dep===site){el.innerHTML='';return}
   var d=deplInt(dep,site);
   if(d.km===0){el.innerHTML='<div class="depl-info">Distance inconnue</div>';return}
-  el.innerHTML='<div class="depl-info">🚗 '+d.km.toFixed(1)+' km A/R · ~'+d.min+' min · '+d.cost.toFixed(2)+' CHF carburant</div>';
+  el.innerHTML='<div class="depl-info">🚗 '+d.km.toFixed(1)+' km aller · ~'+d.min+' min · '+d.cost.toFixed(2)+' CHF carburant</div>';
 }
 document.getElementById('fDepart').addEventListener('change',function(){showDeplInfo('fDepart','fSite','fDeplInfo')});
 document.getElementById('fSite').addEventListener('change',function(){showDeplInfo('fDepart','fSite','fDeplInfo')});
@@ -1855,7 +1855,7 @@ function openKpiModal(type){
     formula='<strong>Formule :</strong> Éco. chiffrables + Éco. pièces<br>'+
       '• <strong>Éco. chiffrables</strong> = Coût externe estimé − Coût interne chiffrable<br>'+
       '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
-      '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant A/R<br>'+
+      '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant aller<br>'+
       '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux<br>'+
       '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture';
     sites.forEach(function(s){
@@ -1908,10 +1908,10 @@ function openKpiModal(type){
 
   }else if(type==='interne'){
     title='<span style="color:var(--blue)">🔵 Coût interne</span>';
-    formula='<strong>Formule :</strong> Somme de tous les travaux × leur taux horaire + matériaux + carburant A/R<br>'+
+    formula='<strong>Formule :</strong> Somme de tous les travaux × leur taux horaire + matériaux + carburant aller<br>'+
       '• Chiffrables (💡🔧🧱☀️⚠️🎨⚡) = <strong>32.40 CHF/h</strong><br>'+
       '• Suivi (🏗💦🍽🧹) = <strong>26.90 CHF/h</strong> — 🍦 Machine à glace = <strong>32 CHF/h</strong><br>'+
-      '• Carburant = km A/R × <strong>'+c.conso+'L/100</strong> × <strong>'+c.prix+' CHF/L</strong> (si heures chiffrables)<br>'+
+      '• Carburant = km aller × <strong>'+c.conso+'L/100</strong> × <strong>'+c.prix+' CHF/L</strong> (si heures chiffrables)<br>'+
       '• Matériaux = montant saisi à la saisie';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
