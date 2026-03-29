@@ -358,7 +358,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="cDate"></div>
       <div class="form-group"><label class="form-label">Restaurant</label>
-        <select class="form-input" id="cSite"><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option></select>
+        <select class="form-input" id="cSite"><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select>
       </div>
       <div class="form-group"><label class="form-label">Prestataire</label><input type="text" class="form-input" id="cNom" placeholder="Ex: Frigoriste SA"></div>
       <div class="form-group"><label class="form-label">Type</label>
@@ -1348,7 +1348,7 @@ function renderContrats(){
   if(filterM!=='all')c=c.filter(function(ct){return ct.date.slice(0,7)===filterM});
   c.sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0});
 
-  var sites=['GD','NC','ND'];
+  var sites=['GD','NC','ND','DIVERS','SIEGE'];
   var html='';
 
   sites.forEach(function(s){
@@ -1373,7 +1373,7 @@ function renderContrats(){
 
 function renderContratsSynthese(){
   var c=getContrats();
-  var sites=['GD','NC','ND'];
+  var sites=['GD','NC','ND','DIVERS','SIEGE'];
 
   var allMonths=[];
   c.forEach(function(ct){var m=ct.date.slice(0,7);if(allMonths.indexOf(m)<0)allMonths.push(m)});
@@ -1415,7 +1415,7 @@ function renderGlobalCosts(){
   var now=new Date();var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
   var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
   var contrats=getContrats().filter(function(ct){return ct.date.slice(0,7)===curMonth});
-  var sites=['GD','NC','ND'];
+  var sites=['GD','NC','ND','DIVERS','SIEGE'];
 
   var html='<table class="global-table"><thead><tr><th>Restaurant</th><th>Interne chiffrable</th><th>Interne suivi</th><th>Prestataires ext.</th><th>Total</th><th>Economies</th></tr></thead><tbody>';
 
@@ -1553,6 +1553,11 @@ function renderTTKpiHtml(tt){
         '<span style="font-size:.7rem;color:var(--text3);min-width:30px;text-align:right">('+tt.siteCount[s]+')</span>'+
         '</div>';
     });
+    // Total
+    html+='<div style="display:flex;justify-content:flex-end;align-items:center;gap:.5rem;padding:.5rem .75rem;margin-top:.3rem;border-top:1px solid var(--bg4)">'+
+      '<span style="font-size:.78rem;font-weight:700;color:var(--accent)">Total : '+fH(tt.totalH)+'</span>'+
+      '<span style="font-size:.7rem;color:var(--text3)">('+tt.entries+' saisies)</span>'+
+      '</div>';
     html+='</div>';
   }
 
@@ -1842,7 +1847,7 @@ function openKpiModal(type){
   var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
   var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
   var c=getConfig();
-  var sites=['GD','NC','ND'];
+  var sites=['GD','NC','ND','DIVERS','SIEGE'];
   var title='',formula='',siteData={},rows=[];
 
   if(type==='eco'){
