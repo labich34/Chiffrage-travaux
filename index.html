@@ -445,7 +445,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   </div>
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
     <div class="table-wrap"><table><thead><tr><th>Tag</th><th>Taux</th><th>Type</th></tr></thead><tbody>
-      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture</td><td style="color:var(--green);font-weight:600">32.40 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
+      <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture, 🔨 Divers</td><td style="color:var(--green);font-weight:600">32.40 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
       <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">26.90 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
       <tr><td>🍦 Machine à glace</td><td style="color:var(--accent);font-weight:600">32 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
     </tbody></table></div>
@@ -544,6 +544,7 @@ var TRAVAUX=[
   {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32.40},
   {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32.40},
   {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32.40},
+  {id:'divers',icon:'🔨',label:'Divers',chiffrable:true,taux:32.40},
   {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:26.90},
   {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:26.90},
   {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:26.90},
@@ -1857,7 +1858,7 @@ function openKpiModal(type){
       '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
       '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant aller<br>'+
       '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux<br>'+
-      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture';
+      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · 🔨 Divers';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       var ecoC=sd.reduce(function(sum,i){return sum+ecoCalc(i)},0);
@@ -1885,7 +1886,7 @@ function openKpiModal(type){
   }else if(type==='heures'){
     title='<span style="color:var(--accent)">⏱ Heures totales</span>';
     formula='<strong>Formule :</strong> Somme de toutes les heures saisies sur le mois en cours<br>'+
-      '• Heures <strong>chiffrables</strong> = 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture<br>'+
+      '• Heures <strong>chiffrables</strong> = 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · 🔨 Divers<br>'+
       '• Heures <strong>suivi</strong> = 🏗 Extérieur · 💦 Kärcher · 🍽 Salle · 🧹 PEP · 🍦 Machine à glace<br>'+
       '• Total = chiffrables + suivi (les deux comptent dans le total affiché)';
     sites.forEach(function(s){
@@ -1935,7 +1936,7 @@ function openKpiModal(type){
     title='<span style="color:var(--red)">🔴 Coût si externe</span>';
     formula='<strong>Formule :</strong> Heures externalisables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> de déplacement<br>'+
       '• Représente ce qu\'aurait coûté un prestataire externe pour le même travail<br>'+
-      '• Tags externalisables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture';
+      '• Tags externalisables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · 🔨 Divers';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       siteData[s]={val:sd.reduce(function(sum,i){return sum+coutExt(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
