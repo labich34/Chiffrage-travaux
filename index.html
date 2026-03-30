@@ -265,73 +265,70 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
 <!-- SAISIE -->
 <div class="page" id="page-saisie">
   <div class="card">
-    <div class="card-title">Nouvelle intervention</div>
+    <div class="card-title">Nouvelle saisie</div>
+    <!-- MODE TOGGLE -->
+    <div style="display:flex;gap:.4rem;margin-bottom:1rem">
+      <button class="btn btn-primary" id="modeIntBtn" onclick="setMode('intervention')" style="flex:1">🔧 Intervention</button>
+      <button class="btn btn-ghost" id="modeTTBtn" onclick="setMode('temps')" style="flex:1">⏱ Temps de travail</button>
+    </div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="fDate"></div>
       <div class="form-group"><label class="form-label">Site</label>
-        <select class="form-input" id="fSite"><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select>
+        <div class="tt-site-grid" id="uSiteGrid"></div>
       </div>
-      <div class="form-group"><label class="form-label">Type</label>
-        <select class="form-input" id="fType"><option value="standard">Standard</option><option value="specialisee">Spécialisée</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Matériaux (CHF)</label><input type="number" step="0.01" min="0" class="form-input" id="fMateriel" value="0"></div>
+      <!-- HORAIRES (toujours visible) -->
       <div class="form-group full">
-        <label class="form-label">🏷 Pièces — prix société externe (optionnel)</label>
-        <p style="font-size:.72rem;color:var(--text3);margin-bottom:.3rem">Si tu achètes des pièces toi-même, indique ici le prix que la société externe facturerait pour calculer l'économie pièces.</p>
-        <div class="pieces-list" id="fPieces"></div>
-        <button type="button" class="btn-add-piece" onclick="addPieceRow('fPieces')">+ Ajouter une pièce</button>
+        <label class="form-label">Horaires</label>
+        <div class="tt-time-row">
+          <input type="time" class="tt-input" id="uStart" oninput="calcUDuration()">
+          <span class="tt-sep">→</span>
+          <input type="time" class="tt-input" id="uEnd" oninput="calcUDuration()">
+        </div>
+        <div class="tt-dur" id="uDurBox" style="display:none">
+          <div class="tt-dur-val" id="uDurVal"></div>
+          <div class="tt-dur-lbl">durée</div>
+        </div>
       </div>
-      <div class="form-group"><label class="form-label">Départ depuis</label>
-        <select class="form-input" id="fDepart"><option value="">— Pas de trajet —</option><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select>
-      </div>
-      <div class="form-group"><div id="fDeplInfo"></div></div>
+      <!-- RUSH TOGGLE (toujours visible) -->
       <div class="form-group full">
-        <label class="form-label">Travaux réalisés — coche puis indique les heures</label>
-        <div class="tags-grid" id="fTags"></div>
+        <button type="button" class="tt-rush-toggle" id="uRushBtn" onclick="toggleURush()">
+          <span class="rush-indicator"></span> ⚡ Rush
+        </button>
       </div>
-      <div class="form-group full"><label class="form-label">Complément (optionnel)</label><textarea class="form-input" id="fDesc"></textarea></div>
+      <!-- CHAMPS INTERVENTION (visibles seulement en mode intervention) -->
+      <div id="interventionFields">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Type</label>
+            <select class="form-input" id="fType"><option value="standard">Standard</option><option value="specialisee">Spécialisée</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Matériaux (CHF)</label><input type="number" step="0.01" min="0" class="form-input" id="fMateriel" value="0"></div>
+          <div class="form-group full">
+            <label class="form-label">🏷 Pièces — prix société externe (optionnel)</label>
+            <p style="font-size:.72rem;color:var(--text3);margin-bottom:.3rem">Prix que la société externe facturerait pour calculer l'économie pièces.</p>
+            <div class="pieces-list" id="fPieces"></div>
+            <button type="button" class="btn-add-piece" onclick="addPieceRow('fPieces')">+ Ajouter une pièce</button>
+          </div>
+          <div class="form-group"><label class="form-label">Départ depuis</label>
+            <select class="form-input" id="fDepart"><option value="">— Pas de trajet —</option><option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option></select>
+          </div>
+          <div class="form-group"><div id="fDeplInfo"></div></div>
+          <div class="form-group full">
+            <label class="form-label">Travaux réalisés — coche puis indique les heures</label>
+            <div class="tags-grid" id="fTags"></div>
+          </div>
+        </div>
+      </div>
+      <!-- NOTE (toujours visible) -->
+      <div class="form-group full"><label class="form-label">Note / complément (optionnel)</label><textarea class="form-input" id="fDesc"></textarea></div>
       <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
-        <button class="btn btn-primary" onclick="saveIntervention()">💾 Enregistrer</button>
-        <button class="btn btn-ghost" onclick="resetForm()">Effacer</button>
+        <button class="btn btn-primary" onclick="saveUnified()">💾 Enregistrer</button>
+        <button class="btn btn-ghost" onclick="resetUnifiedForm()">Effacer</button>
       </div>
     </div>
   </div>
   <div class="card" style="margin-top:.5rem">
-    <div class="card-title">⏱ Saisie temps de travail</div>
-    <div class="form-grid">
-      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="ttDate"></div>
-      <div class="form-group"><div></div></div>
-      <div class="form-group full">
-        <label class="form-label">Site</label>
-        <div class="tt-site-grid" id="ttSiteGrid"></div>
-      </div>
-      <div class="form-group full">
-        <label class="form-label">Horaires</label>
-        <div class="tt-time-row">
-          <input type="time" class="tt-input" id="ttStart" oninput="calcTTDuration()">
-          <span class="tt-sep">→</span>
-          <input type="time" class="tt-input" id="ttEnd" oninput="calcTTDuration()">
-        </div>
-        <div class="tt-dur" id="ttDurBox" style="display:none">
-          <div class="tt-dur-val" id="ttDurVal"></div>
-          <div class="tt-dur-lbl">durée</div>
-        </div>
-      </div>
-      <div class="form-group full">
-        <button type="button" class="tt-rush-toggle" id="ttRushBtn" onclick="toggleTTRush()">
-          <span class="rush-indicator"></span> ⚡ Rush
-        </button>
-      </div>
-      <div class="form-group full"><label class="form-label">Note (optionnel)</label><input type="text" class="form-input" id="ttNote" placeholder="Ex: Nettoyage, travaux..."></div>
-      <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
-        <button class="btn btn-primary" onclick="saveTTEntry()">💾 Enregistrer temps</button>
-        <button class="btn btn-ghost" onclick="resetTTForm()">Effacer</button>
-      </div>
-    </div>
-    <div style="margin-top:.75rem">
-      <div class="card-title" style="font-size:.7rem">Dernières saisies</div>
-      <div id="ttLastEntries"></div>
-    </div>
+    <div class="card-title" style="font-size:.7rem">Dernières saisies temps</div>
+    <div id="ttLastEntries"></div>
   </div>
 </div>
 
@@ -642,8 +639,7 @@ function showDeplInfo(selectId,siteId,infoId){
   if(d.km===0){el.innerHTML='<div class="depl-info">Distance inconnue</div>';return}
   el.innerHTML='<div class="depl-info">🚗 '+d.km.toFixed(1)+' km aller · ~'+d.min+' min · '+d.cost.toFixed(2)+' CHF carburant</div>';
 }
-document.getElementById('fDepart').addEventListener('change',function(){showDeplInfo('fDepart','fSite','fDeplInfo')});
-document.getElementById('fSite').addEventListener('change',function(){showDeplInfo('fDepart','fSite','fDeplInfo')});
+document.getElementById('fDepart').addEventListener('change',function(){showDeplInfoUnified()});
 document.getElementById('eDepart').addEventListener('change',function(){showDeplInfo('eDepart','eSite','eDeplInfo')});
 document.getElementById('eSite').addEventListener('change',function(){showDeplInfo('eDepart','eSite','eDeplInfo')});
 
@@ -683,51 +679,182 @@ function ecoPieces(i){
 document.querySelectorAll('.nav-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});tab.classList.add('active');document.getElementById('page-'+tab.dataset.page).classList.add('active');refresh()})});
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
 
-// ========== SAISIE ==========
-function resetForm(){document.getElementById('fDate').value=new Date().toISOString().slice(0,10);document.getElementById('fMateriel').value='0';document.getElementById('fDesc').value='';document.getElementById('fDepart').value='';document.getElementById('fDeplInfo').innerHTML='';setTags('fTags',[]);setPieces('fPieces',[])}
-resetForm();
-// Mapping sites Maintenance -> sites Temps de Travail
-var MAINT_TO_TT={GD:'GD',NC:'NC',ND:'ND',DIVERS:'CRECHE',SIEGE:'THIB'};
+// ========== SAISIE UNIFIEE ==========
+var uMode='intervention';
+var uSelectedSite=null;
+var uRush=false;
 
-function createTTFromIntervention(date,site,heures,note,maintId){
-  var ttSite=MAINT_TO_TT[site];
-  if(!ttSite)return;
-  var totalMin=Math.round(heures*60);
-  if(totalMin<=0)return;
-  var startH=7,startM=0;
-  var endMin=startH*60+startM+totalMin;
-  var endH=Math.floor(endMin/60);
-  var endM=endMin%60;
-  var startStr=(startH<10?'0':'')+startH+':'+(startM<10?'0':'')+startM;
-  var endStr=(endH<10?'0':'')+endH+':'+(endM<10?'0':'')+endM;
+var U_SITE_LIST=[
+  {id:'GD',ttId:'GD',name:'Gland',code:'GD',color:'#F472B6'},
+  {id:'NC',ttId:'NC',name:'Nyon Centre',code:'NC',color:'#34D399'},
+  {id:'ND',ttId:'ND',name:'Nyon Drive',code:'ND',color:'#FBBF24'},
+  {id:'DIVERS',ttId:'CRECHE',name:'Divers',code:'DV',color:'#F97316'},
+  {id:'SIEGE',ttId:'THIB',name:'Siège',code:'SG',color:'#60A5FA'},
+  {id:'FORM',ttId:'FORM',name:'Formation',code:'FO',color:'#A78BFA'}
+];
 
-  var entries=getTTEntries();
-  entries.push({id:Date.now()+1,date:date,site:ttSite,start:startStr,end:endStr,hours:heures,note:note||'Via intervention maintenance',rush:false,maintId:maintId});
-  entries.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
-  localStorage.setItem('tt_entries',JSON.stringify(entries));
+function buildUSiteGrid(){
+  var grid=document.getElementById('uSiteGrid');
+  if(!grid)return;
+  var html='';
+  U_SITE_LIST.forEach(function(s){
+    html+='<button type="button" class="tt-site-btn" id="uSbtn_'+s.id+'" style="--tt-color:'+s.color+'" onclick="selectUSite(\''+s.id+'\')">'+
+      '<span class="tt-dot"></span>'+
+      '<span class="tt-name">'+s.name+'</span>'+
+      '<span class="tt-code">'+s.code+'</span>'+
+      '</button>';
+  });
+  grid.innerHTML=html;
 }
 
-function saveIntervention(){
-  var date=document.getElementById('fDate').value,site=document.getElementById('fSite').value,type=document.getElementById('fType').value;
-  var materiel=parseFloat(document.getElementById('fMateriel').value)||0;
-  var depart=document.getElementById('fDepart').value;
-  var pieces=getPieces('fPieces');
-  var travaux=getTags('fTags'),extra=document.getElementById('fDesc').value.trim(),heures=sumH(travaux);
-  if(!date){toast('Date requise');return}if(!travaux.length){toast('Coche un travail');return}if(heures<=0){toast('Indique les heures');return}
-  var d=getData();var intId=Date.now();
-  d.push({id:intId,date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:extra,pieces:pieces});
-  setData(d);
-  // Auto-création entrée Temps de Travail
-  var travauxLabel=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');
-  createTTFromIntervention(date,site,heures,travauxLabel+(extra?' — '+extra:''),intId);
-  toast('Enregistree + temps synchro');resetForm();refresh();
+function selectUSite(id){
+  uSelectedSite=id;
+  document.querySelectorAll('#uSiteGrid .tt-site-btn').forEach(function(b){b.classList.remove('selected')});
+  document.getElementById('uSbtn_'+id).classList.add('selected');
+  showDeplInfoUnified();
 }
+
+function setMode(mode){
+  uMode=mode;
+  var intFields=document.getElementById('interventionFields');
+  var intBtn=document.getElementById('modeIntBtn');
+  var ttBtn=document.getElementById('modeTTBtn');
+  if(mode==='intervention'){
+    intFields.style.display='';
+    intBtn.className='btn btn-primary';
+    ttBtn.className='btn btn-ghost';
+  }else{
+    intFields.style.display='none';
+    intBtn.className='btn btn-ghost';
+    ttBtn.className='btn btn-primary';
+  }
+}
+
+function toggleURush(){
+  uRush=!uRush;
+  document.getElementById('uRushBtn').classList.toggle('on',uRush);
+}
+
+function calcUDuration(){
+  var s=document.getElementById('uStart').value;
+  var e=document.getElementById('uEnd').value;
+  var box=document.getElementById('uDurBox');
+  var val=document.getElementById('uDurVal');
+  if(!s||!e){box.style.display='none';return}
+  var sp=s.split(':').map(Number);var ep=e.split(':').map(Number);
+  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
+  if(diff<=0){box.style.display='none';return}
+  var h=Math.floor(diff/60);var m=diff%60;
+  val.textContent=h+'h'+(m>0?(m<10?'0':'')+m:'');
+  box.style.display='';
+}
+
+function showDeplInfoUnified(){
+  var el=document.getElementById('fDeplInfo');
+  if(!el)return;
+  var dep=document.getElementById('fDepart').value;
+  if(!dep||!uSelectedSite||dep===uSelectedSite){el.innerHTML='';return}
+  var d=deplInt(dep,uSelectedSite);
+  if(d.km===0){el.innerHTML='<div class="depl-info">Distance inconnue</div>';return}
+  el.innerHTML='<div class="depl-info">🚗 '+d.km.toFixed(1)+' km aller · ~'+d.min+' min · '+d.cost.toFixed(2)+' CHF carburant</div>';
+}
+
+function resetUnifiedForm(){
+  document.getElementById('fDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('uStart').value='';
+  document.getElementById('uEnd').value='';
+  document.getElementById('uDurBox').style.display='none';
+  document.getElementById('fMateriel').value='0';
+  document.getElementById('fDesc').value='';
+  document.getElementById('fDepart').value='';
+  document.getElementById('fDeplInfo').innerHTML='';
+  setTags('fTags',[]);setPieces('fPieces',[]);
+  uRush=false;document.getElementById('uRushBtn').classList.remove('on');
+  uSelectedSite=null;
+  document.querySelectorAll('#uSiteGrid .tt-site-btn').forEach(function(b){b.classList.remove('selected')});
+}
+
+function getUSiteForMaint(){
+  // FORM n'existe pas dans l'app maintenance, on le traite comme DIVERS
+  if(uSelectedSite==='FORM')return 'DIVERS';
+  return uSelectedSite;
+}
+
+function getUSiteForTT(){
+  var map={GD:'GD',NC:'NC',ND:'ND',DIVERS:'CRECHE',SIEGE:'THIB',FORM:'FORM'};
+  return map[uSelectedSite]||uSelectedSite;
+}
+
+function saveUnified(){
+  var date=document.getElementById('fDate').value;
+  if(!date){toast('Date requise');return}
+  if(!uSelectedSite){toast('Selectionne un site');return}
+  var startVal=document.getElementById('uStart').value;
+  var endVal=document.getElementById('uEnd').value;
+  var note=document.getElementById('fDesc').value.trim();
+
+  // Calculer heures depuis horaires si renseignés
+  var hoursFromTime=0;
+  if(startVal&&endVal){
+    var sp=startVal.split(':').map(Number);var ep=endVal.split(':').map(Number);
+    var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
+    if(diff<=0){toast('Heure fin doit etre apres debut');return}
+    hoursFromTime=diff/60;
+  }
+
+  if(uMode==='intervention'){
+    var site=getUSiteForMaint();
+    var type=document.getElementById('fType').value;
+    var materiel=parseFloat(document.getElementById('fMateriel').value)||0;
+    var depart=document.getElementById('fDepart').value;
+    var pieces=getPieces('fPieces');
+    var travaux=getTags('fTags');
+    var heures=sumH(travaux);
+    if(!travaux.length){toast('Coche un travail');return}
+    if(heures<=0){toast('Indique les heures des travaux');return}
+
+    var d=getData();var intId=Date.now();
+    d.push({id:intId,date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:note,pieces:pieces});
+    setData(d);
+
+    // Auto-création TT
+    var ttSite=getUSiteForTT();
+    var ttHours=hoursFromTime>0?hoursFromTime:heures;
+    var ttStart=startVal||'07:00';
+    var ttEnd=endVal;
+    if(!ttEnd){var em=7*60+Math.round(ttHours*60);ttEnd=(Math.floor(em/60)<10?'0':'')+Math.floor(em/60)+':'+(em%60<10?'0':'')+(em%60)}
+    var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');
+    var entries=getTTEntries();
+    entries.push({id:intId+1,date:date,site:ttSite,start:ttStart,end:ttEnd,hours:ttHours,note:tvLbl+(note?' — '+note:''),rush:uRush,maintId:intId});
+    entries.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
+    localStorage.setItem('tt_entries',JSON.stringify(entries));
+
+    toast('Intervention + temps enregistres');
+
+  }else{
+    // Mode temps simple
+    if(!startVal||!endVal){toast('Heures debut et fin requises');return}
+    if(hoursFromTime<=0){toast('Heure fin doit etre apres debut');return}
+    var ttSite2=getUSiteForTT();
+    var entries2=getTTEntries();
+    entries2.push({id:Date.now(),date:date,site:ttSite2,start:startVal,end:endVal,hours:hoursFromTime,note:note||'Temps de travail',rush:uRush});
+    entries2.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
+    localStorage.setItem('tt_entries',JSON.stringify(entries2));
+    toast('Temps enregistre');
+  }
+
+  resetUnifiedForm();refresh();
+}
+
+buildUSiteGrid();
+resetUnifiedForm();
+document.getElementById('fDepart').addEventListener('change',showDeplInfoUnified);
 
 // ========== EDIT ==========
 var editId=null;
 function openEdit(id){var d=getData().find(function(i){return i.id===id});if(!d)return;editId=id;document.getElementById('eDate').value=d.date;document.getElementById('eSite').value=d.site;document.getElementById('eType').value=d.type;document.getElementById('eMateriel').value=d.materiel||0;document.getElementById('eDepart').value=d.depart||'';setTags('eTags',d.travaux||[]);setPieces('ePieces',d.pieces||[]);document.getElementById('eDesc').value=d.extra||'';showDeplInfo('eDepart','eSite','eDeplInfo');document.getElementById('editModal').classList.add('open')}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');editId=null}
-function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');createTTFromIntervention(d[idx].date,d[idx].site,d[idx].heures,tvLbl+(d[idx].extra?' — '+d[idx].extra:''),editId);closeEditModal();toast('Mis a jour');refresh()}
+function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});var mapTT={GD:'GD',NC:'NC',ND:'ND',DIVERS:'CRECHE',SIEGE:'THIB'};var ttSite=mapTT[d[idx].site]||d[idx].site;var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');var hh=d[idx].heures;var em2=7*60+Math.round(hh*60);var endS=(Math.floor(em2/60)<10?'0':'')+Math.floor(em2/60)+':'+(em2%60<10?'0':'')+(em2%60);ttE.push({id:editId+1,date:d[idx].date,site:ttSite,start:'07:00',end:endS,hours:hh,note:tvLbl+(d[idx].extra?' — '+d[idx].extra:''),rush:false,maintId:editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Mis a jour');refresh()}
 function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Supprimee');refresh()}
 
 // ========== CONFIG ==========
@@ -760,25 +887,40 @@ function renderObjective(){
   var c=getConfig();var obj=c.objectif;
   var now=new Date();var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
   var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
-  var ecoMois=d.reduce(function(s,i){return s+ecoCalc(i)+ecoPieces(i)},0);
+  var ecoMaint=d.reduce(function(s,i){return s+ecoCalc(i)+ecoPieces(i)},0);
+  // Ajouter rush TT comme economie interne (chiffrable non sous-traitable)
+  var mStart=curMonth+'-01';
+  var mParts=curMonth.split('-');
+  var mEnd=new Date(parseInt(mParts[0]),parseInt(mParts[1]),0).toISOString().slice(0,10);
+  var ttMonth=buildTTSummary(mStart,mEnd);
+  var rushEco=ttMonth?ttMonth.rushCostInt:0;
+  var ecoMois=ecoMaint+rushEco;
   var restant=Math.max(0,obj-ecoMois);
   var pct=obj>0?Math.min(100,ecoMois/obj*100):0;
   var atteint=ecoMois>=obj;
 
   var barColor=atteint?'var(--green)':pct>60?'var(--accent)':pct>30?'var(--orange)':'var(--red)';
-  var statusText=atteint?'🎉 Objectif atteint ! (+'+fmt(ecoMois-obj)+' au-dela)':'Encore '+fmt(restant)+' a economiser ce mois';
+  var surplus=ecoMois-obj;
+  var statusText=atteint?'🎉 Objectif atteint !':'Encore '+fmt(restant)+' a economiser ce mois';
   var statusColor=atteint?'var(--green)':'var(--text2)';
+  var cardBorder=atteint?'border:2px solid var(--green);background:rgba(52,211,153,.08)':'';
+  var surplusHtml=atteint?'<div style="text-align:center;margin-top:.5rem;padding:.5rem .75rem;background:rgba(52,211,153,.12);border-radius:var(--radius-sm);font-size:.9rem;font-weight:700;color:var(--green)">+'+fmt(surplus)+' au-dela de l\'objectif</div>':'';
 
   document.getElementById('objGauge').innerHTML=
+    '<div style="'+cardBorder+';border-radius:var(--radius);padding:'+(atteint?'1.25rem':'0')+'">'+
     '<div class="obj-header"><div class="card-title">🎯 Objectif mensuel</div><div class="obj-month">'+fML(curMonth)+'</div></div>'+
-    '<div class="obj-values"><div><div class="obj-remaining" style="color:'+barColor+'">'+fmt(ecoMois)+'</div><div class="obj-target">sur '+fmt(obj)+' objectif</div></div><div style="text-align:right;font-size:1.8rem;font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</div></div>'+
+    '<div class="obj-values"><div><div class="obj-remaining" style="color:'+barColor+'">'+fmt(ecoMois)+'</div><div class="obj-target">sur '+fmt(obj)+' objectif'+(rushEco>0?' · dont '+fmt(rushEco)+' rush':'')+'</div></div><div style="text-align:right;font-size:1.8rem;font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</div></div>'+
     '<div class="obj-bar-bg"><div class="obj-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'+
-    '<div class="obj-status" style="color:'+statusColor+'">'+statusText+'</div>';
+    '<div class="obj-status" style="color:'+statusColor+'">'+statusText+'</div>'+
+    surplusHtml+
+    '</div>';
 }
 
 // ========== RENDER DASHBOARD ==========
 function renderKPIs(){
-  var d=getData();var c=getConfig();
+  var now=new Date();var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
+  var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
+  var c=getConfig();
   var tH=rH(d.reduce(function(s,i){return s+totalH(i)},0));
   var hChiffr=rH(d.reduce(function(s,i){return s+heuresChiffrables(i)},0));
   var tI=d.reduce(function(s,i){return s+coutInt(i)},0);
@@ -786,9 +928,13 @@ function renderKPIs(){
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
   var tDepl=d.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tEcoPieces=d.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ecoTotale=tEco+tEcoPieces;
+  var mStart=curMonth+'-01';var mP=curMonth.split('-');var mEnd=new Date(parseInt(mP[0]),parseInt(mP[1]),0).toISOString().slice(0,10);
+  var ttMonth=buildTTSummary(mStart,mEnd);
+  var ttRushEco=ttMonth?ttMonth.rushCostInt:0;
+  var ecoTotale=tEco+tEcoPieces+ttRushEco;
   var subEco='Taux: '+pct.toFixed(1)+'%';
-  if(tEcoPieces>0)subEco+=' · dont '+fmt(tEcoPieces)+' pieces';
+  if(tEcoPieces>0)subEco+=' · '+fmt(tEcoPieces)+' pieces';
+  if(ttRushEco>0)subEco+=' · '+fmt(ttRushEco)+' rush';
   document.getElementById('kpi-row').innerHTML=
     '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies totales 🔍</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEco+'</span></div>'+
     '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+fH(tH)+'</span><span class="kpi-sub">dont '+fH(hChiffr)+' chiffrables</span></div>'+
@@ -840,7 +986,7 @@ function genRapport(){
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ecoTotale=tEco+tEcoPieces;
+  var ttRpt1=buildTTSummary(start,end);var ttRushRpt1=ttRpt1?ttRpt1.rushCostInt:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt1;
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
@@ -891,6 +1037,7 @@ function genRapport(){
     '<div class="rpt-big-label">d\'économies réalisées sur la période</div>'+
     '<div class="rpt-big-sub">Taux d\'économie : '+pct.toFixed(1)+'% · '+all.length+' interventions · '+fH(tH)+' travaillées</div>'+
     (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
+    (ttRushRpt1>0?'<div class="rpt-big-sub" style="color:var(--accent)">dont '+fmt(ttRushRpt1)+' rush chiffrable ('+fH(ttRpt1.rushH)+' x 32.40 CHF/h)</div>':'')+
     '</div>';
 
   // 3. KPIs DETAILLES
@@ -1103,7 +1250,7 @@ function genRapportInto(start,end,targetId){
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ecoTotale=tEco+tEcoPieces;
+  var ttRpt2=buildTTSummary(start,end);var ttRushRpt2=ttRpt2?ttRpt2.rushCostInt:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt2;
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
@@ -1148,6 +1295,7 @@ function genRapportInto(start,end,targetId){
     '<div class="rpt-big-label">d\'économies réalisées sur la période</div>'+
     '<div class="rpt-big-sub">Taux : '+pct.toFixed(1)+'% · '+all.length+' interventions · '+fH(tH)+' travaillées</div>'+
     (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
+    (ttRushRpt2>0?'<div class="rpt-big-sub" style="color:var(--accent)">dont '+fmt(ttRushRpt2)+' rush chiffrable ('+fH(ttRpt2.rushH)+' x 32.40 CHF/h)</div>':'')+
     '</div>';
 
   // KPIs
@@ -1656,94 +1804,6 @@ function importTTJSON(event){
   event.target.value='';
 }
 
-// ========== SAISIE TEMPS DE TRAVAIL ==========
-var ttRush=false;
-var ttSelectedSite=null;
-var TT_SITE_LIST=[
-  {id:'GD',name:'Gland',code:'GD',color:'#F472B6'},
-  {id:'NC',name:'Nyon Centre',code:'NC',color:'#34D399'},
-  {id:'ND',name:'Nyon Drive',code:'ND',color:'#FBBF24'},
-  {id:'CRECHE',name:'Divers',code:'DV',color:'#F97316'},
-  {id:'THIB',name:'Siège',code:'SG',color:'#60A5FA'},
-  {id:'FORM',name:'Formation',code:'FO',color:'#A78BFA'}
-];
-
-function buildTTSiteGrid(){
-  var grid=document.getElementById('ttSiteGrid');
-  if(!grid)return;
-  var html='';
-  TT_SITE_LIST.forEach(function(s){
-    html+='<button type="button" class="tt-site-btn" id="ttSbtn_'+s.id+'" style="--tt-color:'+s.color+'" onclick="selectTTSite(\''+s.id+'\')">'+
-      '<span class="tt-dot"></span>'+
-      '<span class="tt-name">'+s.name+'</span>'+
-      '<span class="tt-code">'+s.code+'</span>'+
-      '</button>';
-  });
-  grid.innerHTML=html;
-}
-
-function selectTTSite(id){
-  ttSelectedSite=id;
-  document.querySelectorAll('.tt-site-btn').forEach(function(b){b.classList.remove('selected')});
-  document.getElementById('ttSbtn_'+id).classList.add('selected');
-}
-
-function toggleTTRush(){
-  ttRush=!ttRush;
-  var btn=document.getElementById('ttRushBtn');
-  btn.classList.toggle('on',ttRush);
-}
-
-function resetTTForm(){
-  document.getElementById('ttDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('ttStart').value='';
-  document.getElementById('ttEnd').value='';
-  document.getElementById('ttNote').value='';
-  document.getElementById('ttDurBox').style.display='none';
-  ttRush=false;
-  document.getElementById('ttRushBtn').classList.remove('on');
-  ttSelectedSite=null;
-  document.querySelectorAll('.tt-site-btn').forEach(function(b){b.classList.remove('selected')});
-}
-
-function calcTTDuration(){
-  var s=document.getElementById('ttStart').value;
-  var e=document.getElementById('ttEnd').value;
-  var box=document.getElementById('ttDurBox');
-  var val=document.getElementById('ttDurVal');
-  if(!s||!e){box.style.display='none';return}
-  var sp=s.split(':').map(Number);var ep=e.split(':').map(Number);
-  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
-  if(diff<=0){box.style.display='none';return}
-  var h=Math.floor(diff/60);var m=diff%60;
-  val.textContent=h+'h'+(m>0?(m<10?'0':'')+m:'');
-  box.style.display='';
-}
-
-function saveTTEntry(){
-  var date=document.getElementById('ttDate').value;
-  var site=ttSelectedSite;
-  var start=document.getElementById('ttStart').value;
-  var end=document.getElementById('ttEnd').value;
-  var note=document.getElementById('ttNote').value.trim();
-  if(!date){toast('Date requise');return}
-  if(!site){toast('Selectionne un site');return}
-  if(!start||!end){toast('Heures requises');return}
-  var sp=start.split(':').map(Number);var ep=end.split(':').map(Number);
-  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
-  if(diff<=0){toast('Heure fin doit etre apres debut');return}
-  var hours=diff/60;
-
-  var entries=getTTEntries();
-  entries.push({id:Date.now(),date:date,site:site,start:start,end:end,hours:hours,note:note,rush:ttRush});
-  entries.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
-  localStorage.setItem('tt_entries',JSON.stringify(entries));
-  toast('Temps enregistre');
-  resetTTForm();
-  renderTTLastEntries();
-  renderTemps();
-}
-
 function deleteTTEntry(id){
   if(!confirm('Supprimer cette saisie ?'))return;
   var entries=getTTEntries().filter(function(e){return e.id!==id});
@@ -1832,9 +1892,7 @@ function deleteTTFromModal(){
 
 document.getElementById('ttEditModal').addEventListener('click',function(e){if(e.target===this)closeTTEditModal()});
 
-// Init TT form
-buildTTSiteGrid();
-resetTTForm();
+// Init TT display
 renderTTLastEntries();
 
 // ========== EXPORT/IMPORT ==========
