@@ -397,9 +397,6 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Données importées automatiquement depuis l'app Temps de Travail (localStorage partagé).</p>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem">
       <select class="form-input" id="ttFilterMonth" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="renderTemps()"><option value="all">Tous mois</option></select>
-      <span style="margin-left:auto"></span>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ttImportFile').click()">📤 Importer JSON Temps de Travail</button>
-      <input type="file" id="ttImportFile" accept=".json" style="display:none" onchange="importTTJSON(event)">
     </div>
     <div id="tempsContent"></div>
   </div>
@@ -613,20 +610,28 @@ function totalH(i){return rH(i.heures||sumH(i.travaux))}
 function buildTags(cid){
   var chiffrables=TRAVAUX.filter(function(t){return t.chiffrable});
   var nonChiffrables=TRAVAUX.filter(function(t){return!t.chiffrable});
-  var minOpts='<option value="0">00</option><option value="5">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>';
   var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies) — 32.40 CHF/h</div>';
   chiffrables.forEach(function(t){
-    html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" min="0" max="99" placeholder="0" id="'+cid+'_vh_'+t.id+'"><label>h</label><select id="'+cid+'_vm_'+t.id+'">'+minOpts+'</select><label>min</label></div></div>';
+    html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'"><span>'+t.icon+' '+t.label+'</span></label></div>';
   });
   html+='<div class="tags-section-label">📋 Suivi uniquement — 26.90 CHF/h (machine a glace 32)</div>';
   nonChiffrables.forEach(function(t){
-    html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'" onchange="togH(this,\''+cid+'\')"><span>'+t.icon+' '+t.label+'</span></label><div class="tag-hours" id="'+cid+'_h_'+t.id+'"><input type="number" min="0" max="99" placeholder="0" id="'+cid+'_vh_'+t.id+'"><label>h</label><select id="'+cid+'_vm_'+t.id+'">'+minOpts+'</select><label>min</label></div></div>';
+    html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'"><span>'+t.icon+' '+t.label+'</span></label></div>';
   });
   document.getElementById(cid).innerHTML=html;
 }
-function togH(cb,cid){var hd=document.getElementById(cid+'_h_'+cb.value);if(cb.checked){hd.classList.add('visible');document.getElementById(cid+'_vh_'+cb.value).focus()}else{hd.classList.remove('visible');document.getElementById(cid+'_vh_'+cb.value).value='';document.getElementById(cid+'_vm_'+cb.value).value='0'}}
-function getTags(cid){var r=[];TRAVAUX.forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb&&cb.checked){var h=parseInt(document.getElementById(cid+'_vh_'+t.id).value)||0;var m=parseInt(document.getElementById(cid+'_vm_'+t.id).value)||0;r.push({id:t.id,heures:rH(h+m/60)})}});return r}
-function setTags(cid,tv){document.querySelectorAll('#'+cid+' input[type="checkbox"]').forEach(function(c){c.checked=false});document.querySelectorAll('#'+cid+' .tag-hours').forEach(function(d){d.classList.remove('visible')});(tv||[]).forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb){cb.checked=true;document.getElementById(cid+'_h_'+t.id).classList.add('visible');var dec=t.heures||0;var hPart=Math.floor(dec);var mPart=Math.round((dec-hPart)*60);if(mPart>=60){hPart++;mPart=0}var mSnap=Math.round(mPart/5)*5;if(mSnap>=60){hPart++;mSnap=0}document.getElementById(cid+'_vh_'+t.id).value=hPart;document.getElementById(cid+'_vm_'+t.id).value=String(mSnap)}})}
+function getTags(cid,totalHours){
+  var r=[];var checked=[];
+  TRAVAUX.forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb&&cb.checked)checked.push(t)});
+  if(!checked.length)return r;
+  var hPer=rH(totalHours/checked.length);
+  checked.forEach(function(t){r.push({id:t.id,heures:hPer})});
+  return r;
+}
+function setTags(cid,tv){
+  document.querySelectorAll('#'+cid+' input[type="checkbox"]').forEach(function(c){c.checked=false});
+  (tv||[]).forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb)cb.checked=true});
+}
 buildTags('fTags');buildTags('eTags');
 
 // ========== DEPART INFO ==========
@@ -793,14 +798,11 @@ function saveUnified(){
   var endVal=document.getElementById('uEnd').value;
   var note=document.getElementById('fDesc').value.trim();
 
-  // Calculer heures depuis horaires si renseignés
-  var hoursFromTime=0;
-  if(startVal&&endVal){
-    var sp=startVal.split(':').map(Number);var ep=endVal.split(':').map(Number);
-    var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
-    if(diff<=0){toast('Heure fin doit etre apres debut');return}
-    hoursFromTime=diff/60;
-  }
+  if(!startVal||!endVal){toast('Heures debut et fin requises');return}
+  var sp=startVal.split(':').map(Number);var ep=endVal.split(':').map(Number);
+  var diff=(ep[0]*60+ep[1])-(sp[0]*60+sp[1]);
+  if(diff<=0){toast('Heure fin doit etre apres debut');return}
+  var hoursFromTime=diff/60;
 
   if(uMode==='intervention'){
     var site=getUSiteForMaint();
@@ -808,33 +810,24 @@ function saveUnified(){
     var materiel=parseFloat(document.getElementById('fMateriel').value)||0;
     var depart=document.getElementById('fDepart').value;
     var pieces=getPieces('fPieces');
-    var travaux=getTags('fTags');
-    var heures=sumH(travaux);
-    if(!travaux.length){toast('Coche un travail');return}
-    if(heures<=0){toast('Indique les heures des travaux');return}
+    var travaux=getTags('fTags',hoursFromTime);
+    if(!travaux.length){toast('Coche au moins un travail');return}
 
     var d=getData();var intId=Date.now();
-    d.push({id:intId,date:date,site:site,type:type,heures:heures,materiel:materiel,depart:depart,travaux:travaux,extra:note,pieces:pieces});
+    d.push({id:intId,date:date,site:site,type:type,heures:rH(hoursFromTime),materiel:materiel,depart:depart,travaux:travaux,extra:note,pieces:pieces});
     setData(d);
 
-    // Auto-création TT
+    // Auto-creation TT
     var ttSite=getUSiteForTT();
-    var ttHours=hoursFromTime>0?hoursFromTime:heures;
-    var ttStart=startVal||'07:00';
-    var ttEnd=endVal;
-    if(!ttEnd){var em=7*60+Math.round(ttHours*60);ttEnd=(Math.floor(em/60)<10?'0':'')+Math.floor(em/60)+':'+(em%60<10?'0':'')+(em%60)}
     var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');
     var entries=getTTEntries();
-    entries.push({id:intId+1,date:date,site:ttSite,start:ttStart,end:ttEnd,hours:ttHours,note:tvLbl+(note?' — '+note:''),rush:uRush,maintId:intId});
+    entries.push({id:intId+1,date:date,site:ttSite,start:startVal,end:endVal,hours:hoursFromTime,note:tvLbl+(note?' — '+note:''),rush:uRush,maintId:intId});
     entries.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
     localStorage.setItem('tt_entries',JSON.stringify(entries));
-
     toast('Intervention + temps enregistres');
 
   }else{
-    // Mode temps simple
-    if(!startVal||!endVal){toast('Heures debut et fin requises');return}
-    if(hoursFromTime<=0){toast('Heure fin doit etre apres debut');return}
+    // Mode temps simple (rush seul accepte)
     var ttSite2=getUSiteForTT();
     var entries2=getTTEntries();
     entries2.push({id:Date.now(),date:date,site:ttSite2,start:startVal,end:endVal,hours:hoursFromTime,note:note||'Temps de travail',rush:uRush});
@@ -854,7 +847,7 @@ document.getElementById('fDepart').addEventListener('change',showDeplInfoUnified
 var editId=null;
 function openEdit(id){var d=getData().find(function(i){return i.id===id});if(!d)return;editId=id;document.getElementById('eDate').value=d.date;document.getElementById('eSite').value=d.site;document.getElementById('eType').value=d.type;document.getElementById('eMateriel').value=d.materiel||0;document.getElementById('eDepart').value=d.depart||'';setTags('eTags',d.travaux||[]);setPieces('ePieces',d.pieces||[]);document.getElementById('eDesc').value=d.extra||'';showDeplInfo('eDepart','eSite','eDeplInfo');document.getElementById('editModal').classList.add('open')}
 function closeEditModal(){document.getElementById('editModal').classList.remove('open');editId=null}
-function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var travaux=getTags('eTags');d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].heures=sumH(travaux);d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});var mapTT={GD:'GD',NC:'NC',ND:'ND',DIVERS:'CRECHE',SIEGE:'THIB'};var ttSite=mapTT[d[idx].site]||d[idx].site;var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');var hh=d[idx].heures;var em2=7*60+Math.round(hh*60);var endS=(Math.floor(em2/60)<10?'0':'')+Math.floor(em2/60)+':'+(em2%60<10?'0':'')+(em2%60);ttE.push({id:editId+1,date:d[idx].date,site:ttSite,start:'07:00',end:endS,hours:hh,note:tvLbl+(d[idx].extra?' — '+d[idx].extra:''),rush:false,maintId:editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Mis a jour');refresh()}
+function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(var x=0;x<d.length;x++){if(d[x].id===editId){idx=x;break}}if(idx<0)return;var oldHeures=d[idx].heures||0;var travaux=getTags('eTags',oldHeures);d[idx].date=document.getElementById('eDate').value;d[idx].site=document.getElementById('eSite').value;d[idx].type=document.getElementById('eType').value;d[idx].materiel=parseFloat(document.getElementById('eMateriel').value)||0;d[idx].depart=document.getElementById('eDepart').value;d[idx].travaux=travaux;d[idx].extra=document.getElementById('eDesc').value.trim();d[idx].pieces=getPieces('ePieces');setData(d);var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});var mapTT={GD:'GD',NC:'NC',ND:'ND',DIVERS:'CRECHE',SIEGE:'THIB'};var ttSite=mapTT[d[idx].site]||d[idx].site;var tvLbl=travaux.map(function(t){var def=TMAP[t.id];return def?def.label:t.id}).join(', ');var hh=d[idx].heures;var em2=7*60+Math.round(hh*60);var endS=(Math.floor(em2/60)<10?'0':'')+Math.floor(em2/60)+':'+(em2%60<10?'0':'')+(em2%60);ttE.push({id:editId+1,date:d[idx].date,site:ttSite,start:'07:00',end:endS,hours:hh,note:tvLbl+(d[idx].extra?' — '+d[idx].extra:''),rush:false,maintId:editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Mis a jour');refresh()}
 function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Supprimee');refresh()}
 
 // ========== CONFIG ==========
@@ -1896,9 +1889,14 @@ document.getElementById('ttEditModal').addEventListener('click',function(e){if(e
 renderTTLastEntries();
 
 // ========== EXPORT/IMPORT ==========
-function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
-function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc))}toast(nw.length+' importees');refresh()}}catch(err){toast('Invalide')}};r.readAsText(f);e.target.value=''}
+function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);var total=0;
+if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));total+=nw.length;if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc));total+=nc.length}}
+var ttNew=j.tt_entries||j.entries||[];if(Array.isArray(ttNew)&&ttNew.length){var ttEx=getTTEntries();var ttIds={};ttEx.forEach(function(x){ttIds[x.id]=true});var ttAdd=ttNew.filter(function(x){return x.id&&!ttIds[x.id]&&x.date&&x.site});if(ttAdd.length){ttEx=ttEx.concat(ttAdd);ttEx.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});localStorage.setItem('tt_entries',JSON.stringify(ttEx));total+=ttAdd.length}}
+var excNew=j.tt_exc_trips||j.excTrips||[];if(Array.isArray(excNew)&&excNew.length){var excEx=getTTExcTrips();var excIds={};excEx.forEach(function(x){excIds[x.id]=true});var excAdd=excNew.filter(function(x){return x.id&&!excIds[x.id]});if(excAdd.length){excEx=excEx.concat(excAdd);localStorage.setItem('tt_exc_trips',JSON.stringify(excEx));total+=excAdd.length}}
+if(j.tt_settings)localStorage.setItem('tt_settings',JSON.stringify(j.tt_settings));
+toast(total+' elements importes');refresh()}catch(err){toast('Fichier invalide')}};r.readAsText(f);e.target.value=''}
 
 // ========== KPI DETAIL MODALS ==========
 function openKpiModal(type){
