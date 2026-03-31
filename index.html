@@ -1614,7 +1614,7 @@ function exportInteractiveHTML(){
   html+='Chart.defaults.color="#94a3b8";Chart.defaults.font.family="DM Sans";Chart.defaults.plugins.legend.labels.boxWidth=10;';
 
   // Animated counter
-  html+='function animCount(){var el=document.getElementById("heroVal");var target=parseInt(el.dataset.target);var dur=1500;var start=Date.now();function step(){var p=Math.min(1,(Date.now()-start)/dur);var ease=1-Math.pow(1-p,3);el.textContent=Math.round(target*ease).toLocaleString("fr-CH")+" CHF";if(p<1)requestAnimationFrame(step)}step()}';
+  html+='function animCount(){var el=document.getElementById("heroVal");var target=parseInt(el.dataset.target);var dur=5000;var start=Date.now();function step(){var p=Math.min(1,(Date.now()-start)/dur);var ease=1-Math.pow(1-p,4);el.textContent=Math.round(target*ease).toLocaleString("fr-CH")+" CHF";if(p<1)requestAnimationFrame(step)}step()}';
 
   // Animated bars
   html+='function animBars(){document.querySelectorAll(".anim-bar").forEach(function(b){setTimeout(function(){b.style.transition="width 1s ease";b.style.width=b.dataset.w},300)})}';
