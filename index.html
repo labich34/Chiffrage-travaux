@@ -236,6 +236,7 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
     <button class="nav-tab" data-page="temps">⏱ Temps</button>
     <button class="nav-tab" data-page="rapport">Rapport</button>
     <button class="nav-tab" data-page="config">Config</button>
+    <button class="nav-tab" data-page="historique">📋 Historique</button>
   </div>
 </nav>
 <div class="container">
@@ -457,6 +458,27 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
   </div>
   <div class="card"><div class="card-title">Distances inter-sites (aller simple)</div>
     <div class="table-wrap"><table id="tableDistances"><thead><tr><th>De → Vers</th><th>km</th><th>~min</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<!-- HISTORIQUE -->
+<div class="page" id="page-historique">
+  <div class="card">
+    <div class="card-title">📋 Historique complet — Toutes les saisies</div>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Vue unifiée de toutes vos saisies (interventions + temps de travail) pour vérifier les doublons et les erreurs.</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem">
+      <select class="form-input" id="histMonth" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="renderHistorique()"><option value="all">Tous mois</option></select>
+      <select class="form-input" id="histSite" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="renderHistorique()">
+        <option value="all">Tous sites</option>
+        <option value="GD">Gland</option><option value="NC">Nyon Centre</option><option value="ND">Nyon Drive</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option><option value="CRECHE">Divers (TT)</option><option value="THIB">Siège (TT)</option><option value="FORM">Formation</option>
+      </select>
+      <select class="form-input" id="histType" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="renderHistorique()">
+        <option value="all">Tout</option>
+        <option value="intervention">Interventions</option>
+        <option value="temps">Temps de travail</option>
+      </select>
+    </div>
+    <div id="histContent"></div>
   </div>
 </div>
 
@@ -1401,19 +1423,14 @@ function exportPDF(){
   if(!el.innerHTML){toast('Genere un rapport d\'abord');return}
   toast('Generation PDF... patience');
 
-  // Collect all direct child sections
   var sections=[];
   for(var i=0;i<el.children.length;i++){
-    var child=el.children[i];
-    // For sections with sub-elements (like rpt-section), capture the whole block
-    if(child.offsetHeight>0)sections.push(child);
+    if(el.children[i].offsetHeight>0)sections.push(el.children[i]);
   }
-
   if(!sections.length){toast('Rien a exporter');return}
 
   el.style.background='#1e293b';
   el.style.padding='20px';
-  // Fix width for consistent capture
   el.style.width='800px';
   el.style.maxWidth='800px';
 
@@ -1424,17 +1441,14 @@ function exportPDF(){
   var usableW=pageW-margin*2;
   var usableH=pageH-margin*2;
   var yPos=margin;
-  var pageNum=0;
+  var isFirstPage=true;
 
   function captureNext(idx){
     if(idx>=sections.length){
       var start=document.getElementById('rStart').value;
       var end=document.getElementById('rEnd').value;
       pdf.save('Rapport_Maintenance_'+start+'_'+end+'.pdf');
-      el.style.background='';
-      el.style.padding='';
-      el.style.width='';
-      el.style.maxWidth='';
+      el.style.background='';el.style.padding='';el.style.width='';el.style.maxWidth='';
       toast('PDF exporte');
       return;
     }
@@ -1446,30 +1460,37 @@ function exportPDF(){
       var ratio=usableW/imgW;
       var blockH=imgH*ratio;
 
-      // If block is too tall for one page, split it
-      if(blockH>usableH){
-        // Split into sub-pages
-        var srcRemaining=imgH;
+      if(blockH<=usableH){
+        // Block fits on one page — check if it fits remaining space
+        if(yPos+blockH>pageH-margin){
+          // Does NOT fit — new page
+          pdf.addPage();
+          yPos=margin;
+        }
+        var imgData=canvas.toDataURL('image/jpeg',0.92);
+        pdf.addImage(imgData,'JPEG',margin,yPos,usableW,blockH);
+        yPos+=blockH+2;
+      }else{
+        // Block too tall for one page — start on new page then split
+        if(!isFirstPage||yPos>margin){
+          pdf.addPage();
+          yPos=margin;
+        }
         var srcOffset=0;
+        var srcRemaining=imgH;
         while(srcRemaining>0){
-          if(yPos>margin&&pageNum>0||yPos>margin){
-            pdf.addPage();
-            yPos=margin;
-          }
-          var fitH=(usableH-yPos+margin)/ratio;
-          var srcH2=Math.min(fitH,srcRemaining);
+          var availH=(usableH-(yPos-margin));
+          var fitSrc=availH/ratio;
+          var srcH2=Math.min(fitSrc,srcRemaining);
           var destH2=srcH2*ratio;
 
           var tc=document.createElement('canvas');
-          tc.width=imgW;
-          tc.height=Math.ceil(srcH2);
+          tc.width=imgW;tc.height=Math.ceil(srcH2);
           var tx=tc.getContext('2d');
           tx.drawImage(canvas,0,Math.floor(srcOffset),imgW,Math.ceil(srcH2),0,0,imgW,Math.ceil(srcH2));
-          var img2=tc.toDataURL('image/jpeg',0.92);
-          pdf.addImage(img2,'JPEG',margin,yPos,usableW,destH2);
+          pdf.addImage(tc.toDataURL('image/jpeg',0.92),'JPEG',margin,yPos,usableW,destH2);
 
-          srcOffset+=srcH2;
-          srcRemaining-=srcH2;
+          srcOffset+=srcH2;srcRemaining-=srcH2;
           yPos+=destH2+2;
 
           if(srcRemaining>0){
@@ -1477,20 +1498,12 @@ function exportPDF(){
             yPos=margin;
           }
         }
-      }else{
-        // Check if block fits on current page
-        if(yPos+blockH>pageH-margin){
-          pdf.addPage();
-          yPos=margin;
-        }
-        var imgData=canvas.toDataURL('image/jpeg',0.92);
-        pdf.addImage(imgData,'JPEG',margin,yPos,usableW,blockH);
-        yPos+=blockH+3;
       }
-      pageNum++;
+
+      isFirstPage=false;
       captureNext(idx+1);
     }).catch(function(err){
-      console.error('PDF section error:',err);
+      console.error('PDF err:',err);
       captureNext(idx+1);
     });
   }
@@ -2185,6 +2198,101 @@ document.getElementById('ttEditModal').addEventListener('click',function(e){if(e
 // Init TT display
 renderTTLastEntries();
 
+// ========== HISTORIQUE ==========
+function updateHistMonths(){
+  var allDates={};
+  getData().forEach(function(i){var m=i.date.slice(0,7);allDates[m]=true});
+  getTTEntries().forEach(function(e){var m=e.date.slice(0,7);allDates[m]=true});
+  var ms=Object.keys(allDates).sort().reverse();
+  var sel=document.getElementById('histMonth');
+  if(!sel)return;
+  var cv=sel.value;
+  sel.innerHTML='<option value="all">Tous mois</option>';
+  ms.forEach(function(m){var p=m.split('-');sel.innerHTML+='<option value="'+m+'">'+new Date(p[0],p[1]-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'</option>'});
+  sel.value=ms.indexOf(cv)>=0?cv:'all';
+}
+
+function renderHistorique(){
+  updateHistMonths();
+  var fm=document.getElementById('histMonth').value;
+  var fs2=document.getElementById('histSite').value;
+  var ft=document.getElementById('histType').value;
+  var rows=[];
+
+  // Interventions
+  if(ft==='all'||ft==='intervention'){
+    getData().forEach(function(i){
+      if(fm!=='all'&&i.date.slice(0,7)!==fm)return;
+      if(fs2!=='all'&&i.site!==fs2)return;
+      var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):t.id}).join(', ');
+      rows.push({
+        date:i.date,sortKey:i.date+'_0_'+(i.id||0),
+        type:'intervention',
+        site:i.site,
+        siteName:SITES[i.site]?SITES[i.site].name:i.site,
+        siteColor:SITES[i.site]?SITES[i.site].color:'#888',
+        detail:tvl+(i.extra?' — '+i.extra:''),
+        heures:fH(totalH(i)),
+        rush:false,
+        id:i.id,
+        source:'maint'
+      });
+    });
+  }
+
+  // Temps de travail
+  if(ft==='all'||ft==='temps'){
+    var MAINT_SITES_MAP={GD:'GD',NC:'NC',ND:'ND',CRECHE:'DIVERS',THIB:'SIEGE'};
+    getTTEntries().forEach(function(e){
+      if(fm!=='all'&&e.date.slice(0,7)!==fm)return;
+      var ttSiteId=e.site;
+      var maintSiteId=MAINT_SITES_MAP[ttSiteId]||ttSiteId;
+      if(fs2!=='all'&&ttSiteId!==fs2&&maintSiteId!==fs2)return;
+      var si=TT_SITES[ttSiteId];
+      var h=Math.floor(e.hours||0);var m=Math.round(((e.hours||0)-h)*60);
+      rows.push({
+        date:e.date,sortKey:e.date+'_1_'+(e.start||'00:00'),
+        type:'temps',
+        site:ttSiteId,
+        siteName:si?si.name:ttSiteId,
+        siteColor:si?si.color:'#888',
+        detail:(e.start||'')+' - '+(e.end||'')+(e.note?' — '+e.note:''),
+        heures:h+'h'+(m>0?(m<10?'0':'')+m:''),
+        rush:!!e.rush,
+        id:e.id,
+        source:'tt',
+        maintId:e.maintId||null
+      });
+    });
+  }
+
+  // Sort by date desc then type
+  rows.sort(function(a,b){return b.sortKey>a.sortKey?1:b.sortKey<a.sortKey?-1:0});
+
+  var el=document.getElementById('histContent');
+  if(!rows.length){
+    el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3)">📭 Aucune saisie pour ces filtres</div>';
+    return;
+  }
+
+  var html='<div style="font-size:.78rem;color:var(--text2);margin-bottom:.5rem">'+rows.length+' saisies trouvees</div>';
+  html+='<div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Site</th><th>Detail</th><th>Heures</th><th>Lien</th><th></th></tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var typeBadge=r.type==='intervention'?'<span style="display:inline-block;padding:2px 7px;border-radius:10px;font-size:.68rem;font-weight:600;background:rgba(96,165,250,.15);color:#60A5FA">🔧 Interv.</span>':'<span style="display:inline-block;padding:2px 7px;border-radius:10px;font-size:.68rem;font-weight:600;background:rgba(255,199,44,.12);color:#FFC72C">⏱ Temps</span>';
+    var rushBadge=r.rush?'<span style="display:inline-block;padding:1px 5px;border-radius:8px;font-size:.65rem;font-weight:600;background:rgba(255,199,44,.2);color:#FFC72C;margin-left:4px">⚡</span>':'';
+    var linkBadge=r.maintId?'<span style="font-size:.65rem;color:var(--text3)" title="Lie a intervention '+r.maintId+'">🔗 auto</span>':'';
+    var editBtn='';
+    if(r.source==='maint')editBtn='<button class="btn btn-ghost btn-sm" onclick="openEdit('+r.id+')" style="padding:.2rem .4rem">✏️</button>';
+    else editBtn='<button class="btn btn-ghost btn-sm" onclick="openTTEdit('+r.id+')" style="padding:.2rem .4rem">✏️</button>';
+
+    html+='<tr><td style="white-space:nowrap">'+fD(r.date)+'</td><td>'+typeBadge+rushBadge+'</td><td><span class="site-dot" style="background:'+r.siteColor+'"></span>'+r.siteName+'</td><td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);font-size:.78rem">'+r.detail+'</td><td style="font-weight:600;color:var(--accent)">'+r.heures+'</td><td>'+linkBadge+'</td><td>'+editBtn+'</td></tr>';
+  });
+
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
 // ========== EXPORT/IMPORT ==========
 function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
@@ -2364,7 +2472,7 @@ function closeKpiModal(){document.getElementById('kpiModal').classList.remove('o
 document.getElementById('kpiModal').addEventListener('click',function(e){if(e.target===this)closeKpiModal()});
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderHistorique();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
