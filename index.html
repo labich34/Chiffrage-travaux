@@ -296,6 +296,13 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
           <span class="rush-indicator"></span> ⚡ Rush
         </button>
       </div>
+      <!-- CHAMPS TEMPS DE TRAVAIL (visibles seulement en mode temps) -->
+      <div id="tempsFields" style="display:none">
+        <div class="form-group full">
+          <label class="form-label">Travaux réalisés (optionnel)</label>
+          <div class="tags-grid" id="fTagsTT"></div>
+        </div>
+      </div>
       <!-- CHAMPS INTERVENTION (visibles seulement en mode intervention) -->
       <div id="interventionFields">
         <div class="form-grid">
@@ -632,12 +639,15 @@ function totalH(i){return rH(i.heures||sumH(i.travaux))}
 // ========== TAGS UI ==========
 function buildTags(cid){
   var chiffrables=TRAVAUX.filter(function(t){return t.chiffrable});
-  var nonChiffrables=TRAVAUX.filter(function(t){return!t.chiffrable});
   var html='<div class="tags-section-label">💰 Chiffrables (comptent dans les économies) — 32.40 CHF/h</div>';
   chiffrables.forEach(function(t){
     html+='<div class="tag-item"><label class="tag-check chiffrable"><input type="checkbox" value="'+t.id+'"><span>'+t.icon+' '+t.label+'</span></label></div>';
   });
-  html+='<div class="tags-section-label">📋 Suivi uniquement — 26.90 CHF/h (machine a glace 32)</div>';
+  document.getElementById(cid).innerHTML=html;
+}
+function buildTagsTT(cid){
+  var nonChiffrables=TRAVAUX.filter(function(t){return!t.chiffrable});
+  var html='<div class="tags-section-label">📋 Travaux suivi — 26.90 CHF/h (machine a glace 32)</div>';
   nonChiffrables.forEach(function(t){
     html+='<div class="tag-item"><label class="tag-check nonchiffrable"><input type="checkbox" value="'+t.id+'"><span>'+t.icon+' '+t.label+'</span></label></div>';
   });
@@ -655,7 +665,7 @@ function setTags(cid,tv){
   document.querySelectorAll('#'+cid+' input[type="checkbox"]').forEach(function(c){c.checked=false});
   (tv||[]).forEach(function(t){var cb=document.querySelector('#'+cid+' input[value="'+t.id+'"]');if(cb)cb.checked=true});
 }
-buildTags('fTags');buildTags('eTags');
+buildTags('fTags');buildTags('eTags');buildTagsTT('fTagsTT');
 
 // ========== DEPART INFO ==========
 function showDeplInfo(selectId,siteId,infoId){
@@ -745,14 +755,17 @@ function selectUSite(id){
 function setMode(mode){
   uMode=mode;
   var intFields=document.getElementById('interventionFields');
+  var ttFields=document.getElementById('tempsFields');
   var intBtn=document.getElementById('modeIntBtn');
   var ttBtn=document.getElementById('modeTTBtn');
   if(mode==='intervention'){
     intFields.style.display='';
+    ttFields.style.display='none';
     intBtn.className='btn btn-primary';
     ttBtn.className='btn btn-ghost';
   }else{
     intFields.style.display='none';
+    ttFields.style.display='';
     intBtn.className='btn btn-ghost';
     ttBtn.className='btn btn-primary';
   }
@@ -796,7 +809,7 @@ function resetUnifiedForm(){
   document.getElementById('fDesc').value='';
   document.getElementById('fDepart').value='';
   document.getElementById('fDeplInfo').innerHTML='';
-  setTags('fTags',[]);setPieces('fPieces',[]);
+  setTags('fTags',[]);setTags('fTagsTT',[]);setPieces('fPieces',[]);
   uRush=false;document.getElementById('uRushBtn').classList.remove('on');
   uSelectedSite=null;
   document.querySelectorAll('#uSiteGrid .tt-site-btn').forEach(function(b){b.classList.remove('selected')});
@@ -852,8 +865,11 @@ function saveUnified(){
   }else{
     // Mode temps simple (rush seul accepte)
     var ttSite2=getUSiteForTT();
+    var ttTravaux=getTags('fTagsTT',hoursFromTime);
+    var ttTvLbl=ttTravaux.map(function(t){var def=TMAP[t.id];return def?(def.icon+' '+def.label):t.id}).join(', ');
+    var ttNote=ttTvLbl?(ttTvLbl+(note?' — '+note:'')):(note||'Temps de travail');
     var entries2=getTTEntries();
-    entries2.push({id:Date.now(),date:date,site:ttSite2,start:startVal,end:endVal,hours:hoursFromTime,note:note||'Temps de travail',rush:uRush});
+    entries2.push({id:Date.now(),date:date,site:ttSite2,start:startVal,end:endVal,hours:hoursFromTime,note:ttNote,rush:uRush,travaux:ttTravaux});
     entries2.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
     localStorage.setItem('tt_entries',JSON.stringify(entries2));
     toast('Temps enregistre');
@@ -898,6 +914,40 @@ function fM(m){var p=m.split('-');return new Date(p[0],p[1]-1).toLocaleDateStrin
 function fML(m){var p=m.split('-');return new Date(p[0],p[1]-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}
 function tvLabel(i){var tv=i.travaux||[];if(!tv.length)return i.extra||'-';return tv.map(function(t){var def=TMAP[t.id];var isC=CHIFFRABLE_IDS.indexOf(t.id)>=0;return '<span class="desc-tag'+(isC?' chiffrable':'')+'">'+(def?def.icon+' '+def.label:t.id)+' '+fH(t.heures)+'</span>'}).join(' ')+(i.extra?'<div class="desc-extra">'+i.extra+'</div>':'')}
 
+// ========== CONFETTI ==========
+function launchConfetti(canvasId){
+  var canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth*2;
+  canvas.height=canvas.offsetHeight*2;
+  ctx.scale(2,2);
+  var W=canvas.offsetWidth,H=canvas.offsetHeight;
+  var colors=['#34D399','#FFC72C','#60A5FA','#F472B6','#A78BFA','#FBBF24','#22D3EE','#F97316'];
+  var pieces=[];
+  for(var i=0;i<80;i++){
+    pieces.push({x:W/2+((Math.random()-.5)*60),y:H*0.4,vx:(Math.random()-.5)*8,vy:-(Math.random()*6+3),r:Math.random()*4+2,color:colors[Math.floor(Math.random()*colors.length)],rot:Math.random()*360,vr:(Math.random()-.5)*10,life:1});
+  }
+  var gravity=0.15;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    var alive=false;
+    pieces.forEach(function(p){
+      if(p.life<=0)return;
+      alive=true;
+      p.x+=p.vx;p.y+=p.vy;p.vy+=gravity;p.rot+=p.vr;p.life-=0.008;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=Math.max(0,p.life);
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+      ctx.restore();
+    });
+    if(alive)requestAnimationFrame(draw);
+    else{ctx.clearRect(0,0,W,H)}
+  }
+  draw();
+}
+
 // ========== OBJECTIVE GAUGE ==========
 function renderObjective(){
   var c=getConfig();var obj=c.objectif;
@@ -912,7 +962,7 @@ function renderObjective(){
   var rushEco=ttMonth?ttMonth.rushCostInt:0;
   var ecoMois=ecoMaint+rushEco;
   var restant=Math.max(0,obj-ecoMois);
-  var pct=obj>0?Math.min(100,ecoMois/obj*100):0;
+  var pct=obj>0?Math.min(200,ecoMois/obj*100):0;
   var atteint=ecoMois>=obj;
 
   var barColor=atteint?'var(--green)':pct>60?'var(--accent)':pct>30?'var(--orange)':'var(--red)';
@@ -921,15 +971,20 @@ function renderObjective(){
   var statusColor=atteint?'var(--green)':'var(--text2)';
   var cardBorder=atteint?'border:2px solid var(--green);background:rgba(52,211,153,.08)':'';
   var surplusHtml=atteint?'<div style="text-align:center;margin-top:.5rem;padding:.5rem .75rem;background:rgba(52,211,153,.12);border-radius:var(--radius-sm);font-size:.9rem;font-weight:700;color:var(--green)">+'+fmt(surplus)+' au-dela de l\'objectif</div>':'';
+  var confettiHtml=atteint?'<canvas id="confettiCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10"></canvas>':'';
 
   document.getElementById('objGauge').innerHTML=
-    '<div style="'+cardBorder+';border-radius:var(--radius);padding:'+(atteint?'1.25rem':'0')+'">'+
+    '<div style="position:relative;'+cardBorder+';border-radius:var(--radius);padding:'+(atteint?'1.25rem':'0')+'">'+
+    confettiHtml+
     '<div class="obj-header"><div class="card-title">🎯 Objectif mensuel</div><div class="obj-month">'+fML(curMonth)+'</div></div>'+
     '<div class="obj-values"><div><div class="obj-remaining" style="color:'+barColor+'">'+fmt(ecoMois)+'</div><div class="obj-target">sur '+fmt(obj)+' objectif'+(rushEco>0?' · dont '+fmt(rushEco)+' rush':'')+'</div></div><div style="text-align:right;font-size:1.8rem;font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</div></div>'+
-    '<div class="obj-bar-bg"><div class="obj-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'+
+    '<div class="obj-bar-bg"><div class="obj-bar-fill" style="width:'+Math.min(100,pct)+'%;background:'+barColor+'"></div></div>'+
     '<div class="obj-status" style="color:'+statusColor+'">'+statusText+'</div>'+
     surplusHtml+
     '</div>';
+
+  // Launch confetti if objective achieved
+  if(atteint){setTimeout(function(){launchConfetti('confettiCanvas')},300)}
 }
 
 // ========== RENDER DASHBOARD ==========
@@ -1642,9 +1697,13 @@ function exportInteractiveHTML(){
   h+='<div class="hdr"><h1>🔧 Rapport de Maintenance</h1><div class="sub">McDonald\'s La Cote — Service technique interne</div><div class="per">'+fD(start)+' — '+fD(end)+'</div></div>';
 
   // HERO
-  h+='<div class="hero"><div class="big" id="heroVal" data-target="'+Math.round(ecoTotale)+'">0 CHF</div><div class="bl">d\'economies realisees sur la periode</div><div class="bs">Taux : '+pct.toFixed(1)+'% | '+all.length+' interventions | '+fH(tH)+' travaillees</div>';
+  var objAtteint=ecoTotale>=c.objectif;
+  h+='<div class="hero" style="position:relative;overflow:hidden">';
+  if(objAtteint)h+='<canvas id="heroConfetti" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10"></canvas>';
+  h+='<div class="big" id="heroVal" data-target="'+Math.round(ecoTotale)+'">0 CHF</div><div class="bl">d\'economies realisees sur la periode</div><div class="bs">Taux : '+pct.toFixed(1)+'% | '+all.length+' interventions | '+fH(tH)+' travaillees</div>';
   if(tEcoPieces>0)h+='<div class="bs" style="color:#22D3EE">dont '+Math.round(tEcoPieces)+' CHF sur achat de pieces</div>';
   if(ttRush>0)h+='<div class="bs" style="color:#FFC72C">dont '+Math.round(ttRush)+' CHF rush chiffrable</div>';
+  if(objAtteint)h+='<div style="margin-top:.75rem;padding:.5rem 1rem;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);border-radius:12px;font-weight:700;color:#34D399;font-size:1rem">🎉 Objectif de '+Math.round(c.objectif)+' CHF atteint ! +'+Math.round(ecoTotale-c.objectif)+' CHF au-dela</div>';
   h+='</div>';
 
   // KPIs (clickable)
@@ -1652,10 +1711,10 @@ function exportInteractiveHTML(){
   h+='<div class="kp" style="border-color:#34D399;animation-delay:.1s" onclick="openModal(\'kpiEco\')"><div class="kl">Eco. chiffrable</div><div class="kv" style="color:#34D399">'+Math.round(tEco)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   if(tEcoPieces>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.15s"><div class="kl">Eco. pieces</div><div class="kv" style="color:#22D3EE">'+Math.round(tEcoPieces)+' CHF</div><div class="ks">Achat direct vs sous-traitant</div></div>';
   if(ttRush>0)h+='<div class="kp" style="border-color:#FFC72C;animation-delay:.2s" onclick="openModal(\'kpiRush\')"><div class="kl">Rush chiffrable</div><div class="kv" style="color:#FFC72C">'+Math.round(ttRush)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
-  h+='<div class="kp" style="border-color:#FBBF24;animation-delay:.25s"><div class="kl">Heures totales</div><div class="kv" style="color:#FBBF24">'+fH(tH)+'</div><div class="ks">'+fH(hC)+' chiffr. | '+fH(hS)+' suivi</div></div>';
-  h+='<div class="kp" style="border-color:#60A5FA;animation-delay:.3s"><div class="kl">Cout interne</div><div class="kv" style="color:#60A5FA">'+Math.round(tI)+' CHF</div><div class="ks">'+Math.round(tDepl)+' carburant | '+Math.round(tMat)+' mat.</div></div>';
-  h+='<div class="kp" style="border-color:#DA2C38;animation-delay:.35s"><div class="kl">Cout si externe</div><div class="kv" style="color:#DA2C38">'+Math.round(tE)+' CHF</div><div class="ks">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/depl.</div></div>';
-  h+='<div class="kp" style="border-color:#F97316;animation-delay:.4s"><div class="kl">Deplacements</div><div class="kv" style="color:#F97316">'+combinedKm.toFixed(0)+' km</div><div class="ks">'+combinedFuel.toFixed(2)+' CHF carburant</div></div>';
+  h+='<div class="kp" style="border-color:#FBBF24;animation-delay:.25s" onclick="openModal(\'kpiHeures\')"><div class="kl">Heures totales</div><div class="kv" style="color:#FBBF24">'+fH(tH)+'</div><div class="ks">Cliquez pour le detail</div></div>';
+  h+='<div class="kp" style="border-color:#60A5FA;animation-delay:.3s" onclick="openModal(\'kpiInterne\')"><div class="kl">Cout interne</div><div class="kv" style="color:#60A5FA">'+Math.round(tI)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
+  h+='<div class="kp" style="border-color:#DA2C38;animation-delay:.35s" onclick="openModal(\'kpiExterne\')"><div class="kl">Cout si externe</div><div class="kv" style="color:#DA2C38">'+Math.round(tE)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
+  h+='<div class="kp" style="border-color:#F97316;animation-delay:.4s" onclick="openModal(\'kpiDepl\')"><div class="kl">Deplacements</div><div class="kv" style="color:#F97316">'+combinedKm.toFixed(0)+' km</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='</div></div>';
 
   // CHARTS
@@ -1709,12 +1768,21 @@ function exportInteractiveHTML(){
   h+='function animBars(){document.querySelectorAll(".anim-bar").forEach(function(b){setTimeout(function(){b.style.transition="width 1s ease";b.style.width=b.dataset.w},300)})}';
 
   // Modal system
-  h+='var DETAIL_DATA='+JSON.stringify({sites:sDetailJson,cats:catDetail,rush:rushDetail,ecoList:kpiEcoDetail})+';';
+  h+='var DETAIL_DATA='+JSON.stringify({sites:sDetailJson,cats:catDetail,rush:rushDetail,ecoList:kpiEcoDetail,
+    heuresList:all.map(function(i){return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,travaux:(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?d.label:t.id}).join(', '),heures:fH(totalH(i)),hc:fH(heuresChiffrables(i))}}),
+    interneList:all.map(function(i){var ci=coutInt(i);var dp=deplInt(i.depart,i.site);return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,travaux:fH(totalH(i)),ci:Math.round(ci),mat:Math.round(i.materiel||0),carb:dp.cost.toFixed(2)}}),
+    externeList:all.filter(function(i){return coutExt(i)>0}).map(function(i){var ce=coutExt(i);var he=heuresExternalisables(i);return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,he:fH(he),ce:Math.round(ce)}}),
+    deplList:all.filter(function(i){return deplInt(i.depart,i.site).km>0}).map(function(i){var dp=deplInt(i.depart,i.site);return{date:fD(i.date),de:i.depart,vers:i.site,km:dp.km.toFixed(1),cout:dp.cost.toFixed(2)}})
+  })+';';
   h+='function openModal(key){var t="",b="";';
   // KPI Eco
   h+='if(key==="kpiEco"){t="Detail des economies";b="<table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Eco.</th></tr></thead><tbody>";DETAIL_DATA.ecoList.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.site+"</td><td>"+r.travaux+"</td><td style=\\"color:#34D399;font-weight:700\\">"+r.eco+" CHF</td></tr>"});b+="</tbody></table>"}';
   // KPI Rush
   h+='else if(key==="kpiRush"){t="Detail des rush";b="<table><thead><tr><th>Date</th><th>Site</th><th>Horaires</th><th>Duree</th><th>Note</th></tr></thead><tbody>";DETAIL_DATA.rush.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.site+"</td><td>"+r.horaires+"</td><td style=\\"color:#FFC72C;font-weight:700\\">"+r.duree+"</td><td style=\\"color:#64748b\\">"+r.note+"</td></tr>"});b+="</tbody></table>"}';
+  h+='else if(key==="kpiHeures"){t="Detail des heures";b="<table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Total</th><th>Chiffr.</th></tr></thead><tbody>";DETAIL_DATA.heuresList.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.site+"</td><td>"+r.travaux+"</td><td style=\\"color:#FBBF24;font-weight:700\\">"+r.heures+"</td><td>"+r.hc+"</td></tr>"});b+="</tbody></table>"}';
+  h+='else if(key==="kpiInterne"){t="Detail cout interne";b="<table><thead><tr><th>Date</th><th>Site</th><th>Heures</th><th>Cout</th><th>Mat.</th><th>Carb.</th></tr></thead><tbody>";DETAIL_DATA.interneList.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.site+"</td><td>"+r.travaux+"</td><td style=\\"color:#60A5FA;font-weight:700\\">"+r.ci+" CHF</td><td>"+r.mat+" CHF</td><td>"+r.carb+" CHF</td></tr>"});b+="</tbody></table>"}';
+  h+='else if(key==="kpiExterne"){t="Detail cout externe";b="<table><thead><tr><th>Date</th><th>Site</th><th>H. extern.</th><th>Cout</th></tr></thead><tbody>";DETAIL_DATA.externeList.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.site+"</td><td>"+r.he+"</td><td style=\\"color:#DA2C38;font-weight:700\\">"+r.ce+" CHF</td></tr>"});b+="</tbody></table>"}';
+  h+='else if(key==="kpiDepl"){t="Detail deplacements";b="<table><thead><tr><th>Date</th><th>De</th><th>Vers</th><th>Km</th><th>Cout</th></tr></thead><tbody>";DETAIL_DATA.deplList.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.de+"</td><td>"+r.vers+"</td><td>"+r.km+" km</td><td style=\\"color:#F97316;font-weight:700\\">"+r.cout+" CHF</td></tr>"});b+="</tbody></table>"}';
   // Site detail
   h+='else if(key.indexOf("site_")===0){var sn=key.replace("site_","");var found=null;Object.keys(DETAIL_DATA.sites).forEach(function(k){if(k.replace(/[^a-zA-Z]/g,"")===sn)found=k});if(found){t=found+" — Detail";var rows=DETAIL_DATA.sites[found];b="<table><thead><tr><th>Date</th><th>Travaux</th><th>Heures</th><th>Int.</th><th>Ext.</th><th>Eco.</th></tr></thead><tbody>";rows.forEach(function(r){b+="<tr><td>"+r.date+"</td><td>"+r.travaux+"</td><td>"+r.heures+"</td><td>"+r.ci+" CHF</td><td style=\\"color:#DA2C38\\">"+r.ce+" CHF</td><td style=\\"color:#34D399;font-weight:700\\">"+r.eco+" CHF</td></tr>"});b+="</tbody></table>"}}';
   // Category detail (from chart click)
@@ -1742,7 +1810,11 @@ function exportInteractiveHTML(){
   h+='if(catLabels.length){var ch4=new Chart(document.getElementById("c4"),{type:"doughnut",data:{labels:catLabels,datasets:[{data:catValues,backgroundColor:ccols,borderWidth:0,hoverOffset:12}]},options:{responsive:true,animation:{animateRotate:true,duration:1200},plugins:{legend:{position:"right"},tooltip:{callbacks:{label:function(c){return c.label+": "+c.raw+"h"}}}}}}); ';
   h+='document.getElementById("c4").addEventListener("click",function(e){var pts=ch4.getElementsAtEventForMode(e,"nearest",{intersect:true},false);if(pts.length){var lbl=catLabels[pts[0].index];openModal("cat_"+encodeURIComponent(lbl))}})}';
 
-  h+='window.addEventListener("load",function(){animCount();animBars()});';
+  h+='window.addEventListener("load",function(){animCount();animBars();';
+  if(ecoTotale>=c.objectif){
+    h+='setTimeout(function(){var cv=document.getElementById("heroConfetti");if(!cv)return;var cx=cv.getContext("2d");cv.width=cv.offsetWidth*2;cv.height=cv.offsetHeight*2;cx.scale(2,2);var W=cv.offsetWidth,H=cv.offsetHeight;var cols=["#34D399","#FFC72C","#60A5FA","#F472B6","#A78BFA","#FBBF24","#22D3EE","#F97316"];var ps=[];for(var i=0;i<100;i++){ps.push({x:W/2+(Math.random()-.5)*80,y:H*.5,vx:(Math.random()-.5)*10,vy:-(Math.random()*8+4),r:Math.random()*5+2,c:cols[Math.floor(Math.random()*cols.length)],rot:Math.random()*360,vr:(Math.random()-.5)*12,life:1})}function dr(){cx.clearRect(0,0,W,H);var ok=false;ps.forEach(function(p){if(p.life<=0)return;ok=true;p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.rot+=p.vr;p.life-=.006;cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot*Math.PI/180);cx.globalAlpha=Math.max(0,p.life);cx.fillStyle=p.c;cx.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx.restore()});if(ok)requestAnimationFrame(dr);else cx.clearRect(0,0,W,H)}dr()},2000);';
+  }
+  h+='});';
   h+='<\/script></body></html>';
 
   var blob=new Blob([h],{type:'text/html'});
