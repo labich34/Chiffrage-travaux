@@ -290,14 +290,13 @@ tbody tr:hover td{background:var(--bg3);color:var(--text)}
           <div class="tt-dur-lbl">durée</div>
         </div>
       </div>
-      <!-- RUSH TOGGLE (toujours visible) -->
-      <div class="form-group full">
-        <button type="button" class="tt-rush-toggle" id="uRushBtn" onclick="toggleURush()">
-          <span class="rush-indicator"></span> ⚡ Rush
-        </button>
-      </div>
       <!-- CHAMPS TEMPS DE TRAVAIL (visibles seulement en mode temps) -->
       <div id="tempsFields" style="display:none">
+        <div class="form-group full">
+          <button type="button" class="tt-rush-toggle" id="uRushBtn" onclick="toggleURush()">
+            <span class="rush-indicator"></span> ⚡ Rush
+          </button>
+        </div>
         <div class="form-group full">
           <label class="form-label">Travaux réalisés (optionnel)</label>
           <div class="tags-grid" id="fTagsTT"></div>
@@ -763,6 +762,7 @@ function setMode(mode){
     ttFields.style.display='none';
     intBtn.className='btn btn-primary';
     ttBtn.className='btn btn-ghost';
+    uRush=false;document.getElementById('uRushBtn').classList.remove('on');
   }else{
     intFields.style.display='none';
     ttFields.style.display='';
