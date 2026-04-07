@@ -1866,6 +1866,19 @@ function updateContratMonthFilter(){
   sel.value=ms.indexOf(cv)>=0?cv:'all';
 }
 
+function toggleContratSite(s){
+  var bloc=document.getElementById('ctrBloc_'+s);
+  var arrow=document.getElementById('ctrArrow_'+s);
+  if(!bloc)return;
+  if(bloc.style.display==='none'){
+    bloc.style.display='';
+    arrow.textContent='▼';
+  }else{
+    bloc.style.display='none';
+    arrow.textContent='▶';
+  }
+}
+
 function renderContrats(){
   var c=getContrats();
   var filterM=document.getElementById('cFilterMonth').value;
@@ -1878,7 +1891,17 @@ function renderContrats(){
   sites.forEach(function(s){
     var sc=c.filter(function(ct){return ct.site===s});
     var total=sc.reduce(function(sum,ct){return sum+ct.montant},0);
-    html+='<div class="site-block"><div class="site-block-header"><span class="site-dot" style="background:'+(SITES[s]?SITES[s].color:'#888')+'"></span>'+(SITES[s]?SITES[s].name:s)+'<span style="color:var(--red);margin-left:auto;font-weight:700">'+fmt(total)+'</span></div>';
+    var sn=SITES[s]?SITES[s].name:s;
+    var col=SITES[s]?SITES[s].color:'#888';
+    html+='<div class="site-block" style="margin-bottom:.5rem">';
+    html+='<div class="site-block-header" style="cursor:pointer;user-select:none" onclick="toggleContratSite(\''+s+'\')">'+
+      '<span class="site-dot" style="background:'+col+'"></span>'+
+      '<span>'+sn+'</span>'+
+      '<span style="color:var(--text3);font-size:.75rem;margin-left:.5rem">('+sc.length+' facture'+(sc.length>1?'s':'')+')</span>'+
+      '<span style="color:var(--red);margin-left:auto;font-weight:700">'+fmt(total)+'</span>'+
+      '<span id="ctrArrow_'+s+'" style="color:var(--text3);font-size:.85rem;margin-left:.6rem;transition:transform .2s">▶</span>'+
+      '</div>';
+    html+='<div id="ctrBloc_'+s+'" style="display:none">';
     if(sc.length){
       html+='<table><thead><tr><th>Date</th><th>Prestataire</th><th>Type</th><th>Coût</th><th>Remarque</th><th></th></tr></thead><tbody>';
       sc.forEach(function(ct){
@@ -1889,7 +1912,7 @@ function renderContrats(){
     }else{
       html+='<div style="padding:.75rem;color:var(--text3);font-size:.82rem">Aucune facture</div>';
     }
-    html+='</div>';
+    html+='</div></div>';
   });
 
   document.getElementById('contratsParSite').innerHTML=html;
