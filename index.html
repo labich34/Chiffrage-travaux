@@ -289,10 +289,12 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="card">
     <div class="card-title">Nouvelle saisie</div>
     <!-- MODE TOGGLE -->
-    <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
-      <button class="btn btn-primary" id="modeIntBtn" onclick="setMode('intervention')" style="flex:1;min-width:140px">🔧 Intervention</button>
-      <button class="btn btn-ghost" id="modeTTBtn" onclick="setMode('temps')" style="flex:1;min-width:140px">⏱ Temps de travail</button>
-      <button class="btn btn-ghost" id="modeDexcBtn" onclick="setMode('deplexc')" style="flex:1;min-width:140px">🚗 Déplacement exc.</button>
+    <div style="display:flex;gap:.4rem;margin-bottom:.4rem">
+      <button class="btn btn-primary" id="modeIntBtn" onclick="setMode('intervention')" style="flex:1">🔧 Intervention</button>
+      <button class="btn btn-ghost" id="modeTTBtn" onclick="setMode('temps')" style="flex:1">⏱ Temps de travail</button>
+    </div>
+    <div style="margin-bottom:1rem">
+      <button class="btn btn-ghost" id="modeDexcBtn" onclick="setMode('deplexc')" style="width:100%">🚗 Déplacement exceptionnel</button>
     </div>
     <div class="form-grid">
       <!-- CHAMPS STANDARD (masqués en mode déplacement exceptionnel) -->
