@@ -869,9 +869,9 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
   var container=document.querySelector('.container');
   if(!container)return;
   var startX=0,startY=0,startTime=0;
-  var THRESHOLD=50; // px minimum de deplacement
-  var RESTRAINT=80; // px max perpendiculaire
-  var MAX_TIME=400; // ms max pour le geste
+  var THRESHOLD=30; // px minimum de deplacement (reduit pour plus de sensibilite)
+  var RESTRAINT=120; // px max perpendiculaire (augmente pour tolerer les gestes moins precis)
+  var MAX_TIME=600; // ms max pour le geste (augmente pour gestes plus lents)
 
   container.addEventListener('touchstart',function(e){
     var t=e.changedTouches[0];
@@ -1372,20 +1372,30 @@ function renderKPIs(){
   var subEco='Taux: '+pct.toFixed(1)+'%';
   if(tEcoPieces>0)subEco+=' · '+fmt(tEcoPieces)+' pieces';
   if(ttRushEco>0)subEco+=' · '+fmt(ttRushEco)+' rush';
-  // Déplacements exceptionnels mois en cours
-  var dexcMonth=getDeplExc().filter(function(x){return x.date.slice(0,7)===curMonth});
+  // Déplacements exceptionnels mois en cours — seulement non remboursés
+  var dexcMonthAll=getDeplExc().filter(function(x){return x.date.slice(0,7)===curMonth});
+  var dexcMonth=dexcMonthAll.filter(function(x){return !x.paid});
   var dexcKm=dexcMonth.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
   var dexcCostTot=dexcMonth.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
+  var dexcPaidCount=dexcMonthAll.length-dexcMonth.length;
   var html=
     '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies totales 🔍</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEco+'</span></div>'+
     '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+fH(tH)+'</span><span class="kpi-sub">dont '+fH(hChiffr)+' chiffrables</span></div>'+
     '<div class="kpi blue" onclick="openKpiModal(\'interne\')" title="Voir le detail"><span class="kpi-label">Cout interne 🔍</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
     '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/depl.</span></div>';
   if(dexcMonth.length){
+    var dexcSub=dexcMonth.length+' non remboursé'+(dexcMonth.length>1?'s':'')+' · '+dexcKm.toFixed(1)+' km AR';
+    if(dexcPaidCount>0)dexcSub+=' · '+dexcPaidCount+' remboursé'+(dexcPaidCount>1?'s':'');
     html+='<div class="kpi" style="border-color:#F97316;cursor:pointer" onclick="openKpiModal(\'deplExc\')" title="Voir le detail">'+
       '<span class="kpi-label" style="color:#F97316">🚗 Déplacements exc. 🔍</span>'+
       '<span class="kpi-value" style="color:#F97316">'+fmt2(dexcCostTot)+'</span>'+
-      '<span class="kpi-sub">'+dexcMonth.length+' trajet'+(dexcMonth.length>1?'s':'')+' · '+dexcKm.toFixed(1)+' km aller-retour</span>'+
+      '<span class="kpi-sub">'+dexcSub+'</span>'+
+      '</div>';
+  }else if(dexcPaidCount>0){
+    html+='<div class="kpi" style="border-color:var(--text3);cursor:pointer" onclick="openKpiModal(\'deplExc\')" title="Voir le detail">'+
+      '<span class="kpi-label" style="color:var(--text3)">🚗 Déplacements exc.</span>'+
+      '<span class="kpi-value" style="color:var(--green)">✓ Tout remboursé</span>'+
+      '<span class="kpi-sub">'+dexcPaidCount+' trajet'+(dexcPaidCount>1?'s':'')+' ce mois</span>'+
       '</div>';
   }
   document.getElementById('kpi-row').innerHTML=html;
@@ -1975,8 +1985,8 @@ function exportInteractiveHTML(){
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var combinedKm=tKm+(ttRpt?ttRpt.totalKm:0);
   var combinedFuel=tDepl+(ttRpt?ttRpt.totalFuel:0);
-  // Déplacements exceptionnels
-  var dexcReport=getDeplExc().filter(function(x){return x.date>=start&&x.date<=end}).sort(function(a,b){return a.date<b.date?-1:1});
+  // Déplacements exceptionnels — TOUS les non remboursés jusqu'à la date de fin (rappel cumulatif)
+  var dexcReport=getDeplExc().filter(function(x){return x.date<=end&&!x.paid}).sort(function(a,b){return a.date<b.date?-1:1});
   var dexcTotKm=dexcReport.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
   var dexcTotCost=dexcReport.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
 
@@ -2514,14 +2524,22 @@ function renderTTKpiHtml(tt){
 
 // ========== SECTION RAPPORT — DEPLACEMENTS EXCEPTIONNELS ==========
 function buildDeplExcSection(start,end){
-  var list=getDeplExc().filter(function(x){return x.date>=start&&x.date<=end}).sort(function(a,b){return a.date<b.date?-1:1});
+  // Inclut TOUS les trajets non remboursés jusqu'à la date de fin du rapport
+  // (un trajet de janvier impayé apparaîtra dans les rapports suivants comme rappel)
+  var listAll=getDeplExc().filter(function(x){return x.date<=end}).sort(function(a,b){return a.date<b.date?-1:1});
+  var list=listAll.filter(function(x){return !x.paid});
   if(!list.length)return '';
+  var listThisPeriod=list.filter(function(x){return x.date>=start});
+  var listOlder=list.filter(function(x){return x.date<start});
   var totKm=list.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
   var totCost=list.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
+  var paidCount=listAll.filter(function(x){return x.paid}).length;
   var html='<div class="rpt-section"><div class="rpt-section-title">🚗 Déplacements exceptionnels — Demande de dédommagement carburant</div>';
   html+='<div class="card" style="background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.25);padding:.75rem 1rem;margin-bottom:.75rem">'+
-    '<p style="font-size:.8rem;color:var(--text2);margin:0">Ces trajets sortent du périmètre habituel de maintenance et justifient une prise en charge des frais de carburant. Chaque ligne détaille le motif ayant nécessité le déplacement.</p>'+
-    '</div>';
+    '<p style="font-size:.8rem;color:var(--text2);margin:0">Ces trajets sortent du périmètre habituel de maintenance et justifient une prise en charge des frais de carburant.'+
+    (paidCount>0?' <span style="color:var(--green)">'+paidCount+' trajet'+(paidCount>1?'s':'')+' déjà remboursé'+(paidCount>1?'s':'')+'.</span>':'')+
+    (listOlder.length>0?' <span style="color:var(--red);font-weight:600">⚠ '+listOlder.length+' trajet'+(listOlder.length>1?'s':'')+' de mois précédents toujours non remboursé'+(listOlder.length>1?'s':'')+'.</span>':'')+
+    '</p></div>';
   html+='<div class="rpt-kpi-grid" style="margin-bottom:.75rem">'+
     '<div class="rpt-kpi-card" style="border-color:#F97316"><div class="rpt-kpi-label">Nombre de trajets</div><div class="rpt-kpi-val" style="color:#F97316">'+list.length+'</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:#FBBF24"><div class="rpt-kpi-label">Km total (aller-retour)</div><div class="rpt-kpi-val" style="color:#FBBF24">'+totKm.toFixed(1)+' km</div></div>'+
@@ -2532,8 +2550,11 @@ function buildDeplExcSection(start,end){
     var kmAR2=(x.kmAR||dexcKmAR(x)).toFixed(1);
     var cost2=(x.cost||dexcCost(x));
     var motifEsc=(x.motif||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    html+='<tr>'+
-      '<td style="white-space:nowrap">'+fD(x.date)+'</td>'+
+    var isOld=x.date<start;
+    var rowBg=isOld?'background:rgba(218,44,56,.06)':'';
+    var oldBadge=isOld?'<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.65rem;font-weight:600;background:rgba(218,44,56,.15);color:var(--red);margin-left:4px">⚠ retard</span>':'';
+    html+='<tr style="'+rowBg+'">'+
+      '<td style="white-space:nowrap">'+fD(x.date)+oldBadge+'</td>'+
       '<td><strong>'+dexcLabel(x,'from')+'</strong> <span style="color:var(--text3)">→</span> <strong>'+dexcLabel(x,'to')+'</strong></td>'+
       '<td style="color:#FBBF24;font-weight:600">'+kmAR2+'</td>'+
       '<td>'+(x.prix||0).toFixed(2)+' CHF</td>'+
@@ -2841,38 +2862,44 @@ function openKpiModal(type){
   var now=new Date();
   var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
 
-  // ----- BRANCHE DEPLACEMENT EXCEPTIONNEL (rendu custom avec motif) -----
+  // ----- BRANCHE DEPLACEMENT EXCEPTIONNEL (rendu custom avec motif + case payé) -----
   if(type==='deplExc'){
     var dexcAll=getDeplExc().filter(function(x){return x.date.slice(0,7)===curMonth}).sort(function(a,b){return a.date>b.date?-1:1});
+    var dexcUnpaid=dexcAll.filter(function(x){return !x.paid});
+    var dexcPaid=dexcAll.filter(function(x){return x.paid});
     var tTitle='<span style="color:#F97316">🚗 Déplacements exceptionnels</span>';
     var tBody='<div class="kpi-formula"><strong>Calcul :</strong> Coût = km aller-retour × consommation/100 × prix du litre<br>'+
-      '• Chaque saisie déclare son propre prix du litre (variable selon la date)<br>'+
-      '• Le motif justifie la demande de dédommagement carburant auprès de McDonald\'s</div>';
+      '• Cochez <strong>✅ Remboursé</strong> quand l\'employeur a payé → le trajet disparaîtra des prochains rapports<br>'+
+      '• Tant qu\'un trajet n\'est pas coché, il reste visible dans les rapports comme rappel</div>';
     var curLbl2=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
     tBody+='<div class="card-title" style="margin-bottom:.5rem;margin-top:.25rem">Résumé — '+curLbl2+'</div>';
     if(!dexcAll.length){
       tBody+='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">📭 Aucun déplacement exceptionnel ce mois-ci</div>';
     }else{
-      var totKm=dexcAll.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
-      var totCost=dexcAll.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
+      var totKmU=dexcUnpaid.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
+      var totCostU=dexcUnpaid.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
+      var totCostP=dexcPaid.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
       tBody+='<div class="kpi-summary-grid">'+
-        '<div class="kpi-site-card" style="border-color:#F97316"><div class="kpi-site-name">Nb trajets</div><div class="kpi-site-val" style="color:#F97316">'+dexcAll.length+'</div></div>'+
-        '<div class="kpi-site-card" style="border-color:#FBBF24"><div class="kpi-site-name">Km total (AR)</div><div class="kpi-site-val" style="color:#FBBF24">'+totKm.toFixed(1)+'</div></div>'+
-        '<div class="kpi-site-card" style="border-color:var(--red)"><div class="kpi-site-name">Coût carburant</div><div class="kpi-site-val" style="color:var(--red)">'+fmt2(totCost)+'</div></div>'+
+        '<div class="kpi-site-card" style="border-color:#F97316"><div class="kpi-site-name">Non remboursés</div><div class="kpi-site-val" style="color:#F97316">'+dexcUnpaid.length+' trajet'+(dexcUnpaid.length>1?'s':'')+'</div></div>'+
+        '<div class="kpi-site-card" style="border-color:var(--red)"><div class="kpi-site-name">Montant dû</div><div class="kpi-site-val" style="color:var(--red)">'+fmt2(totCostU)+'</div></div>'+
+        '<div class="kpi-site-card" style="border-color:var(--green)"><div class="kpi-site-name">Déjà remboursé</div><div class="kpi-site-val" style="color:var(--green)">'+fmt2(totCostP)+'</div></div>'+
         '</div>';
-      tBody+='<div class="card-title" style="margin-bottom:.5rem;margin-top:1rem">Détail</div>';
+      tBody+='<div class="card-title" style="margin-bottom:.5rem;margin-top:1rem">Détail — cochez quand remboursé</div>';
       tBody+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem">'+
-        '<thead><tr style="background:var(--bg3)"><th style="padding:.5rem;text-align:left">Date</th><th style="padding:.5rem;text-align:left">De → Vers</th><th style="padding:.5rem;text-align:right">Km AR</th><th style="padding:.5rem;text-align:right">Prix/L</th><th style="padding:.5rem;text-align:right">Coût</th><th style="padding:.5rem;text-align:left">Motif</th><th style="padding:.5rem"></th></tr></thead><tbody>';
+        '<thead><tr style="background:var(--bg3)"><th style="padding:.5rem;text-align:center">Remboursé</th><th style="padding:.5rem;text-align:left">Date</th><th style="padding:.5rem;text-align:left">De → Vers</th><th style="padding:.5rem;text-align:right">Km AR</th><th style="padding:.5rem;text-align:right">Coût</th><th style="padding:.5rem;text-align:left">Motif</th><th style="padding:.5rem"></th></tr></thead><tbody>';
       dexcAll.forEach(function(x){
         var kmAR2=(x.kmAR||dexcKmAR(x)).toFixed(1);
         var cost2=(x.cost||dexcCost(x));
-        tBody+='<tr style="border-bottom:1px solid var(--bg3)">'+
+        var isPaid=x.paid;
+        var rowStyle=isPaid?'border-bottom:1px solid var(--bg3);opacity:.5;text-decoration:line-through':'border-bottom:1px solid var(--bg3)';
+        var checkedAttr=isPaid?' checked':'';
+        tBody+='<tr style="'+rowStyle+'">'+
+          '<td style="padding:.5rem;text-align:center"><input type="checkbox" onchange="toggleDeplExcPaid('+x.id+')"'+checkedAttr+' style="width:18px;height:18px;cursor:pointer;accent-color:var(--green)"></td>'+
           '<td style="padding:.5rem;white-space:nowrap">'+fD(x.date)+'</td>'+
           '<td style="padding:.5rem"><strong>'+dexcLabel(x,'from')+'</strong><br><span style="color:var(--text3);font-size:.72rem">→ '+dexcLabel(x,'to')+'</span></td>'+
           '<td style="padding:.5rem;text-align:right;font-weight:600;color:#FBBF24">'+kmAR2+'</td>'+
-          '<td style="padding:.5rem;text-align:right">'+(x.prix||0).toFixed(2)+'</td>'+
-          '<td style="padding:.5rem;text-align:right;font-weight:700;color:#F97316">'+fmt2(cost2)+'</td>'+
-          '<td style="padding:.5rem;color:var(--text2);font-size:.78rem;max-width:280px">'+(x.motif||'').replace(/</g,'&lt;')+'</td>'+
+          '<td style="padding:.5rem;text-align:right;font-weight:700;color:'+(isPaid?'var(--green)':'#F97316')+'">'+fmt2(cost2)+'</td>'+
+          '<td style="padding:.5rem;color:var(--text2);font-size:.78rem;max-width:250px">'+(x.motif||'').replace(/</g,'&lt;')+'</td>'+
           '<td style="padding:.5rem"><button class="btn btn-ghost btn-sm" onclick="deleteDeplExc('+x.id+')" title="Supprimer" style="padding:.2rem .4rem">🗑</button></td>'+
           '</tr>';
       });
@@ -3053,6 +3080,19 @@ function deleteDeplExc(id){
   closeKpiModal();
   toast('Déplacement supprimé');
   refresh();
+}
+function toggleDeplExcPaid(id){
+  var list=getDeplExc();
+  for(var i=0;i<list.length;i++){
+    if(list[i].id===id){
+      list[i].paid=!list[i].paid;
+      break;
+    }
+  }
+  setDeplExc(list);
+  // Refresh la modale sans la fermer pour voir le changement
+  openKpiModal('deplExc');
+  renderKPIs();
 }
 
 // ========== REFRESH ==========
