@@ -429,9 +429,11 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <div class="card-title" style="font-size:.7rem">Dernières saisies temps</div>
     <div id="ttLastEntries"></div>
   </div>
+  <div class="card" style="margin-top:.5rem">
+    <div class="card-title" style="font-size:.7rem">🚗 Derniers déplacements exceptionnels</div>
+    <div id="dexcLastEntries"></div>
+  </div>
 </div>
-
-<!-- INTERVENTIONS -->
 <div class="page" id="page-interventions">
   <div class="filter-bar">
     <button class="filter-chip active" data-filter="all">Toutes</button>
@@ -869,9 +871,9 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
   var container=document.querySelector('.container');
   if(!container)return;
   var startX=0,startY=0,startTime=0;
-  var THRESHOLD=30; // px minimum de deplacement (reduit pour plus de sensibilite)
-  var RESTRAINT=120; // px max perpendiculaire (augmente pour tolerer les gestes moins precis)
-  var MAX_TIME=600; // ms max pour le geste (augmente pour gestes plus lents)
+  var THRESHOLD=40; // px minimum de deplacement
+  var RESTRAINT=100; // px max perpendiculaire
+  var MAX_TIME=500; // ms max pour le geste
 
   container.addEventListener('touchstart',function(e){
     var t=e.changedTouches[0];
@@ -2689,6 +2691,33 @@ function renderTTLastEntries(){
   el.innerHTML=html;
 }
 
+function renderDexcLastEntries(){
+  var el=document.getElementById('dexcLastEntries');
+  if(!el)return;
+  var list=getDeplExc().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:b.id-a.id}).slice(0,8);
+  if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:.5rem">Aucun déplacement exceptionnel</div>';return}
+  var html='<table style="width:100%;font-size:.78rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Date</th><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Trajet</th><th style="text-align:right;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Coût</th><th style="text-align:center;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Statut</th><th style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)"></th></tr></thead><tbody>';
+  list.forEach(function(x){
+    var cost2=(x.cost||dexcCost(x));
+    var paidBadge=x.paid?'<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.65rem;font-weight:600;background:rgba(52,211,153,.15);color:var(--green)">✓ Remboursé</span>':'<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.65rem;font-weight:600;background:rgba(249,115,22,.15);color:#F97316">En attente</span>';
+    var rowStyle=x.paid?'opacity:.5':'';
+    html+='<tr style="'+rowStyle+'"><td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2)">'+fD(x.date)+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)">'+dexcLabel(x,'from')+' → '+dexcLabel(x,'to')+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);text-align:right;font-weight:600;color:#F97316">'+fmt2(cost2)+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);text-align:center">'+paidBadge+'</td>';
+    html+='<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap"><button class="btn btn-danger btn-sm" onclick="deleteDeplExcFromList('+x.id+')" style="padding:.2rem .4rem" title="Supprimer">🗑</button></td></tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+function deleteDeplExcFromList(id){
+  if(!confirm('Supprimer ce déplacement exceptionnel ?'))return;
+  setDeplExc(getDeplExc().filter(function(x){return x.id!==id}));
+  toast('Déplacement supprimé');
+  refresh();
+}
+
 // ========== TT EDIT MODAL ==========
 var tteId=null;
 var tteRush=false;
@@ -3096,7 +3125,7 @@ function toggleDeplExcPaid(id){
 }
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderHistorique();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderHistorique();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
