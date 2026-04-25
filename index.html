@@ -895,8 +895,7 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
     if(tag==='input'||tag==='textarea'||tag==='select'||tag==='canvas')return;
     var idx=getCurrentTabIndex();
     if(dx<0){
-      // Swipe gauche = page suivante
-      if(idx<TAB_ORDER.length-1)goToPage(TAB_ORDER[idx+1],'right');
+      // Swipe gauche = desactive
     }else{
       // Swipe droite = page precedente
       if(idx>0)goToPage(TAB_ORDER[idx-1],'left');
