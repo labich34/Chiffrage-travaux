@@ -674,8 +674,8 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       C'est ici que la vraie valeur ajoutée apparaît. Elle se compose de 4 sources :<br><br>
       <span style="color:var(--accent)">① Interventions chiffrables</span> — Électricité, plomberie, carrelage, panneaux solaires, peinture, interventions exceptionnelles, divers. Chaque heure d'intervention technique est valorisée à 32.40 CHF/h en coût interne. Un prestataire externe facturerait 100 CHF/h + 150 CHF de déplacement forfaitaire. La différence = économie directe.<br><br>
       <span style="color:var(--cyan)">② Économies pièces</span> — Quand le technicien installe lui-même une pièce que le prestataire externe aurait facturée plus cher (marge prestataire), la différence est comptée comme économie.<br><br>
-      <span style="color:var(--accent)">③ Heures rush</span> — Quand le technicien travaille pendant les rushes du restaurant (périodes de forte affluence), il assure la continuité de service sans surcoût. Ces heures sont valorisées à 32.40 CHF/h car elles évitent un appel en urgence à un prestataire externe (qui facturerait le tarif plein de 100 CHF/h).<br><br>
-      <span style="color:var(--cyan)">④ Heures supplémentaires offertes</span> — Toute heure travaillée au-delà des 42h/semaine contractuelles n'est pas rémunérée. Le technicien choisit librement de les effectuer. Pour l'entreprise, ce sont des heures de travail productif dont le coût interne est de <strong>0 CHF</strong>. Si l'entreprise avait dû sous-traiter ces heures, elle aurait payé 100 CHF/h. L'économie est donc de <strong>100 CHF par heure supplémentaire offerte</strong>.
+      <span style="color:var(--accent)">③ Heures rush</span> — Quand le technicien travaille pendant les rushes du restaurant (périodes de forte affluence), il assure la continuité de service sans surcoût. Ces heures sont valorisées à 32.40 CHF/h.<br><br>
+      <span style="color:var(--cyan)">④ Heures supplémentaires offertes</span> — Toute heure travaillée au-delà des 42h/semaine contractuelles n'est pas rémunérée. Le technicien choisit librement de les effectuer. Pour l'entreprise, ce sont des heures de travail productif dont le coût interne est de <strong>0 CHF</strong>. Si l'entreprise avait dû sous-traiter ces heures pour les interventions, elle aurait payé 100 CHF/h. L'économie est donc de <strong>100 CHF par heure supplémentaire offerte lors d'une intervention</strong>, sinon c'est le taux normal pour des temps de travail supplémentaires.
     </p>
   </div>
 
@@ -2097,10 +2097,55 @@ function exportGuidePDF(){
   }
   if(!sections.length){toast('Rien a exporter');return}
 
-  el.style.background='#0a0f1e';
+  // Appliquer un theme clair temporaire pour un PDF lisible
   el.style.padding='20px';
   el.style.width='800px';
   el.style.maxWidth='800px';
+  el.style.background='#ffffff';
+
+  // Forcer couleurs claires sur tous les elements du guide
+  var allCards=el.querySelectorAll('.card');
+  var allP=el.querySelectorAll('p');
+  var allTitles=el.querySelectorAll('.card-title');
+  var allStrong=el.querySelectorAll('strong');
+  var allSpan=el.querySelectorAll('span');
+
+  // Sauvegarder les styles originaux
+  var origStyles=[];
+  var allEls=el.querySelectorAll('*');
+  for(var e=0;e<allEls.length;e++){
+    origStyles.push(allEls[e].getAttribute('style')||'');
+  }
+
+  // Appliquer le theme print
+  for(var c=0;c<allCards.length;c++){
+    allCards[c].style.background='#ffffff';
+    allCards[c].style.border='1px solid #e2e8f0';
+    allCards[c].style.boxShadow='0 1px 4px rgba(0,0,0,.08)';
+    allCards[c].style.backdropFilter='none';
+    allCards[c].style.webkitBackdropFilter='none';
+  }
+  for(var p=0;p<allP.length;p++){
+    allP[p].style.color='#1e293b';
+  }
+  for(var t=0;t<allTitles.length;t++){
+    allTitles[t].style.color='#0f172a';
+  }
+  for(var s=0;s<allStrong.length;s++){
+    var sc=allStrong[s].style.color;
+    if(sc&&sc.indexOf('var(--green)')>=0)allStrong[s].style.color='#059669';
+    else if(sc&&sc.indexOf('var(--accent)')>=0)allStrong[s].style.color='#b45309';
+    else if(sc&&sc.indexOf('var(--cyan)')>=0)allStrong[s].style.color='#0891b2';
+    else if(sc&&sc.indexOf('var(--red)')>=0)allStrong[s].style.color='#dc2626';
+    else allStrong[s].style.color='#0f172a';
+  }
+  for(var sp=0;sp<allSpan.length;sp++){
+    var spc=allSpan[sp].style.color;
+    if(spc&&spc.indexOf('var(--text3)')>=0)allSpan[sp].style.color='#64748b';
+    else if(spc&&spc.indexOf('var(--accent)')>=0)allSpan[sp].style.color='#b45309';
+    else if(spc&&spc.indexOf('var(--green)')>=0)allSpan[sp].style.color='#059669';
+    else if(spc&&spc.indexOf('var(--cyan)')>=0)allSpan[sp].style.color='#0891b2';
+  }
 
   var pdf=new jspdf.jsPDF('p','mm','a4');
   var pageW=pdf.internal.pageSize.getWidth();
@@ -2110,15 +2155,24 @@ function exportGuidePDF(){
   var usableH=pageH-margin*2;
   var yPos=margin;
 
+  function restoreGuideStyles(){
+    el.style.background='';el.style.padding='';el.style.width='';el.style.maxWidth='';
+    var allEls2=el.querySelectorAll('*');
+    for(var r=0;r<allEls2.length;r++){
+      if(origStyles[r])allEls2[r].setAttribute('style',origStyles[r]);
+      else allEls2[r].removeAttribute('style');
+    }
+  }
+
   function captureGuide(idx){
     if(idx>=sections.length){
       pdf.save('Guide_Maintenance_McDo_La_Cote.pdf');
-      el.style.background='';el.style.padding='';el.style.width='';el.style.maxWidth='';
+      restoreGuideStyles();
       toast('Guide PDF exporte');
       return;
     }
     var sect=sections[idx];
-    html2canvas(sect,{backgroundColor:'#0a0f1e',scale:2,useCORS:true,logging:false,windowWidth:800}).then(function(canvas){
+    html2canvas(sect,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false,windowWidth:800}).then(function(canvas){
       var imgW=canvas.width;
       var imgH=canvas.height;
       var ratio=usableW/imgW;
@@ -2129,7 +2183,7 @@ function exportGuidePDF(){
           pdf.addPage();
           yPos=margin;
         }
-        var imgData=canvas.toDataURL('image/jpeg',0.92);
+        var imgData=canvas.toDataURL('image/jpeg',0.95);
         pdf.addImage(imgData,'JPEG',margin,yPos,usableW,blockH);
         yPos+=blockH+2;
       }else{
@@ -2146,7 +2200,7 @@ function exportGuidePDF(){
           var sliceCanvas=document.createElement('canvas');
           sliceCanvas.width=imgW;sliceCanvas.height=h2;
           sliceCanvas.getContext('2d').drawImage(fullCanvas,0,srcY,imgW,h2,0,0,imgW,h2);
-          var sliceData=sliceCanvas.toDataURL('image/jpeg',0.92);
+          var sliceData=sliceCanvas.toDataURL('image/jpeg',0.95);
           var sliceHmm=h2*ratio;
           pdf.addImage(sliceData,'JPEG',margin,yPos,usableW,sliceHmm);
           srcY+=h2;
