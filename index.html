@@ -258,6 +258,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <button class="nav-tab" data-page="rapport">Rapport</button>
     <button class="nav-tab" data-page="config">Config</button>
     <button class="nav-tab" data-page="historique">📋 Historique</button>
+    <button class="nav-tab" data-page="doc">📖 Guide</button>
   </div>
 </nav>
 <div class="container">
@@ -536,7 +537,8 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="card"><div class="card-title">Objectif mensuel</div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 Basé sur les travaux chiffrables : électricité, plomberie, carrelage, panneaux solaires, interv. except., peinture.</p></div>
+      <div class="form-group"><label class="form-label">Heures contrat / semaine</label><input type="number" step="1" min="1" class="form-input" id="cfgHeuresContrat" value="42"></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 L'objectif inclut : économies interventions + pièces + rush + heures supplémentaires offertes au-delà du contrat.<br>🎁 Les heures supp non payées sont valorisées à 100 CHF/h (coût externe évité, coût interne = 0 CHF).</p></div>
     </div>
   </div>
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
@@ -644,6 +646,123 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   </div>
 </div>
 
+<!-- ========== PAGE GUIDE / DOCUMENTATION ========== -->
+<div class="page" id="page-doc">
+  <div class="card">
+    <div class="card-title">📖 Guide complet — Suivi Maintenance McDonald's La Côte</div>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:1rem">Ce document explique le fonctionnement complet de l'application, sa logique de calcul et la philosophie derrière chaque indicateur. Il est destiné à être lu par toute personne souhaitant comprendre comment les économies sont mesurées.</p>
+    <button class="btn btn-primary" onclick="exportGuidePDF()" style="margin-top:.25rem">📄 Exporter le guide en PDF</button>
+  </div>
+  <div id="guideContent">
+
+  <div class="card">
+    <div class="card-title">1. Objectif de l'application</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      Cette application mesure la <strong style="color:var(--green)">valeur économique réelle</strong> apportée par le technicien de maintenance interne par rapport au recours à un prestataire externe.<br><br>
+      La question centrale est simple : <strong style="color:var(--accent)">« Combien l'entreprise économise-t-elle grâce à un technicien interne plutôt qu'en sous-traitant chaque intervention ? »</strong><br><br>
+      Chaque intervention, chaque heure travaillée, chaque déplacement est enregistré et comparé au coût qu'aurait facturé une société externe pour le même travail.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">2. Le modèle à 2 étages</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      L'économie totale repose sur deux niveaux de valeur ajoutée :<br><br>
+      <strong style="color:var(--accent)">Étage 1 — Le socle (heures contrat)</strong><br>
+      Le technicien est payé pour un contrat de 42 heures par semaine. Ces heures constituent le socle attendu. Elles ne sont pas comptées comme un bonus car elles font partie du poste. Cependant, toute heure travaillée <strong>au-delà</strong> de ce contrat est une heure offerte gratuitement à l'entreprise.<br><br>
+      <strong style="color:var(--green)">Étage 2 — La plus-value (ce qui dépasse)</strong><br>
+      C'est ici que la vraie valeur ajoutée apparaît. Elle se compose de 4 sources :<br><br>
+      <span style="color:var(--accent)">① Interventions chiffrables</span> — Électricité, plomberie, carrelage, panneaux solaires, peinture, interventions exceptionnelles, divers. Chaque heure d'intervention technique est valorisée à 32.40 CHF/h en coût interne. Un prestataire externe facturerait 100 CHF/h + 150 CHF de déplacement forfaitaire. La différence = économie directe.<br><br>
+      <span style="color:var(--cyan)">② Économies pièces</span> — Quand le technicien installe lui-même une pièce que le prestataire externe aurait facturée plus cher (marge prestataire), la différence est comptée comme économie.<br><br>
+      <span style="color:var(--accent)">③ Heures rush</span> — Quand le technicien travaille pendant les rushes du restaurant (périodes de forte affluence), il assure la continuité de service sans surcoût. Ces heures sont valorisées à 32.40 CHF/h car elles évitent un appel en urgence à un prestataire externe (qui facturerait le tarif plein de 100 CHF/h).<br><br>
+      <span style="color:var(--cyan)">④ Heures supplémentaires offertes</span> — Toute heure travaillée au-delà des 42h/semaine contractuelles n'est pas rémunérée. Le technicien choisit librement de les effectuer. Pour l'entreprise, ce sont des heures de travail productif dont le coût interne est de <strong>0 CHF</strong>. Si l'entreprise avait dû sous-traiter ces heures, elle aurait payé 100 CHF/h. L'économie est donc de <strong>100 CHF par heure supplémentaire offerte</strong>.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">3. Formule de calcul de l'économie totale</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong style="color:var(--green)">Économie totale = A + B + C + D</strong><br><br>
+      <strong>A.</strong> Économie interventions = Σ (coût externe − coût interne) par intervention<br>
+      <span style="color:var(--text3)">Coût externe = heures chiffrables × 100 CHF/h + 150 CHF déplacement</span><br>
+      <span style="color:var(--text3)">Coût interne = heures chiffrables × 32.40 CHF/h + matériaux + carburant</span><br><br>
+      <strong>B.</strong> Économie pièces = Σ (prix pièce externe − prix pièce interne)<br><br>
+      <strong>C.</strong> Rush = heures rush × 32.40 CHF/h<br>
+      <span style="color:var(--text3)">Valorisation du travail pendant les pics d'activité</span><br><br>
+      <strong>D.</strong> Heures supp offertes = max(0, heures réelles − heures contrat) × 100 CHF/h<br>
+      <span style="color:var(--text3)">Heures contrat = 42h × nombre de semaines dans la période</span><br>
+      <span style="color:var(--text3)">Coût interne de ces heures = 0 CHF (non rémunérées)</span><br>
+      <span style="color:var(--text3)">Coût externe évité = 100 CHF/h (tarif prestataire)</span>
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">4. Les taux horaires</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong style="color:var(--green)">Travaux chiffrables — 32.40 CHF/h</strong><br>
+      💡 Électricité · 🔧 Plomberie · 🧱 Carrelage · ☀️ Panneaux solaires · ⚠️ Intervention exceptionnelle · 🎨 Peinture · 🔨 Divers<br>
+      Ces travaux génèrent directement des économies car un prestataire externe les facturerait 100 CHF/h.<br><br>
+      <strong style="color:var(--accent)">Travaux de suivi — 26.90 CHF/h</strong><br>
+      🏗 Extérieur · 💦 Kärcher · 🍽 Salle restaurant · 🧹 Nettoyage PEP<br>
+      Ces tâches sont essentielles au bon fonctionnement mais ne sont pas comparées à un prestataire externe dans le calcul d'économie.<br><br>
+      <strong style="color:var(--accent)">Machine à glace — 32 CHF/h</strong><br>
+      🍦 Taux spécifique pour la maintenance des machines à glace.<br><br>
+      <strong style="color:var(--red)">Prestataire externe — 100 CHF/h + 150 CHF/déplacement</strong><br>
+      C'est le coût de référence utilisé pour calculer ce que l'entreprise aurait payé sans technicien interne.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">5. L'objectif mensuel</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      L'objectif est fixé dans l'onglet Config (défaut : 5 000 CHF/mois). La barre de progression va de 0% à 200%.<br><br>
+      L'objectif se remplit grâce aux 4 sources d'économie décrites ci-dessus. Un repère vertical marque le 100% (objectif atteint). Au-delà, la barre continue en vert clair pour visualiser le dépassement.<br><br>
+      Quand l'objectif est atteint, des confettis s'affichent sur le dashboard et dans le rapport interactif HTML. Un bandeau vert indique le surplus.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">6. Les déplacements</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong>Déplacements courants</strong> — Calculés automatiquement entre les sites (Gland, Nyon Centre, Nyon Drive, Divers, Siège). Le coût carburant est intégré au coût interne de chaque intervention.<br><br>
+      <strong>Déplacements exceptionnels</strong> — Trajets hors périmètre habituel (fournisseurs, garages, etc.). Le prix du litre est saisi à chaque fois car il varie. Le coût est calculé en aller-retour. Chaque déplacement exceptionnel nécessite un motif justificatif.<br><br>
+      <strong>Système de remboursement</strong> — Tant qu'un déplacement exceptionnel n'est pas coché « Remboursé », il apparaît dans tous les rapports mensuels suivants comme rappel. Quand l'employeur rembourse, on coche la case et le trajet disparaît des futurs rapports. Les trajets de mois antérieurs non remboursés sont signalés en rouge avec un badge « ⚠ retard ».
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">7. Les rapports</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong>Rapport PDF</strong> — Généré section par section, exportable en PDF. Contient : économie totale, détail par site, répartition par catégorie de travaux, graphiques, temps de travail, déplacements exceptionnels non remboursés.<br><br>
+      <strong>Rapport HTML interactif</strong> — Fichier autonome à envoyer par email. Compteur animé, KPIs cliquables avec modales détaillées, camemberts interactifs. Inclut les confettis si l'objectif est atteint.<br><br>
+      <strong>Classeur mensuel</strong> — Archive automatique de chaque mois. Accessible par onglets dans la page Rapport.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">8. Pourquoi ce système est juste</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      Ce système de mesure est conçu pour refléter fidèlement la valeur ajoutée du technicien interne :<br><br>
+      <strong style="color:var(--green)">✓ Il est objectif</strong> — Chaque chiffre est basé sur des données réelles saisies quotidiennement : heures travaillées, matériaux utilisés, kilomètres parcourus.<br><br>
+      <strong style="color:var(--green)">✓ Il est conservateur</strong> — Seules les heures chiffrables et les heures supplémentaires non payées génèrent de l'économie. Les 42h hebdomadaires de base ne sont pas comptées comme un bonus, même si elles ont une valeur de remplacement réelle.<br><br>
+      <strong style="color:var(--green)">✓ Il est vérifiable</strong> — Chaque intervention est datée, localisée, détaillée par type de travaux, avec motifs et pièces. Les rapports peuvent être audités.<br><br>
+      <strong style="color:var(--green)">✓ Il est honnête</strong> — Les heures supplémentaires offertes sont clairement identifiées comme telles. Il ne s'agit pas d'un artifice comptable mais d'un fait : ces heures ne sont pas payées et représentent un travail productif gratuit pour l'entreprise.<br><br>
+      <strong style="color:var(--accent)">En résumé</strong> — L'entreprise dispose d'un technicien qui fait ses 42 heures contractuelles, qui effectue des interventions techniques évitant le recours à des prestataires à 100 CHF/h, qui travaille pendant les rushes, et qui offre régulièrement des heures supplémentaires non rémunérées. Chacune de ces contributions est mesurée et valorisée de manière transparente.
+    </p>
+  </div>
+
+  <div class="card" style="border-color:var(--accent)">
+    <div class="card-title" style="color:var(--accent)">9. Données techniques</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong>Stockage</strong> — Toutes les données sont stockées localement dans le navigateur (localStorage). Aucune donnée n'est envoyée sur internet. L'application fonctionne entièrement hors-ligne.<br><br>
+      <strong>Export/Import</strong> — Les données peuvent être exportées en JSON (sauvegarde complète) et réimportées. L'export inclut : interventions, contrats, temps de travail, déplacements exceptionnels, configuration.<br><br>
+      <strong>Sites couverts</strong> — Gland (GD), Nyon Centre (NC), Nyon Drive (ND), Divers/Crèche, Siège/Thibault, Formation.<br><br>
+      <strong>Version</strong> — Application mono-fichier HTML, compatible ES5, hébergée sur GitHub Pages.
+    </p>
+  </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -683,7 +802,7 @@ function distKey(a,b){return DIST[a+'-'+b]||DIST[b+'-'+a]||null}
 
 function getConfig(){
   var d=JSON.parse(localStorage.getItem(LS_CFG)||'{}');
-  return{tauxExterne:d.tauxExterne||100,deplExt:d.deplExt||150,conso:d.conso||8,prix:d.prix||1.90,objectif:d.objectif||5000};
+  return{tauxExterne:d.tauxExterne||100,deplExt:d.deplExt||150,conso:d.conso||8,prix:d.prix||1.90,objectif:d.objectif||5000,heuresContrat:d.heuresContrat||42};
 }
 function saveConfigData(c){localStorage.setItem(LS_CFG,JSON.stringify(c))}
 function getData(){return JSON.parse(localStorage.getItem(LS_KEY)||'[]')}
@@ -821,7 +940,7 @@ function ecoPieces(i){
 }
 
 // ========== NAV ==========
-var TAB_ORDER=['dashboard','saisie','interventions','contrats','temps','rapport','config','historique'];
+var TAB_ORDER=['dashboard','saisie','interventions','contrats','temps','rapport','config','historique','doc'];
 
 function goToPage(pageName,direction){
   var tabs=document.querySelectorAll('.nav-tab');
@@ -1243,8 +1362,8 @@ function updateIntervention(){if(!editId)return;var d=getData();var idx=-1;for(v
 function deleteFromModal(){if(!editId||!confirm('Supprimer ?'))return;setData(getData().filter(function(i){return i.id!==editId}));var ttE=getTTEntries().filter(function(e){return e.maintId!==editId});localStorage.setItem('tt_entries',JSON.stringify(ttE));closeEditModal();toast('Supprimee');refresh()}
 
 // ========== CONFIG ==========
-function saveConfig(){saveConfigData({tauxExterne:parseFloat(document.getElementById('cfgExterne').value)||100,deplExt:parseFloat(document.getElementById('cfgDeplExt').value)||150,conso:parseFloat(document.getElementById('cfgConso').value)||8,prix:parseFloat(document.getElementById('cfgPrix').value)||1.90,objectif:parseFloat(document.getElementById('cfgObjectif').value)||5000});toast('Sauvegarde');refresh()}
-function loadConfig(){var c=getConfig();document.getElementById('cfgExterne').value=c.tauxExterne;document.getElementById('cfgDeplExt').value=c.deplExt;document.getElementById('cfgConso').value=c.conso;document.getElementById('cfgPrix').value=c.prix;document.getElementById('cfgObjectif').value=c.objectif;renderDistTable()}
+function saveConfig(){saveConfigData({tauxExterne:parseFloat(document.getElementById('cfgExterne').value)||100,deplExt:parseFloat(document.getElementById('cfgDeplExt').value)||150,conso:parseFloat(document.getElementById('cfgConso').value)||8,prix:parseFloat(document.getElementById('cfgPrix').value)||1.90,objectif:parseFloat(document.getElementById('cfgObjectif').value)||5000,heuresContrat:parseFloat(document.getElementById('cfgHeuresContrat').value)||42});toast('Sauvegarde');refresh()}
+function loadConfig(){var c=getConfig();document.getElementById('cfgExterne').value=c.tauxExterne;document.getElementById('cfgDeplExt').value=c.deplExt;document.getElementById('cfgConso').value=c.conso;document.getElementById('cfgPrix').value=c.prix;document.getElementById('cfgObjectif').value=c.objectif;document.getElementById('cfgHeuresContrat').value=c.heuresContrat;renderDistTable()}
 function confirmPurge(){if(confirm('Tout supprimer ?')){localStorage.removeItem(LS_KEY);toast('Supprime');refresh()}}
 function renderDistTable(){
   var pairs=Object.entries(DIST).sort(function(a,b){return a[1].km-b[1].km});
@@ -1313,7 +1432,9 @@ function renderObjective(){
   var mEnd=new Date(parseInt(mParts[0]),parseInt(mParts[1]),0).toISOString().slice(0,10);
   var ttMonth=buildTTSummary(mStart,mEnd);
   var rushEco=ttMonth?ttMonth.rushCostInt:0;
-  var ecoMois=ecoMaint+rushEco;
+  var hSuppEco=ttMonth?ttMonth.heureSuppEco:0;
+  var hSupp=ttMonth?ttMonth.heuresSupp:0;
+  var ecoMois=ecoMaint+rushEco+hSuppEco;
   var restant=Math.max(0,obj-ecoMois);
   var pct=obj>0?Math.min(200,ecoMois/obj*100):0;
   var atteint=ecoMois>=obj;
@@ -1343,7 +1464,7 @@ function renderObjective(){
     '<div style="position:relative;'+cardBorder+';border-radius:var(--radius);padding:'+(atteint?'1.25rem':'0')+'">'+
     confettiHtml+
     '<div class="obj-header"><div class="card-title">🎯 Objectif mensuel</div><div class="obj-month">'+fML(curMonth)+'</div></div>'+
-    '<div class="obj-values"><div><div class="obj-remaining" style="color:'+barColor+'">'+fmt(ecoMois)+'</div><div class="obj-target">sur '+fmt(obj)+' objectif'+(rushEco>0?' · dont '+fmt(rushEco)+' rush':'')+'</div></div><div style="text-align:right;font-size:1.8rem;font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</div></div>'+
+    '<div class="obj-values"><div><div class="obj-remaining" style="color:'+barColor+'">'+fmt(ecoMois)+'</div><div class="obj-target">sur '+fmt(obj)+' objectif'+(rushEco>0?' · '+fmt(rushEco)+' rush':'')+(hSuppEco>0?' · 🎁 '+fmt(hSuppEco)+' ('+fH(hSupp)+' offertes)':'')+'</div></div><div style="text-align:right;font-size:1.8rem;font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</div></div>'+
     '<div class="obj-bar-bg" style="position:relative"><div class="obj-bar-fill" style="'+barFillStyle+'"></div>'+marker200+'</div>'+
     label200+
     '<div class="obj-status" style="color:'+statusColor+'">'+statusText+'</div>'+
@@ -1369,10 +1490,13 @@ function renderKPIs(){
   var mStart=curMonth+'-01';var mP=curMonth.split('-');var mEnd=new Date(parseInt(mP[0]),parseInt(mP[1]),0).toISOString().slice(0,10);
   var ttMonth=buildTTSummary(mStart,mEnd);
   var ttRushEco=ttMonth?ttMonth.rushCostInt:0;
-  var ecoTotale=tEco+tEcoPieces+ttRushEco;
+  var ttHSuppEco=ttMonth?ttMonth.heureSuppEco:0;
+  var ttHSupp=ttMonth?ttMonth.heuresSupp:0;
+  var ecoTotale=tEco+tEcoPieces+ttRushEco+ttHSuppEco;
   var subEco='Taux: '+pct.toFixed(1)+'%';
   if(tEcoPieces>0)subEco+=' · '+fmt(tEcoPieces)+' pieces';
   if(ttRushEco>0)subEco+=' · '+fmt(ttRushEco)+' rush';
+  if(ttHSuppEco>0)subEco+=' · 🎁 '+fmt(ttHSuppEco)+' h.supp';
   // Déplacements exceptionnels mois en cours — seulement non remboursés
   var dexcMonthAll=getDeplExc().filter(function(x){return x.date.slice(0,7)===curMonth});
   var dexcMonth=dexcMonthAll.filter(function(x){return !x.paid});
@@ -1446,7 +1570,7 @@ function genRapport(){
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ttRpt1=buildTTSummary(start,end);var ttRushRpt1=ttRpt1?ttRpt1.rushCostInt:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt1;
+  var ttRpt1=buildTTSummary(start,end);var ttRushRpt1=ttRpt1?ttRpt1.rushCostInt:0;var ttHSuppRpt1=ttRpt1?ttRpt1.heureSuppEco:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt1+ttHSuppRpt1;
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
@@ -1713,7 +1837,7 @@ function genRapportInto(start,end,targetId){
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ttRpt2=buildTTSummary(start,end);var ttRushRpt2=ttRpt2?ttRpt2.rushCostInt:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt2;
+  var ttRpt2=buildTTSummary(start,end);var ttRushRpt2=ttRpt2?ttRpt2.rushCostInt:0;var ttHSuppRpt2=ttRpt2?ttRpt2.heureSuppEco:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt2+ttHSuppRpt2;
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
@@ -1962,6 +2086,80 @@ function exportPDF(){
 }
 
 // ========== EXPORT RAPPORT INTERACTIF HTML ==========
+function exportGuidePDF(){
+  var el=document.getElementById('guideContent');
+  if(!el||!el.children.length){toast('Aucun contenu a exporter');return}
+  toast('Generation du PDF du guide... patience');
+
+  var sections=[];
+  for(var i=0;i<el.children.length;i++){
+    if(el.children[i].offsetHeight>0)sections.push(el.children[i]);
+  }
+  if(!sections.length){toast('Rien a exporter');return}
+
+  el.style.background='#0a0f1e';
+  el.style.padding='20px';
+  el.style.width='800px';
+  el.style.maxWidth='800px';
+
+  var pdf=new jspdf.jsPDF('p','mm','a4');
+  var pageW=pdf.internal.pageSize.getWidth();
+  var pageH=pdf.internal.pageSize.getHeight();
+  var margin=8;
+  var usableW=pageW-margin*2;
+  var usableH=pageH-margin*2;
+  var yPos=margin;
+
+  function captureGuide(idx){
+    if(idx>=sections.length){
+      pdf.save('Guide_Maintenance_McDo_La_Cote.pdf');
+      el.style.background='';el.style.padding='';el.style.width='';el.style.maxWidth='';
+      toast('Guide PDF exporte');
+      return;
+    }
+    var sect=sections[idx];
+    html2canvas(sect,{backgroundColor:'#0a0f1e',scale:2,useCORS:true,logging:false,windowWidth:800}).then(function(canvas){
+      var imgW=canvas.width;
+      var imgH=canvas.height;
+      var ratio=usableW/imgW;
+      var blockH=imgH*ratio;
+
+      if(blockH<=usableH){
+        if(yPos+blockH>pageH-margin){
+          pdf.addPage();
+          yPos=margin;
+        }
+        var imgData=canvas.toDataURL('image/jpeg',0.92);
+        pdf.addImage(imgData,'JPEG',margin,yPos,usableW,blockH);
+        yPos+=blockH+2;
+      }else{
+        if(yPos>margin+1)pdf.addPage();
+        yPos=margin;
+        var fullCanvas=document.createElement('canvas');
+        fullCanvas.width=canvas.width;
+        fullCanvas.height=canvas.height;
+        fullCanvas.getContext('2d').drawImage(canvas,0,0);
+        var sliceHpx=Math.floor(usableH/ratio);
+        var srcY=0;
+        while(srcY<imgH){
+          var h2=Math.min(sliceHpx,imgH-srcY);
+          var sliceCanvas=document.createElement('canvas');
+          sliceCanvas.width=imgW;sliceCanvas.height=h2;
+          sliceCanvas.getContext('2d').drawImage(fullCanvas,0,srcY,imgW,h2,0,0,imgW,h2);
+          var sliceData=sliceCanvas.toDataURL('image/jpeg',0.92);
+          var sliceHmm=h2*ratio;
+          pdf.addImage(sliceData,'JPEG',margin,yPos,usableW,sliceHmm);
+          srcY+=h2;
+          if(srcY<imgH){pdf.addPage();yPos=margin}
+          else{yPos+=sliceHmm+2}
+        }
+      }
+      captureGuide(idx+1);
+    });
+  }
+  captureGuide(0);
+}
+
 function exportInteractiveHTML(){
   var start=document.getElementById('rStart').value;
   var end=document.getElementById('rEnd').value;
@@ -1979,7 +2177,9 @@ function exportInteractiveHTML(){
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
   var ttRpt=buildTTSummary(start,end);
   var ttRush=ttRpt?ttRpt.rushCostInt:0;
-  var ecoTotale=tEco+tEcoPieces+ttRush;
+  var ttHSuppI=ttRpt?ttRpt.heureSuppEco:0;
+  var ttHSuppH=ttRpt?ttRpt.heuresSupp:0;
+  var ecoTotale=tEco+tEcoPieces+ttRush+ttHSuppI;
   var pct=tE>0?(tEco/tE*100):0;
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
@@ -2110,6 +2310,7 @@ function exportInteractiveHTML(){
   h+='<div class="kp" style="border-color:#34D399;animation-delay:.1s" onclick="openModal(\'kpiEco\')"><div class="kl">Eco. chiffrable</div><div class="kv" style="color:#34D399">'+Math.round(tEco)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   if(tEcoPieces>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.15s"><div class="kl">Eco. pieces</div><div class="kv" style="color:#22D3EE">'+Math.round(tEcoPieces)+' CHF</div><div class="ks">Achat direct vs sous-traitant</div></div>';
   if(ttRush>0)h+='<div class="kp" style="border-color:#FFC72C;animation-delay:.2s" onclick="openModal(\'kpiRush\')"><div class="kl">Rush chiffrable</div><div class="kv" style="color:#FFC72C">'+Math.round(ttRush)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
+  if(ttHSuppI>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.25s"><div class="kl">🎁 Heures supp offertes</div><div class="kv" style="color:#22D3EE">'+Math.round(ttHSuppI)+' CHF</div><div class="ks">'+fH(ttHSuppH)+' non payees · 100 CHF/h economises</div></div>';
   h+='<div class="kp" style="border-color:#FBBF24;animation-delay:.25s" onclick="openModal(\'kpiHeures\')"><div class="kl">Heures totales</div><div class="kv" style="color:#FBBF24">'+fH(tH)+'</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='<div class="kp" style="border-color:#60A5FA;animation-delay:.3s" onclick="openModal(\'kpiInterne\')"><div class="kl">Cout interne</div><div class="kv" style="color:#60A5FA">'+Math.round(tI)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='<div class="kp" style="border-color:#DA2C38;animation-delay:.35s" onclick="openModal(\'kpiExterne\')"><div class="kl">Cout si externe</div><div class="kv" style="color:#DA2C38">'+Math.round(tE)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
@@ -2469,10 +2670,21 @@ function buildTTSummary(startDate,endDate){
   var excKm=excF.reduce(function(s,t){return s+(t.km||0)},0);
   var excCost=excF.reduce(function(s,t){return s+(t.cost||0)},0);
 
+  // Heures supplementaires offertes (au-dela du contrat)
+  var cfg2=getConfig();
+  // Nombre de semaines dans la periode (arrondi au plus juste)
+  var d1=new Date(startDate);var d2=new Date(endDate);
+  var diffDays=Math.round((d2-d1)/(1000*60*60*24))+1;
+  var nbWeeks=diffDays/7;
+  var heuresContrat=nbWeeks*(cfg2.heuresContrat||42);
+  var heuresSupp=Math.max(0,rH(totalH2)-heuresContrat);
+  var heureSuppEco=Math.round(heuresSupp*cfg2.tauxExterne*100)/100; // cout externe evite, cout interne = 0
+
   return{
     entries:filtered.length,totalH:rH(totalH2),rushH:rH(rushH),workH:rH(totalH2-rushH),
     rushCostInt:Math.round(rH(rushH)*32.40*100)/100,
     rushTaux:32.40,
+    heuresSupp:rH(heuresSupp),heureSuppEco:heureSuppEco,heuresContrat:rH(heuresContrat),
     siteH:siteH,siteCount:siteCount,
     interSiteKm:transport.km,interSiteCost:transport.cost,interSiteTrips:transport.trips,
     excKm:Math.round(excKm*10)/10,excCost:Math.round(excCost*100)/100,excTrips:excF.length,
@@ -2489,6 +2701,9 @@ function renderTTKpiHtml(tt){
   html+='<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures travaillées</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tt.totalH)+'</div><div class="rpt-kpi-sub">'+fH(tt.workH)+' travail · '+fH(tt.rushH)+' rush</div></div>';
   if(tt.rushH>0){
     html+='<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">⚡ Rush (chiffrable)</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tt.rushCostInt)+'</div><div class="rpt-kpi-sub">'+fH(tt.rushH)+' x '+tt.rushTaux+' CHF/h — coût interne uniquement</div></div>';
+  }
+  if(tt.heuresSupp>0){
+    html+='<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">🎁 Heures supp offertes</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tt.heureSuppEco)+'</div><div class="rpt-kpi-sub">'+fH(tt.heuresSupp)+' au-delà de '+fH(tt.heuresContrat)+' contrat · coût interne 0 CHF</div></div>';
   }
   html+='<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Saisies</div><div class="rpt-kpi-val" style="color:var(--purple)">'+tt.entries+'</div><div class="rpt-kpi-sub">entrées enregistrées</div></div>';
   html+='<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Kilomètres</div><div class="rpt-kpi-val" style="color:var(--orange)">'+tt.totalKm+' km</div><div class="rpt-kpi-sub">'+tt.interSiteKm+' inter-sites · '+tt.excKm+' except.</div></div>';
