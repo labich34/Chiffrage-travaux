@@ -530,6 +530,18 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <div class="classeur-tabs" id="classeurTabs"></div>
     <div id="classeurContent"></div>
   </div>
+  <div class="card" style="margin-top:1.5rem;border-color:var(--purple)">
+    <div class="card-title" style="color:var(--purple)">📈 Rapport trimestriel — Demande de prime</div>
+    <p style="font-size:.78rem;color:var(--text2);margin-bottom:.75rem">Analyse d'évolution sur 3 mois avec verdict automatique. L'objectif mensuel sert de référence (= salaire brut). Les 3 mois doivent atteindre 100% pour prétendre à la prime.</p>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Trimestre</label>
+        <select class="form-input" id="trimestreSelect"></select>
+      </div>
+      <div class="form-group" style="align-self:end">
+        <button class="btn btn-primary" onclick="exportTrimestrielHTML()" style="background:linear-gradient(135deg,var(--purple),#818CF8);color:#fff;width:100%">📈 Générer le rapport trimestriel</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- CONFIG -->
@@ -2263,6 +2275,274 @@ function exportGuidePDF(){
   captureGuide(0);
 }
 
+// ========== RAPPORT TRIMESTRIEL — DEMANDE DE PRIME ==========
+function initTrimestreSelect(){
+  var sel=document.getElementById('trimestreSelect');
+  if(!sel)return;
+  // Collecter tous les mois ayant des données
+  var months={};
+  getData().forEach(function(i){var m=i.date.slice(0,7);months[m]=true});
+  getTTEntries().forEach(function(e){var m=e.date.slice(0,7);months[m]=true});
+  var mKeys=Object.keys(months).sort();
+  if(mKeys.length<3){sel.innerHTML='<option value="">Pas assez de données (min 3 mois)</option>';return}
+  // Générer des trimestres possibles (glissants: chaque trio de mois consécutifs)
+  var options=[];
+  for(var i=0;i<=mKeys.length-3;i++){
+    var m1=mKeys[i],m2=mKeys[i+1],m3=mKeys[i+2];
+    // Vérifier qu'ils sont consécutifs
+    var d1=new Date(m1+'-15'),d2=new Date(m2+'-15'),d3=new Date(m3+'-15');
+    var diff12=Math.round((d2-d1)/(1000*60*60*24*30));
+    var diff23=Math.round((d3-d2)/(1000*60*60*24*30));
+    if(diff12===1&&diff23===1){
+      var lbl=fML(m1)+' → '+fML(m3);
+      options.push({val:m1+'|'+m2+'|'+m3,lbl:lbl});
+    }
+  }
+  if(!options.length){sel.innerHTML='<option value="">Pas de trimestre complet disponible</option>';return}
+  var html='';
+  for(var j=options.length-1;j>=0;j--){
+    html+='<option value="'+options[j].val+'">'+options[j].lbl+'</option>';
+  }
+  sel.innerHTML=html;
+}
+
+function exportTrimestrielHTML(){
+  var sel=document.getElementById('trimestreSelect');
+  if(!sel||!sel.value){toast('Sélectionne un trimestre');return}
+  var parts=sel.value.split('|');
+  var m1=parts[0],m2=parts[1],m3=parts[2];
+  var c=getConfig();
+  var obj=c.objectif;
+
+  // Calculer les données de chaque mois
+  function monthData(ym){
+    var mParts=ym.split('-');
+    var mStart=ym+'-01';
+    var mEnd=new Date(parseInt(mParts[0]),parseInt(mParts[1]),0).toISOString().slice(0,10);
+    var d=getData().filter(function(i){return i.date>=mStart&&i.date<=mEnd});
+    var tEco=d.reduce(function(s,i){return s+ecoCalc(i)},0);
+    var tEcoPieces=d.reduce(function(s,i){return s+ecoPieces(i)},0);
+    var tI=d.reduce(function(s,i){return s+coutInt(i)},0);
+    var tE=d.reduce(function(s,i){return s+coutExt(i)},0);
+    var hc=rH(d.reduce(function(s,i){return s+heuresChiffrables(i)},0));
+    var tH2=rH(d.reduce(function(s,i){return s+totalH(i)},0));
+    var nbInt=d.length;
+    var tt=buildTTSummary(mStart,mEnd);
+    var rushEco=tt?tt.rushCostInt:0;
+    var rushH=tt?tt.rushH:0;
+    var hSuppEco=tt?tt.heureSuppEco:0;
+    var hSupp=tt?tt.heuresSupp:0;
+    var ttTotalH=tt?tt.totalH:0;
+    var ecoTotale=tEco+tEcoPieces+rushEco+hSuppEco;
+    var pct=obj>0?ecoTotale/obj*100:0;
+    return{
+      ym:ym,label:fML(ym),
+      ecoInt:Math.round(tEco),ecoPieces:Math.round(tEcoPieces),
+      rushEco:Math.round(rushEco),rushH:rH(rushH),
+      hSuppEco:Math.round(hSuppEco),hSupp:rH(hSupp),
+      ecoTotale:Math.round(ecoTotale),pct:Math.round(pct*10)/10,
+      nbInt:nbInt,hChiffr:hc,tH:tH2,ttH:rH(ttTotalH),
+      ci:Math.round(tI),ce:Math.round(tE),
+      atteint:pct>=100
+    };
+  }
+
+  var d1=monthData(m1),d2=monthData(m2),d3=monthData(m3);
+  var months3=[d1,d2,d3];
+  var allAtteint=d1.atteint&&d2.atteint&&d3.atteint;
+  var avgPct=Math.round((d1.pct+d2.pct+d3.pct)/3*10)/10;
+  var totalEco=d1.ecoTotale+d2.ecoTotale+d3.ecoTotale;
+  var totalTTH=rH(d1.ttH+d2.ttH+d3.ttH);
+  var totalInt=d1.nbInt+d2.nbInt+d3.nbInt;
+
+  // Tendance
+  var trend12=d2.ecoTotale-d1.ecoTotale;
+  var trend23=d3.ecoTotale-d2.ecoTotale;
+  var trendLabel='stable';
+  if(trend12>0&&trend23>0)trendLabel='hausse continue';
+  else if(trend12<0&&trend23<0)trendLabel='baisse continue';
+  else if(trend12>0&&trend23<0)trendLabel='pic puis baisse';
+  else if(trend12<0&&trend23>0)trendLabel='creux puis remontée';
+
+  // Construire le HTML interactif
+  var h='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">';
+  h+='<title>Rapport Trimestriel — '+d1.label+' à '+d3.label+'</title>';
+  h+='<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">';
+  h+='<style>';
+  h+='*{margin:0;padding:0;box-sizing:border-box}';
+  h+='body{font-family:"DM Sans",sans-serif;background:#0a0f1e;color:#f0f4f8;min-height:100vh;padding:2rem;background-image:radial-gradient(ellipse at 15% 0%,rgba(167,139,250,.08) 0%,transparent 45%),radial-gradient(ellipse at 85% 100%,rgba(96,165,250,.06) 0%,transparent 40%)}';
+  h+='.container{max-width:900px;margin:0 auto}';
+  h+='.hero{text-align:center;padding:2.5rem 2rem;background:rgba(18,28,50,.6);border:1px solid rgba(255,255,255,.1);border-radius:22px;margin-bottom:2rem;backdrop-filter:blur(24px);position:relative;overflow:hidden}';
+  h+='.hero::after{content:"";position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);pointer-events:none}';
+  h+='.hero h1{font-size:1.8rem;color:#A78BFA;margin-bottom:.5rem;position:relative;z-index:1}';
+  h+='.hero .period{color:#94a3b8;font-size:1rem;position:relative;z-index:1}';
+  h+='.hero .period strong{color:#f0f4f8}';
+
+  // Verdict badge
+  h+='.verdict{margin-top:1.5rem;padding:1rem 1.5rem;border-radius:16px;font-size:1.1rem;font-weight:700;position:relative;z-index:1}';
+  h+='.verdict.prime{background:rgba(52,211,153,.12);border:2px solid #34D399;color:#34D399}';
+  h+='.verdict.no-prime{background:rgba(218,44,56,.1);border:2px solid #DA2C38;color:#DA2C38}';
+
+  h+='.card{background:rgba(18,28,50,.6);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:1.5rem;margin-bottom:1.5rem;backdrop-filter:blur(24px);position:relative;overflow:hidden}';
+  h+='.card::after{content:"";position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.035),transparent);pointer-events:none;border-radius:22px 22px 0 0}';
+  h+='.card-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#64748b;margin-bottom:1rem;font-weight:600;position:relative;z-index:1}';
+  h+='.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}';
+  h+='.kpi{padding:1.25rem;border-radius:16px;text-align:center;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);position:relative;z-index:1}';
+  h+='.kpi .label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:600}';
+  h+='.kpi .value{font-size:1.8rem;font-weight:800;margin:.25rem 0}';
+  h+='.kpi .sub{font-size:.78rem;color:#94a3b8}';
+  h+='.month-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}';
+  h+='.month-card{padding:1.25rem;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);position:relative;z-index:1}';
+  h+='.month-card h3{font-size:1rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}';
+  h+='.month-card .stat{display:flex;justify-content:space-between;padding:.3rem 0;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04)}';
+  h+='.month-card .stat .lbl{color:#94a3b8}';
+  h+='.month-card .stat .val{font-weight:600}';
+  h+='.bar-container{height:12px;background:rgba(255,255,255,.06);border-radius:8px;margin:.5rem 0;overflow:hidden}';
+  h+='.bar-fill{height:100%;border-radius:8px;transition:width 1s}';
+  h+='.pct-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.8rem;font-weight:700}';
+  h+='.analysis{position:relative;z-index:1;font-size:.88rem;line-height:1.8;color:#cbd5e1}';
+  h+='.analysis strong{color:#f0f4f8}';
+  h+='.analysis .good{color:#34D399}';
+  h+='.analysis .bad{color:#DA2C38}';
+  h+='.analysis .neutral{color:#FBBF24}';
+  h+='canvas{max-height:300px;width:100%!important;position:relative;z-index:1}';
+  h+='.footer{text-align:center;padding:1rem;color:#64748b;font-size:.75rem;margin-top:2rem}';
+  h+='@media(max-width:768px){.kpi-grid,.month-row{grid-template-columns:1fr}.kpi .value{font-size:1.3rem}}';
+  h+='</style></head><body><div class="container">';
+
+  // HERO
+  h+='<div class="hero">';
+  h+='<h1>Rapport Trimestriel</h1>';
+  h+='<div class="period">McDonald\'s La Côte — <strong>'+d1.label+' à '+d3.label+'</strong></div>';
+  if(allAtteint){
+    h+='<div class="verdict prime">✅ PRIME MÉRITÉE — Objectif atteint les 3 mois ('+d1.pct+'%, '+d2.pct+'%, '+d3.pct+'%)</div>';
+  }else{
+    var missed=months3.filter(function(m){return !m.atteint});
+    var missedLabels=missed.map(function(m){return m.label+' ('+m.pct+'%)'}).join(', ');
+    h+='<div class="verdict no-prime">❌ Prime non atteinte — Objectif manqué : '+missedLabels+'</div>';
+  }
+  h+='</div>';
+
+  // KPIs résumé trimestre
+  h+='<div class="card"><div class="card-title">Résumé du trimestre</div>';
+  h+='<div class="kpi-grid">';
+  h+='<div class="kpi"><div class="label">Économie totale</div><div class="value" style="color:#34D399">'+Math.round(totalEco).toLocaleString('fr-CH')+' CHF</div><div class="sub">sur 3 mois</div></div>';
+  h+='<div class="kpi"><div class="label">Moyenne mensuelle</div><div class="value" style="color:#A78BFA">'+avgPct+'%</div><div class="sub">de l\'objectif ('+Math.round(obj).toLocaleString('fr-CH')+' CHF/mois)</div></div>';
+  h+='<div class="kpi"><div class="label">Tendance</div><div class="value" style="color:'+(trendLabel.indexOf('hausse')>=0?'#34D399':trendLabel.indexOf('baisse')>=0?'#DA2C38':'#FBBF24')+'">'+trendLabel.charAt(0).toUpperCase()+trendLabel.slice(1)+'</div><div class="sub">évolution mois par mois</div></div>';
+  h+='</div>';
+  h+='<div class="kpi-grid">';
+  h+='<div class="kpi"><div class="label">Interventions</div><div class="value" style="color:#60A5FA">'+totalInt+'</div><div class="sub">sur la période</div></div>';
+  h+='<div class="kpi"><div class="label">Heures TT totales</div><div class="value" style="color:#FBBF24">'+fH(totalTTH)+'</div><div class="sub">temps de travail</div></div>';
+  h+='<div class="kpi"><div class="label">Objectif mensuel</div><div class="value" style="color:#f0f4f8">'+Math.round(obj).toLocaleString('fr-CH')+' CHF</div><div class="sub">= référence salaire brut</div></div>';
+  h+='</div></div>';
+
+  // Détail mois par mois
+  h+='<div class="card"><div class="card-title">Détail mois par mois</div><div class="month-row">';
+  months3.forEach(function(dm){
+    var barColor=dm.atteint?'#34D399':dm.pct>60?'#FBBF24':'#DA2C38';
+    var barW=Math.min(100,dm.pct);
+    var badge=dm.atteint?'background:rgba(52,211,153,.15);color:#34D399':'background:rgba(218,44,56,.12);color:#DA2C38';
+    h+='<div class="month-card">';
+    h+='<h3>'+dm.label+' <span class="pct-badge" style="'+badge+'">'+dm.pct+'%</span></h3>';
+    h+='<div class="bar-container"><div class="bar-fill" style="width:'+barW+'%;background:'+barColor+'"></div></div>';
+    h+='<div class="stat"><span class="lbl">Éco interventions</span><span class="val" style="color:#60A5FA">'+dm.ecoInt.toLocaleString('fr-CH')+' CHF</span></div>';
+    h+='<div class="stat"><span class="lbl">Rush ('+fH(dm.rushH)+')</span><span class="val" style="color:#FBBF24">'+dm.rushEco.toLocaleString('fr-CH')+' CHF</span></div>';
+    if(dm.hSuppEco>0)h+='<div class="stat"><span class="lbl">🎁 H.supp ('+fH(dm.hSupp)+')</span><span class="val" style="color:#22D3EE">'+dm.hSuppEco.toLocaleString('fr-CH')+' CHF</span></div>';
+    if(dm.ecoPieces>0)h+='<div class="stat"><span class="lbl">Pièces</span><span class="val" style="color:#F472B6">'+dm.ecoPieces.toLocaleString('fr-CH')+' CHF</span></div>';
+    h+='<div class="stat" style="border-top:1px solid rgba(255,255,255,.1);padding-top:.4rem;margin-top:.25rem"><span class="lbl" style="font-weight:700;color:#f0f4f8">Total</span><span class="val" style="color:#34D399;font-size:.95rem">'+dm.ecoTotale.toLocaleString('fr-CH')+' CHF</span></div>';
+    h+='<div class="stat"><span class="lbl">Interventions</span><span class="val">'+dm.nbInt+'</span></div>';
+    h+='<div class="stat"><span class="lbl">Heures TT</span><span class="val">'+fH(dm.ttH)+'</span></div>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  // Graphique évolution
+  h+='<div class="card"><div class="card-title">Évolution des économies sur 3 mois</div>';
+  h+='<canvas id="chartTrim"></canvas></div>';
+
+  // Analyse rédigée
+  h+='<div class="card"><div class="card-title">📝 Analyse et conclusion</div><div class="analysis">';
+
+  // Rédaction auto
+  h+='<p>Sur la période de <strong>'+d1.label+' à '+d3.label+'</strong>, le technicien de maintenance a réalisé <strong>'+totalInt+' interventions</strong> pour un total de <strong>'+fH(totalTTH)+'</strong> de temps de travail, générant une économie globale de <strong class="good">'+Math.round(totalEco).toLocaleString('fr-CH')+' CHF</strong> par rapport au recours à un prestataire externe.</p><br>';
+
+  // Analyse mois par mois
+  months3.forEach(function(dm,idx){
+    var prev=idx>0?months3[idx-1]:null;
+    var diff2=prev?dm.ecoTotale-prev.ecoTotale:0;
+    var diffSign=diff2>0?'+':'';
+    h+='<p><strong>'+dm.label+'</strong> — Économie de <strong>'+dm.ecoTotale.toLocaleString('fr-CH')+' CHF</strong> soit <strong class="'+(dm.atteint?'good':'bad')+'">'+dm.pct+'% de l\'objectif</strong>';
+    if(dm.atteint)h+=' ✅';
+    else h+=' ❌';
+    if(prev)h+=' ('+diffSign+diff2.toLocaleString('fr-CH')+' CHF vs '+prev.label+')';
+    h+='.</p>';
+    // Détail
+    var details=[];
+    if(dm.ecoInt>0)details.push(dm.ecoInt.toLocaleString('fr-CH')+' CHF d\'économies sur '+dm.nbInt+' interventions ('+fH(dm.hChiffr)+' chiffrables)');
+    if(dm.rushEco>0)details.push(dm.rushEco.toLocaleString('fr-CH')+' CHF de rush ('+fH(dm.rushH)+')');
+    if(dm.hSuppEco>0)details.push(dm.hSuppEco.toLocaleString('fr-CH')+' CHF de '+fH(dm.hSupp)+' heures supplémentaires offertes');
+    if(details.length)h+='<p style="color:#94a3b8;font-size:.82rem;margin-left:1rem">Composé de : '+details.join(' + ')+'.</p>';
+    h+='<br>';
+  });
+
+  // Tendance
+  h+='<p><strong>Tendance globale :</strong> ';
+  if(trendLabel==='hausse continue')h+='<span class="good">Les économies sont en progression constante sur les 3 mois. L\'investissement dans la maintenance interne est de plus en plus rentable.</span>';
+  else if(trendLabel==='baisse continue')h+='<span class="bad">Les économies ont diminué chaque mois. Il est recommandé d\'analyser les causes de cette baisse.</span>';
+  else if(trendLabel==='pic puis baisse')h+='<span class="neutral">Après un bon mois de '+d2.label+', les économies ont légèrement baissé en '+d3.label+'. La performance reste néanmoins à surveiller.</span>';
+  else if(trendLabel==='creux puis remontée')h+='<span class="good">Après un creux en '+d2.label+', les économies sont reparties à la hausse en '+d3.label+'. La dynamique est positive.</span>';
+  else h+='<span class="neutral">Les économies sont restées globalement stables sur la période.</span>';
+  h+='</p><br>';
+
+  // Verdict prime
+  h+='<p style="font-size:1rem;padding:1rem;border-radius:12px;'+(allAtteint?'background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2)':'background:rgba(218,44,56,.06);border:1px solid rgba(218,44,56,.15)')+'">';
+  if(allAtteint){
+    h+='<strong class="good">✅ CONCLUSION : La prime est méritée.</strong><br><br>';
+    h+='L\'objectif mensuel de '+Math.round(obj).toLocaleString('fr-CH')+' CHF a été atteint chaque mois du trimestre. ';
+    h+='Le technicien a généré <strong>'+Math.round(totalEco).toLocaleString('fr-CH')+' CHF d\'économies</strong> sur 3 mois, ';
+    h+='soit en moyenne <strong>'+avgPct+'%</strong> de l\'objectif par mois. ';
+    h+='Cette performance constante démontre une valeur ajoutée mesurable et vérifiable pour l\'entreprise.';
+  }else{
+    var nb=months3.filter(function(m){return m.atteint}).length;
+    h+='<strong class="bad">❌ CONCLUSION : La prime n\'est pas atteinte ce trimestre.</strong><br><br>';
+    h+='L\'objectif de '+Math.round(obj).toLocaleString('fr-CH')+' CHF/mois devait être atteint les 3 mois. ';
+    h+='Il a été atteint '+nb+' mois sur 3 (moyenne : '+avgPct+'%). ';
+    if(avgPct>=80)h+='Cependant, la performance reste honorable et mérite d\'être soulignée. ';
+    h+='Il est recommandé de poursuivre les efforts pour atteindre l\'objectif chaque mois du prochain trimestre.';
+  }
+  h+='</p>';
+  h+='</div></div>';
+
+  // Footer
+  h+='<div class="footer">Rapport généré automatiquement le '+new Date().toLocaleDateString('fr-CH')+' — Suivi Maintenance McDonald\'s La Côte</div>';
+  h+='</div>';
+
+  // Chart.js script
+  h+='<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"><\/script>';
+  h+='<script>';
+  h+='var labels='+JSON.stringify([d1.label,d2.label,d3.label])+';';
+  h+='var ecoData='+JSON.stringify([d1.ecoTotale,d2.ecoTotale,d3.ecoTotale])+';';
+  h+='var objLine='+JSON.stringify([obj,obj,obj])+';';
+  h+='var rushData='+JSON.stringify([d1.rushEco,d2.rushEco,d3.rushEco])+';';
+  h+='var intData='+JSON.stringify([d1.ecoInt,d2.ecoInt,d3.ecoInt])+';';
+  h+='new Chart(document.getElementById("chartTrim"),{type:"bar",data:{labels:labels,datasets:[';
+  h+='{label:"Éco interventions",data:intData,backgroundColor:"rgba(96,165,250,.7)",borderRadius:6,barPercentage:.35},';
+  h+='{label:"Rush",data:rushData,backgroundColor:"rgba(251,191,36,.7)",borderRadius:6,barPercentage:.35},';
+  h+='{label:"Éco totale",data:ecoData,type:"line",borderColor:"#34D399",backgroundColor:"rgba(52,211,153,.1)",fill:true,tension:.3,pointRadius:6,pointBackgroundColor:"#34D399",borderWidth:3,yAxisID:"y"},';
+  h+='{label:"Objectif",data:objLine,type:"line",borderColor:"#DA2C38",borderDash:[8,4],borderWidth:2,pointRadius:0,fill:false,yAxisID:"y"}';
+  h+=']},options:{responsive:true,plugins:{legend:{position:"top",labels:{color:"#94a3b8"}}},scales:{y:{grid:{color:"rgba(255,255,255,.05)"},ticks:{color:"#94a3b8",callback:function(v){return v+" CHF"}}},x:{grid:{display:false},ticks:{color:"#94a3b8"}}}}});';
+  h+='<\/script>';
+  h+='</body></html>';
+
+  // Télécharger
+  var blob=new Blob([h],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Rapport_Trimestriel_'+m1+'_a_'+m3+'.html';
+  a.click();
+  toast('Rapport trimestriel exporté');
+}
+
 function exportInteractiveHTML(){
   var start=document.getElementById('rStart').value;
   var end=document.getElementById('rEnd').value;
@@ -3442,7 +3722,7 @@ function toggleDeplExcPaid(id){
 }
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderHistorique();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderHistorique();initTrimestreSelect();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
