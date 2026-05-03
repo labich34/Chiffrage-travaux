@@ -560,13 +560,26 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       <tr><td>🍦 Machine à glace</td><td style="color:var(--accent);font-weight:600">32 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
     </tbody></table></div>
   </div>
-  <div class="card"><div class="card-title">Tarifs externes & carburant</div>
+  <div class="card"><div class="card-title">Tarifs externes — centre du marché Suisse romande 2025/2026</div>
+    <p style="font-size:.78rem;color:var(--text2);margin-bottom:.6rem">Tarifs fixes de référence par corps de métier, appliqués automatiquement selon le type de travail. HTVA (8.1%), heures ouvrables, matériaux non inclus.</p>
+    <div class="table-wrap"><table><thead><tr><th>Corps de métier</th><th>CHF/h (MO)</th><th>Déplacement</th></tr></thead><tbody>
+      <tr><td>💡 Électricité</td><td style="color:var(--red);font-weight:600">150 CHF/h</td><td>120 CHF</td></tr>
+      <tr><td>🔧 Plomberie / Sanitaire</td><td style="color:var(--red);font-weight:600">120 CHF/h</td><td>120 CHF</td></tr>
+      <tr><td>🧱 Carrelage</td><td style="color:var(--red);font-weight:600">110 CHF/h</td><td>120 CHF</td></tr>
+      <tr><td>☀️ Panneaux solaires</td><td style="color:var(--red);font-weight:600">130 CHF/h</td><td>120 CHF</td></tr>
+      <tr><td>⚠️ Intervention except.</td><td style="color:var(--red);font-weight:600">150 CHF/h</td><td style="color:var(--red);font-weight:600">150 CHF</td></tr>
+      <tr><td>🎨 Peinture</td><td style="color:var(--red);font-weight:600">105 CHF/h</td><td>120 CHF</td></tr>
+      <tr><td>🔨 Divers</td><td style="color:var(--red);font-weight:600">105 CHF/h</td><td>120 CHF</td></tr>
+    </tbody></table></div>
+    <p style="font-size:.7rem;color:var(--text3);margin-top:.6rem">ℹ️ Quand une intervention combine plusieurs métiers, un seul déplacement est facturé : le forfait le plus élevé parmi les métiers présents. Le forfait 150 CHF de l'intervention exceptionnelle correspond au prestataire spécifique qui traite ce type d'urgence.</p>
+  </div>
+  <div class="card"><div class="card-title">Carburant & paramètres complémentaires</div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Taux horaire externe (CHF)</label><input type="number" step="0.5" class="form-input" id="cfgExterne" value="100"></div>
-      <div class="form-group"><label class="form-label">Déplacement externe (CHF/interv.)</label><input type="number" step="0.5" class="form-input" id="cfgDeplExt" value="150"></div>
       <div class="form-group"><label class="form-label">Consommation (L/100km)</label><input type="number" step="0.1" class="form-input" id="cfgConso" value="8"></div>
       <div class="form-group"><label class="form-label">Prix carburant (CHF/L)</label><input type="number" step="0.01" class="form-input" id="cfgPrix" value="1.90"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">ℹ️ Dépl. interne = km aller entre sites. Dépl. externe = forfait fixe. Taux internes = fixes, non modifiables.</p></div>
+      <div class="form-group"><label class="form-label">Taux référence heures supp (CHF/h)</label><input type="number" step="0.5" class="form-input" id="cfgExterne" value="100"></div>
+      <div class="form-group"><label class="form-label">Forfait dépl. fallback (CHF)</label><input type="number" step="0.5" class="form-input" id="cfgDeplExt" value="150"></div>
+      <div class="form-group full"><p style="font-size:.72rem;color:var(--text3)">ℹ️ Le « taux référence heures supp » est utilisé uniquement pour valoriser les heures travaillées au-delà du contrat de 42h/semaine (économie = h supp × ce taux). Le « forfait fallback » ne s'applique que si une intervention contient un travail externalisable sans tarif métier défini (cas qui ne devrait pas arriver). Les tarifs métier ci-dessus pilotent le calcul du coût externe des interventions.</p></div>
       <div class="form-group full" style="margin-top:.5rem"><button class="btn btn-primary" onclick="saveConfig()">Sauvegarder</button></div>
     </div>
   </div>
@@ -684,7 +697,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       Le technicien est payé pour un contrat de 42 heures par semaine. Ces heures constituent le socle attendu. Elles ne sont pas comptées comme un bonus car elles font partie du poste. Cependant, toute heure travaillée <strong>au-delà</strong> de ce contrat est une heure offerte gratuitement à l'entreprise.<br><br>
       <strong style="color:var(--green)">Étage 2 — La plus-value (ce qui dépasse)</strong><br>
       C'est ici que la vraie valeur ajoutée apparaît. Elle se compose de 4 sources :<br><br>
-      <span style="color:var(--accent)">① Interventions chiffrables</span> — Électricité, plomberie, carrelage, panneaux solaires, peinture, interventions exceptionnelles, divers. Chaque heure d'intervention technique est valorisée à 32.40 CHF/h en coût interne. Un prestataire externe facturerait 100 CHF/h + 150 CHF de déplacement forfaitaire. La différence = économie directe.<br><br>
+      <span style="color:var(--accent)">① Interventions chiffrables</span> — Électricité, plomberie, carrelage, panneaux solaires, peinture, interventions exceptionnelles, divers. Chaque heure d'intervention technique est valorisée à 32.40 CHF/h en coût interne. Un prestataire externe facturerait selon les tarifs du marché Suisse romande 2025/2026, qui varient par corps de métier (de 105 à 150 CHF/h, voir section 4) plus un forfait déplacement (60 ou 80 CHF). La différence = économie directe.<br><br>
       <span style="color:var(--cyan)">② Économies pièces</span> — Quand le technicien installe lui-même une pièce que le prestataire externe aurait facturée plus cher (marge prestataire), la différence est comptée comme économie.<br><br>
       <span style="color:var(--accent)">③ Heures rush</span> — Quand le technicien travaille pendant les rushes du restaurant (périodes de forte affluence), il assure la continuité de service sans surcoût. Ces heures sont valorisées à 32.40 CHF/h.<br><br>
       <span style="color:var(--cyan)">④ Heures supplémentaires offertes</span> — Toute heure travaillée au-delà des 42h/semaine contractuelles n'est pas rémunérée. Le technicien choisit librement de les effectuer. Pour l'entreprise, ce sont des heures de travail productif dont le coût interne est de <strong>0 CHF</strong>. Si l'entreprise avait dû sous-traiter ces heures pour les interventions, elle aurait payé 100 CHF/h. L'économie est donc de <strong>100 CHF par heure supplémentaire offerte lors d'une intervention</strong>, sinon c'est le taux normal pour des temps de travail supplémentaires.
@@ -696,7 +709,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
       <strong style="color:var(--green)">Économie totale = A + B + C + D</strong><br><br>
       <strong>A.</strong> Économie interventions = Σ (coût externe − coût interne) par intervention<br>
-      <span style="color:var(--text3)">Coût externe = heures chiffrables × 100 CHF/h + 150 CHF déplacement</span><br>
+      <span style="color:var(--text3)">Coût externe = Σ (heures × taux du métier) + déplacement forfaitaire le plus élevé parmi les métiers présents</span><br>
       <span style="color:var(--text3)">Coût interne = heures chiffrables × 32.40 CHF/h + matériaux + carburant</span><br><br>
       <strong>B.</strong> Économie pièces = Σ (prix pièce externe − prix pièce interne)<br><br>
       <strong>C.</strong> Rush = heures rush × 32.40 CHF/h<br>
@@ -711,16 +724,31 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="card">
     <div class="card-title">4. Les taux horaires</div>
     <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
-      <strong style="color:var(--green)">Travaux chiffrables — 32.40 CHF/h</strong><br>
-      💡 Électricité · 🔧 Plomberie · 🧱 Carrelage · ☀️ Panneaux solaires · ⚠️ Intervention exceptionnelle · 🎨 Peinture · 🔨 Divers<br>
-      Ces travaux génèrent directement des économies car un prestataire externe les facturerait 100 CHF/h.<br><br>
+      <strong style="color:var(--green)">Coût interne — 32.40 CHF/h pour les travaux chiffrables</strong><br>
+      💡 Électricité · 🔧 Plomberie · 🧱 Carrelage · ☀️ Panneaux solaires · ⚠️ Intervention exceptionnelle · 🎨 Peinture · 🔨 Divers<br><br>
       <strong style="color:var(--accent)">Travaux de suivi — 26.90 CHF/h</strong><br>
       🏗 Extérieur · 💦 Kärcher · 🍽 Salle restaurant · 🧹 Nettoyage PEP<br>
       Ces tâches sont essentielles au bon fonctionnement mais ne sont pas comparées à un prestataire externe dans le calcul d'économie.<br><br>
       <strong style="color:var(--accent)">Machine à glace — 32 CHF/h</strong><br>
       🍦 Taux spécifique pour la maintenance des machines à glace.<br><br>
-      <strong style="color:var(--red)">Prestataire externe — 100 CHF/h + 150 CHF/déplacement</strong><br>
-      C'est le coût de référence utilisé pour calculer ce que l'entreprise aurait payé sans technicien interne.
+      <strong style="color:var(--red)">Tarifs prestataire externe — centre du marché Suisse romande 2025/2026</strong><br>
+    </p>
+    <table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.5rem">
+      <thead><tr><th style="text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--glass-border);color:var(--text3);font-weight:600">Corps de métier</th><th style="text-align:right;padding:.4rem .5rem;border-bottom:1px solid var(--glass-border);color:var(--text3);font-weight:600">CHF/h (MO)</th><th style="text-align:right;padding:.4rem .5rem;border-bottom:1px solid var(--glass-border);color:var(--text3);font-weight:600">Déplacement</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)">💡 Électricité</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">150 CHF/h</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right">120 CHF</td></tr>
+        <tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)">🔧 Plomberie / Sanitaire</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">120 CHF/h</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right">120 CHF</td></tr>
+        <tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)">🧱 Carrelage</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">110 CHF/h</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right">120 CHF</td></tr>
+        <tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)">☀️ Panneaux solaires</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">130 CHF/h</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right">120 CHF</td></tr>
+        <tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)">⚠️ Intervention except.</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">150 CHF/h</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">150 CHF</td></tr>
+        <tr><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)">🎨 Peinture</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right;color:var(--red);font-weight:600">105 CHF/h</td><td style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border);text-align:right">120 CHF</td></tr>
+        <tr><td style="padding:.35rem .5rem">🔨 Divers</td><td style="padding:.35rem .5rem;text-align:right;color:var(--red);font-weight:600">105 CHF/h</td><td style="padding:.35rem .5rem;text-align:right">120 CHF</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--text3);font-size:.75rem;line-height:1.6;margin-top:.6rem">
+      Tarifs HTVA (8.1%), heures ouvrables, matériaux non inclus. Forfaits déplacement basés sur les pratiques locales constatées.<br>
+      Le forfait de 150 CHF appliqué aux interventions exceptionnelles correspond au prestataire spécifique qui traite habituellement ce type d'urgence.<br>
+      Quand une intervention combine plusieurs métiers, un seul déplacement est facturé : le forfait le plus élevé parmi les métiers présents (un prestataire ne facture pas plusieurs déplacements pour un seul trajet).
     </p>
   </div>
 
@@ -786,13 +814,13 @@ var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',co
 
 // CHIFFRABLE = compte dans les économies | NON-CHIFFRABLE = suivi uniquement
 var TRAVAUX=[
-  {id:'electricite',icon:'💡',label:'Électricité',chiffrable:true,taux:32.40},
-  {id:'plomberie',icon:'🔧',label:'Plomberie',chiffrable:true,taux:32.40},
-  {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true,taux:32.40},
-  {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32.40},
-  {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32.40},
-  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32.40},
-  {id:'divers',icon:'🔨',label:'Divers',chiffrable:true,taux:32.40},
+  {id:'electricite',icon:'💡',label:'Électricité',chiffrable:true,taux:32.40,tauxExt:150,deplExt:120},
+  {id:'plomberie',icon:'🔧',label:'Plomberie',chiffrable:true,taux:32.40,tauxExt:120,deplExt:120},
+  {id:'carrelage',icon:'🧱',label:'Carrelage',chiffrable:true,taux:32.40,tauxExt:110,deplExt:120},
+  {id:'solaire',icon:'☀️',label:'Panneaux solaires',chiffrable:true,taux:32.40,tauxExt:130,deplExt:120},
+  {id:'exception',icon:'⚠️',label:'Intervention except.',chiffrable:true,taux:32.40,tauxExt:150,deplExt:150},
+  {id:'peinture',icon:'🎨',label:'Peinture',chiffrable:true,taux:32.40,tauxExt:105,deplExt:120},
+  {id:'divers',icon:'🔨',label:'Divers',chiffrable:true,taux:32.40,tauxExt:105,deplExt:120},
   {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:26.90},
   {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:26.90},
   {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:26.90},
@@ -866,7 +894,24 @@ function coutIntChiffrable(tv){
 
 function coutInt(i){var hc=heuresChiffrables(i);var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+(hc>0?dp.cost:0)}
 function heuresExternalisables(i){var tv=i.travaux||[];return rH(tv.reduce(function(s,t){return s+(EXTERNALISABLE_IDS.indexOf(t.id)>=0?(t.heures||0):0)},0))}
-function coutExt(i){var c=getConfig();var he=heuresExternalisables(i);if(he<=0)return 0;return he*c.tauxExterne+c.deplExt}
+// Coût externe = somme(h * taux_metier) + déplacement le plus élevé parmi les métiers présents
+// Tarifs basés sur le centre du marché Suisse romande 2025/2026 (HTVA, heures ouvrables, sans matériaux)
+function coutExt(i){
+  var c=getConfig();
+  var tv=i.travaux||[];
+  var mo=0,deplMax=0,hasExt=false;
+  tv.forEach(function(t){
+    if(EXTERNALISABLE_IDS.indexOf(t.id)<0)return;
+    var def=TMAP[t.id];
+    var tx=def&&def.tauxExt?def.tauxExt:c.tauxExterne;
+    var dp=def&&def.deplExt?def.deplExt:c.deplExt;
+    mo+=(t.heures||0)*tx;
+    if(dp>deplMax)deplMax=dp;
+    if((t.heures||0)>0)hasExt=true;
+  });
+  if(!hasExt)return 0;
+  return mo+deplMax;
+}
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
 function coutIntTotal(i){var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+dp.cost}
 function rH(n){return Math.round(n*100)/100}
@@ -1525,7 +1570,7 @@ function renderKPIs(){
     '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies totales 🔍</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEco+'</span></div>'+
     '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+fH(tH)+'</span><span class="kpi-sub">'+subHeures+'</span></div>'+
     '<div class="kpi blue" onclick="openKpiModal(\'interne\')" title="Voir le detail"><span class="kpi-label">Cout interne 🔍</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
-    '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/depl.</span></div>';
+    '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">tarifs marche Suisse romande</span></div>';
   if(dexcMonth.length){
     var dexcSub=dexcMonth.length+' non remboursé'+(dexcMonth.length>1?'s':'')+' · '+dexcKm.toFixed(1)+' km AR';
     if(dexcPaidCount>0)dexcSub+=' · '+dexcPaidCount+' remboursé'+(dexcPaidCount>1?'s':'');
@@ -1695,7 +1740,7 @@ function genRapport(){
     (tEcoPieces>0?'<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">Économie pièces</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tEcoPieces)+'</div><div class="rpt-kpi-sub">Achat direct vs sous-traitant</div></div>':'')+
     '<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures totales</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tH)+'</div><div class="rpt-kpi-sub">'+fH(hC)+' chiffr. · '+fH(hS)+' suivi</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
-    '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/dépl.</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">tarifs marché Suisse romande</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+combinedKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(combinedFuel)+' carburant</div></div>'+
     '</div></div>';
@@ -1956,7 +2001,7 @@ function genRapportInto(start,end,targetId){
     (tEcoPieces>0?'<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">Économie pièces</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tEcoPieces)+'</div><div class="rpt-kpi-sub">Achat direct vs sous-traitant</div></div>':'')+
     '<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures totales</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tH)+'</div><div class="rpt-kpi-sub">'+fH(hC)+' chiffr. · '+fH(hS)+' suivi</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
-    '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">'+c.tauxExterne+' CHF/h + '+c.deplExt+' CHF/dépl.</div></div>'+
+    '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">tarifs marché Suisse romande</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+combinedKm2.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(combinedFuel2)+' carburant</div></div>'+
     '</div></div>';
@@ -3566,10 +3611,10 @@ function openKpiModal(type){
     title='<span style="color:var(--green)">💰 Économies totales</span>';
     formula='<strong>Formule :</strong> Éco. chiffrables + Éco. pièces<br>'+
       '• <strong>Éco. chiffrables</strong> = Coût externe estimé − Coût interne chiffrable<br>'+
-      '• Coût externe = Heures chiffrables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> déplacement<br>'+
+      '• Coût externe = Σ (heures × taux du métier) + déplacement le plus élevé parmi les métiers présents<br>'+
+      '• Tarifs marché : Élec/Except. 150 · Solaire 130 · Plomb. 120 · Carrelage 110 · Peint./Divers 105 CHF/h<br>'+
       '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant aller<br>'+
-      '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux<br>'+
-      '• Tags chiffrables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · 🔨 Divers';
+      '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       var ecoC=sd.reduce(function(sum,i){return sum+ecoCalc(i)},0);
@@ -3645,9 +3690,11 @@ function openKpiModal(type){
 
   }else if(type==='externe'){
     title='<span style="color:var(--red)">🔴 Coût si externe</span>';
-    formula='<strong>Formule :</strong> Heures externalisables × <strong>'+c.tauxExterne+' CHF/h</strong> + <strong>'+c.deplExt+' CHF</strong> de déplacement<br>'+
+    formula='<strong>Formule :</strong> Σ (heures × taux du métier) + déplacement le plus élevé parmi les métiers présents<br>'+
       '• Représente ce qu\'aurait coûté un prestataire externe pour le même travail<br>'+
-      '• Tags externalisables : 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · 🔨 Divers';
+      '• Tarifs centre du marché Suisse romande 2025/2026, HTVA, heures ouvrables<br>'+
+      '• 💡 Élec 150 · 🔧 Plomb. 120 · 🧱 Carrel. 110 · ☀️ Solaire 130 · ⚠️ Except. 150 · 🎨 Peint. 105 · 🔨 Divers 105 CHF/h<br>'+
+      '• Forfaits déplacement : 150 CHF (intervention except.) ou 120 CHF (autres métiers)';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       siteData[s]={val:sd.reduce(function(sum,i){return sum+coutExt(i)},0),color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
@@ -3657,7 +3704,21 @@ function openKpiModal(type){
     rows=d.map(function(i){
       var ce=coutExt(i);
       var he=heuresExternalisables(i);
-      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:he>0?(fH(he)+' x '+c.tauxExterne+' + '+c.deplExt+' depl.'):'Aucune h. externalisable',val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
+      // Détail : liste des métiers x heures x taux pour cette intervention
+      var det='';
+      if(he>0){
+        var parts=[],deplMax=0;
+        (i.travaux||[]).forEach(function(t){
+          if(EXTERNALISABLE_IDS.indexOf(t.id)<0)return;
+          var def=TMAP[t.id];if(!def||!t.heures)return;
+          var tx=def.tauxExt||c.tauxExterne;
+          var dp=def.deplExt||c.deplExt;
+          parts.push(fH(t.heures)+'x'+tx);
+          if(dp>deplMax)deplMax=dp;
+        });
+        det=parts.join('+')+' + '+deplMax+' depl.';
+      }else det='Aucune h. externalisable';
+      return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:det,val:ce,valStr:ce>0?'<span style="color:var(--red);font-weight:600">'+fmt(ce)+'</span>':'<span style="color:var(--text3)">-</span>'};
     });
   }
 
