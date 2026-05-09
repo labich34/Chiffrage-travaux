@@ -167,6 +167,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .btn-add-piece{display:inline-flex;align-items:center;gap:.3rem;background:var(--glass);border:1px dashed rgba(255,199,44,.4);border-radius:var(--radius-xs);padding:.4rem .75rem;color:var(--accent);font-size:.8rem;font-weight:500;margin-top:.4rem;cursor:pointer;transition:all .25s}
 .btn-add-piece:hover{background:var(--accent-dim);border-style:solid;border-color:var(--accent)}
 .eco-piece-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--cyan);color:#000;margin-left:4px}
+.eco-directe-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:.66rem;font-weight:600;background:var(--purple);color:#fff;margin-left:4px}
 
 /* TEMPS DE TRAVAIL SAISIE */
 .tt-site-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem}
@@ -297,6 +298,9 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <div style="margin-bottom:1rem">
       <button class="btn btn-ghost" id="modeDexcBtn" onclick="setMode('deplexc')" style="width:100%">🚗 Déplacement exceptionnel</button>
     </div>
+    <div style="margin-bottom:1rem">
+      <button class="btn btn-ghost" id="modeEcoBtn" onclick="setMode('ecodirecte')" style="width:100%">💰 Économie directe (garantie, négociation…)</button>
+    </div>
     <div class="form-grid">
       <!-- CHAMPS STANDARD (masqués en mode déplacement exceptionnel) -->
       <div id="uStdFields" style="display:contents">
@@ -353,6 +357,33 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
           <div class="form-group full">
             <label class="form-label">Travaux réalisés — coche puis indique les heures</label>
             <div class="tags-grid" id="fTags"></div>
+          </div>
+        </div>
+      </div>
+      <!-- CHAMPS ECONOMIE DIRECTE -->
+      <div id="ecoDirecteFields" style="display:none">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="edDate"></div>
+          <div class="form-group"><label class="form-label">Site concerné</label>
+            <select class="form-input" id="edSite">
+              <option value="GD">Gland (GD)</option><option value="NC">Nyon Centre (NC)</option><option value="ND">Nyon Drive (ND)</option><option value="DIVERS">Divers</option><option value="SIEGE">Siège</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Objet / Équipement</label>
+            <input type="text" class="form-input" id="edObjet" placeholder="Ex: Compresseur climatisation salle, friteuse N°2…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Montant économisé (CHF)</label>
+            <input type="number" step="0.01" min="0" class="form-input" id="edMontant" placeholder="0.00">
+            <p style="font-size:.72rem;color:var(--text3);margin-top:.25rem">Prix intégral de l'objet — économie = 100% du montant.</p>
+          </div>
+          <div class="form-group">
+            <div id="edPreview"></div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Contexte / Justification</label>
+            <textarea class="form-input" id="edNote" rows="3" placeholder="Ex: Passage en garantie constructeur obtenu hors délai légal — économie totale sur la pièce et la main d'œuvre externe."></textarea>
           </div>
         </div>
       </div>
@@ -433,6 +464,10 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="card" style="margin-top:.5rem">
     <div class="card-title" style="font-size:.7rem">🚗 Derniers déplacements exceptionnels</div>
     <div id="dexcLastEntries"></div>
+  </div>
+  <div class="card" style="margin-top:.5rem">
+    <div class="card-title" style="font-size:.7rem">💰 Dernières économies directes</div>
+    <div id="ecoDirecteLastEntries"></div>
   </div>
 </div>
 <div class="page" id="page-interventions">
@@ -809,7 +844,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc';
+var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
 
 // CHIFFRABLE = compte dans les économies | NON-CHIFFRABLE = suivi uniquement
@@ -851,7 +886,13 @@ function setData(d){localStorage.setItem(LS_KEY,JSON.stringify(d))}
 // ========== DEPLACEMENTS EXCEPTIONNELS ==========
 function getDeplExc(){try{return JSON.parse(localStorage.getItem(LS_DEXC)||'[]')}catch(e){return[]}}
 function setDeplExc(d){localStorage.setItem(LS_DEXC,JSON.stringify(d))}
-// km = aller simple saisi. Cout = aller-retour = km*2 / 100 * conso * prix
+
+// ========== ECONOMIES DIRECTES ==========
+function getEcoDir(){try{return JSON.parse(localStorage.getItem(LS_ECODIR)||'[]')}catch(e){return[]}}
+function setEcoDir(d){localStorage.setItem(LS_ECODIR,JSON.stringify(d))}
+function ecoDirMonth(month){return getEcoDir().filter(function(x){return x.date.slice(0,7)===month})}
+function ecoDirTotal(month){return ecoDirMonth(month).reduce(function(s,x){return s+(x.montant||0)},0)}
+
 function dexcCost(d){
   var km=parseFloat(d.km)||0;var conso=parseFloat(d.conso)||8;var prix=parseFloat(d.prix)||1.90;
   return Math.round(km*2/100*conso*prix*100)/100;
@@ -1159,17 +1200,20 @@ function setMode(mode){
   var intFields=document.getElementById('interventionFields');
   var ttFields=document.getElementById('tempsFields');
   var dexcFields=document.getElementById('deplExcFields');
+  var ecoFields=document.getElementById('ecoDirecteFields');
   var noteWrap=document.getElementById('uNoteWrap');
   var intBtn=document.getElementById('modeIntBtn');
   var ttBtn=document.getElementById('modeTTBtn');
   var dexcBtn=document.getElementById('modeDexcBtn');
+  var ecoBtn=document.getElementById('modeEcoBtn');
   // Reset buttons
-  intBtn.className='btn btn-ghost';ttBtn.className='btn btn-ghost';dexcBtn.className='btn btn-ghost';
+  intBtn.className='btn btn-ghost';ttBtn.className='btn btn-ghost';dexcBtn.className='btn btn-ghost';ecoBtn.className='btn btn-ghost';
   if(mode==='intervention'){
     stdFields.style.display='contents';
     intFields.style.display='';
     ttFields.style.display='none';
     dexcFields.style.display='none';
+    ecoFields.style.display='none';
     noteWrap.style.display='';
     intBtn.className='btn btn-primary';
     uRush=false;document.getElementById('uRushBtn').classList.remove('on');
@@ -1178,15 +1222,26 @@ function setMode(mode){
     intFields.style.display='none';
     ttFields.style.display='';
     dexcFields.style.display='none';
+    ecoFields.style.display='none';
     noteWrap.style.display='';
     ttBtn.className='btn btn-primary';
     showTTDeplInfo();
+  }else if(mode==='ecodirecte'){
+    stdFields.style.display='none';
+    intFields.style.display='none';
+    ttFields.style.display='none';
+    dexcFields.style.display='none';
+    ecoFields.style.display='';
+    noteWrap.style.display='none';
+    ecoBtn.className='btn btn-primary';
+    if(!document.getElementById('edDate').value)document.getElementById('edDate').value=new Date().toISOString().slice(0,10);
   }else{
     // deplexc
     stdFields.style.display='none';
     intFields.style.display='none';
     ttFields.style.display='none';
     dexcFields.style.display='';
+    ecoFields.style.display='none';
     noteWrap.style.display='none';
     dexcBtn.className='btn btn-primary';
     // Defaults from config
@@ -1290,6 +1345,16 @@ function resetUnifiedForm(){
     toggleDexcFrom();toggleDexcTo();
     var preview=document.getElementById('deCostPreview');if(preview)preview.innerHTML='';
   }
+  // Reset champs économie directe
+  var edDateEl=document.getElementById('edDate');
+  if(edDateEl){
+    edDateEl.value=new Date().toISOString().slice(0,10);
+    document.getElementById('edSite').value='GD';
+    document.getElementById('edObjet').value='';
+    document.getElementById('edMontant').value='';
+    document.getElementById('edNote').value='';
+    var edPreview=document.getElementById('edPreview');if(edPreview)edPreview.innerHTML='';
+  }
 }
 
 function getUSiteForMaint(){
@@ -1304,6 +1369,25 @@ function getUSiteForTT(){
 }
 
 function saveUnified(){
+  // Branche ECONOMIE DIRECTE
+  if(uMode==='ecodirecte'){
+    var edDate=document.getElementById('edDate').value;
+    if(!edDate){toast('Date requise');return}
+    var edObjet=document.getElementById('edObjet').value.trim();
+    if(!edObjet){toast('Nom de l\'objet requis');return}
+    var edMontant=parseFloat(document.getElementById('edMontant').value)||0;
+    if(edMontant<=0){toast('Montant doit être > 0 CHF');return}
+    var edSite=document.getElementById('edSite').value;
+    var edNote=document.getElementById('edNote').value.trim();
+    var edList=getEcoDir();
+    edList.push({id:Date.now(),date:edDate,site:edSite,objet:edObjet,montant:edMontant,note:edNote});
+    edList.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:0});
+    setEcoDir(edList);
+    toast('Économie directe enregistrée — +'+fmt(edMontant));
+    resetUnifiedForm();refresh();
+    return;
+  }
+
   // Branche DEPLACEMENT EXCEPTIONNEL — validation spécifique
   if(uMode==='deplexc'){
     var deDate=document.getElementById('deDate').value;
@@ -1483,6 +1567,7 @@ function renderObjective(){
   var now=new Date();var curMonth=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
   var d=getData().filter(function(i){return i.date.slice(0,7)===curMonth});
   var ecoMaint=d.reduce(function(s,i){return s+ecoCalc(i)+ecoPieces(i)},0);
+  ecoMaint+=ecoDirTotal(curMonth);
   // Ajouter rush TT comme economie interne (chiffrable non sous-traitable)
   var mStart=curMonth+'-01';
   var mParts=curMonth.split('-');
@@ -1544,14 +1629,16 @@ function renderKPIs(){
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
   var tDepl=d.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tEcoPieces=d.reduce(function(s,i){return s+ecoPieces(i)},0);
+  var tEcoDir=ecoDirTotal(curMonth);
   var mStart=curMonth+'-01';var mP=curMonth.split('-');var mEnd=new Date(parseInt(mP[0]),parseInt(mP[1]),0).toISOString().slice(0,10);
   var ttMonth=buildTTSummary(mStart,mEnd);
   var ttRushEco=ttMonth?ttMonth.rushCostInt:0;
   var ttHSuppEco=ttMonth?ttMonth.heureSuppEco:0;
   var ttHSupp=ttMonth?ttMonth.heuresSupp:0;
-  var ecoTotale=tEco+tEcoPieces+ttRushEco+ttHSuppEco;
+  var ecoTotale=tEco+tEcoPieces+tEcoDir+ttRushEco+ttHSuppEco;
   var subEco='Taux: '+pct.toFixed(1)+'%';
   if(tEcoPieces>0)subEco+=' · '+fmt(tEcoPieces)+' pieces';
+  if(tEcoDir>0)subEco+=' · 💎 '+fmt(tEcoDir)+' directe';
   if(ttRushEco>0)subEco+=' · '+fmt(ttRushEco)+' rush';
   if(ttHSuppEco>0)subEco+=' · 🎁 '+fmt(ttHSuppEco)+' h.supp';
   // Déplacements exceptionnels mois en cours — seulement non remboursés
@@ -1676,7 +1763,8 @@ function genRapport(){
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ttRpt1=buildTTSummary(start,end);var ttRushRpt1=ttRpt1?ttRpt1.rushCostInt:0;var ttHSuppRpt1=ttRpt1?ttRpt1.heureSuppEco:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt1+ttHSuppRpt1;
+  var tEcoDir=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).reduce(function(s,x){return s+(x.montant||0)},0);
+  var ttRpt1=buildTTSummary(start,end);var ttRushRpt1=ttRpt1?ttRpt1.rushCostInt:0;var ttHSuppRpt1=ttRpt1?ttRpt1.heureSuppEco:0;var ecoTotale=tEco+tEcoPieces+tEcoDir+ttRushRpt1+ttHSuppRpt1;
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
@@ -1727,6 +1815,7 @@ function genRapport(){
     '<div class="rpt-big-label">d\'économies réalisées sur la période</div>'+
     '<div class="rpt-big-sub">Taux d\'économie : '+pct.toFixed(1)+'% · '+all.length+' interventions · '+fH(tH)+' travaillées</div>'+
     (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
+    (tEcoDir>0?'<div class="rpt-big-sub" style="color:var(--purple)">dont '+fmt(tEcoDir)+' économies directes (garanties, négociations)</div>':'')+
     (ttRushRpt1>0?'<div class="rpt-big-sub" style="color:var(--accent)">dont '+fmt(ttRushRpt1)+' rush chiffrable ('+fH(ttRpt1.rushH)+' x 32.40 CHF/h)</div>':'')+
     '</div>';
 
@@ -1738,6 +1827,7 @@ function genRapport(){
   html+='<div class="rpt-kpi-grid">'+
     '<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">Économie chiffrable</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tEco)+'</div><div class="rpt-kpi-sub">Ext. '+fmt(tE)+' − Int. '+fmt(tI)+'</div></div>'+
     (tEcoPieces>0?'<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">Économie pièces</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tEcoPieces)+'</div><div class="rpt-kpi-sub">Achat direct vs sous-traitant</div></div>':'')+
+    (tEcoDir>0?'<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">💎 Économies directes</div><div class="rpt-kpi-val" style="color:var(--purple)">'+fmt(tEcoDir)+'</div><div class="rpt-kpi-sub">Garanties, négociations réussies</div></div>':'')+
     '<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures totales</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tH)+'</div><div class="rpt-kpi-sub">'+fH(hC)+' chiffr. · '+fH(hS)+' suivi</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">tarifs marché Suisse romande</div></div>'+
@@ -1824,6 +1914,26 @@ function genRapport(){
     html+='</div>';
   }
 
+  // 8b-bis. ECONOMIES DIRECTES
+  var edRpt=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).sort(function(a,b){return a.date>b.date?-1:1});
+  if(edRpt.length){
+    var edTotal=edRpt.reduce(function(s,x){return s+(x.montant||0)},0);
+    html+='<div class="rpt-section"><div class="rpt-section-title">💎 Économies directes ('+edRpt.length+') — '+fmt(edTotal)+'</div>';
+    html+='<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Site</th><th>Objet / Équipement</th><th>Justification</th><th style="text-align:right">Montant</th></tr></thead><tbody>';
+    edRpt.forEach(function(x){
+      var siteName=SITES[x.site]?SITES[x.site].name:x.site;
+      var siteColor=SITES[x.site]?SITES[x.site].color:'#888';
+      html+='<tr>'+
+        '<td>'+fD(x.date)+'</td>'+
+        '<td><span class="site-dot" style="background:'+siteColor+'"></span>'+siteName+'</td>'+
+        '<td style="font-weight:600">'+(x.objet||'').replace(/</g,'&lt;')+'</td>'+
+        '<td style="color:var(--text2);font-size:.8rem">'+(x.note||'').replace(/</g,'&lt;')+'</td>'+
+        '<td style="text-align:right;color:var(--purple);font-weight:700">'+fmt(x.montant||0)+'</td>'+
+        '</tr>';
+    });
+    html+='</tbody></table></div></div></div>';
+  }
+
   // 8c. DEPLACEMENTS EXCEPTIONNELS
   html+=buildDeplExcSection(start,end);
 
@@ -1890,6 +2000,8 @@ var classeurActiveMonth=null;
 function getAvailableMonths(){
   var d=getData();var ms=[];
   d.forEach(function(i){var m=i.date.slice(0,7);if(ms.indexOf(m)<0)ms.push(m)});
+  // Inclure aussi les mois où il y a uniquement des économies directes
+  getEcoDir().forEach(function(x){var m=x.date.slice(0,7);if(ms.indexOf(m)<0)ms.push(m)});
   return ms.sort().reverse();
 }
 
@@ -1910,10 +2022,12 @@ function renderClasseur(){
   ms.forEach(function(m){
     var active=m===classeurActiveMonth?' active':'';
     var d=getData().filter(function(i){return i.date.slice(0,7)===m});
+    var nEd=ecoDirMonth(m).length;
+    var countLbl=d.length+(nEd>0?' + '+nEd+'💎':'');
     tabsHtml+='<button class="classeur-tab'+active+'" onclick="openClasseurMonth(\''+m+'\')">'
       +'<span class="tab-dot"></span>'
       +fML(m)
-      +' <span style="font-size:.68rem;color:var(--text3)">('+d.length+')</span>'
+      +' <span style="font-size:.68rem;color:var(--text3)">('+countLbl+')</span>'
       +'</button>';
   });
   tabsEl.innerHTML=tabsHtml;
@@ -1943,7 +2057,8 @@ function genRapportInto(start,end,targetId){
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
-  var ttRpt2=buildTTSummary(start,end);var ttRushRpt2=ttRpt2?ttRpt2.rushCostInt:0;var ttHSuppRpt2=ttRpt2?ttRpt2.heureSuppEco:0;var ecoTotale=tEco+tEcoPieces+ttRushRpt2+ttHSuppRpt2;
+  var tEcoDir=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).reduce(function(s,x){return s+(x.montant||0)},0);
+  var ttRpt2=buildTTSummary(start,end);var ttRushRpt2=ttRpt2?ttRpt2.rushCostInt:0;var ttHSuppRpt2=ttRpt2?ttRpt2.heureSuppEco:0;var ecoTotale=tEco+tEcoPieces+tEcoDir+ttRushRpt2+ttHSuppRpt2;
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
@@ -1988,6 +2103,7 @@ function genRapportInto(start,end,targetId){
     '<div class="rpt-big-label">d\'économies réalisées sur la période</div>'+
     '<div class="rpt-big-sub">Taux : '+pct.toFixed(1)+'% · '+all.length+' interventions · '+fH(tH)+' travaillées</div>'+
     (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
+    (tEcoDir>0?'<div class="rpt-big-sub" style="color:var(--purple)">dont '+fmt(tEcoDir)+' économies directes (garanties, négociations)</div>':'')+
     (ttRushRpt2>0?'<div class="rpt-big-sub" style="color:var(--accent)">dont '+fmt(ttRushRpt2)+' rush chiffrable ('+fH(ttRpt2.rushH)+' x 32.40 CHF/h)</div>':'')+
     '</div>';
 
@@ -1999,6 +2115,7 @@ function genRapportInto(start,end,targetId){
   html+='<div class="rpt-kpi-grid">'+
     '<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">Économie chiffrable</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tEco)+'</div><div class="rpt-kpi-sub">Ext. '+fmt(tE)+' − Int. '+fmt(tI)+'</div></div>'+
     (tEcoPieces>0?'<div class="rpt-kpi-card" style="border-color:var(--cyan)"><div class="rpt-kpi-label">Économie pièces</div><div class="rpt-kpi-val" style="color:var(--cyan)">'+fmt(tEcoPieces)+'</div><div class="rpt-kpi-sub">Achat direct vs sous-traitant</div></div>':'')+
+    (tEcoDir>0?'<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">💎 Économies directes</div><div class="rpt-kpi-val" style="color:var(--purple)">'+fmt(tEcoDir)+'</div><div class="rpt-kpi-sub">Garanties, négociations réussies</div></div>':'')+
     '<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures totales</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tH)+'</div><div class="rpt-kpi-sub">'+fH(hC)+' chiffr. · '+fH(hS)+' suivi</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--blue)"><div class="rpt-kpi-label">Coût interne</div><div class="rpt-kpi-val" style="color:var(--blue)">'+fmt(tI)+'</div><div class="rpt-kpi-sub">'+fmt2(tDepl)+' carburant · '+fmt(tMat)+' mat.</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">tarifs marché Suisse romande</div></div>'+
@@ -2067,6 +2184,26 @@ function genRapportInto(start,end,targetId){
     html+='<div class="rpt-section"><div class="rpt-section-title">⏱ Temps de travail — Présence sites</div>';
     html+=renderTTKpiHtml(ttData);
     html+='</div>';
+  }
+
+  // ECONOMIES DIRECTES
+  var edRpt2=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).sort(function(a,b){return a.date>b.date?-1:1});
+  if(edRpt2.length){
+    var edTotal2=edRpt2.reduce(function(s,x){return s+(x.montant||0)},0);
+    html+='<div class="rpt-section"><div class="rpt-section-title">💎 Économies directes ('+edRpt2.length+') — '+fmt(edTotal2)+'</div>';
+    html+='<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Site</th><th>Objet / Équipement</th><th>Justification</th><th style="text-align:right">Montant</th></tr></thead><tbody>';
+    edRpt2.forEach(function(x){
+      var siteName=SITES[x.site]?SITES[x.site].name:x.site;
+      var siteColor=SITES[x.site]?SITES[x.site].color:'#888';
+      html+='<tr>'+
+        '<td>'+fD(x.date)+'</td>'+
+        '<td><span class="site-dot" style="background:'+siteColor+'"></span>'+siteName+'</td>'+
+        '<td style="font-weight:600">'+(x.objet||'').replace(/</g,'&lt;')+'</td>'+
+        '<td style="color:var(--text2);font-size:.8rem">'+(x.note||'').replace(/</g,'&lt;')+'</td>'+
+        '<td style="text-align:right;color:var(--purple);font-weight:700">'+fmt(x.montant||0)+'</td>'+
+        '</tr>';
+    });
+    html+='</tbody></table></div></div></div>';
   }
 
   // DEPLACEMENTS EXCEPTIONNELS
@@ -2367,6 +2504,7 @@ function exportTrimestrielHTML(){
     var d=getData().filter(function(i){return i.date>=mStart&&i.date<=mEnd});
     var tEco=d.reduce(function(s,i){return s+ecoCalc(i)},0);
     var tEcoPieces=d.reduce(function(s,i){return s+ecoPieces(i)},0);
+    var tEcoDir=ecoDirTotal(ym);
     var tI=d.reduce(function(s,i){return s+coutInt(i)},0);
     var tE=d.reduce(function(s,i){return s+coutExt(i)},0);
     var hc=rH(d.reduce(function(s,i){return s+heuresChiffrables(i)},0));
@@ -2378,11 +2516,11 @@ function exportTrimestrielHTML(){
     var hSuppEco=tt?tt.heureSuppEco:0;
     var hSupp=tt?tt.heuresSupp:0;
     var ttTotalH=tt?tt.totalH:0;
-    var ecoTotale=tEco+tEcoPieces+rushEco+hSuppEco;
+    var ecoTotale=tEco+tEcoPieces+tEcoDir+rushEco+hSuppEco;
     var pct=obj>0?ecoTotale/obj*100:0;
     return{
       ym:ym,label:fML(ym),
-      ecoInt:Math.round(tEco),ecoPieces:Math.round(tEcoPieces),
+      ecoInt:Math.round(tEco),ecoPieces:Math.round(tEcoPieces),ecoDir:Math.round(tEcoDir),
       rushEco:Math.round(rushEco),rushH:rH(rushH),
       hSuppEco:Math.round(hSuppEco),hSupp:rH(hSupp),
       ecoTotale:Math.round(ecoTotale),pct:Math.round(pct*10)/10,
@@ -2603,11 +2741,12 @@ function exportInteractiveHTML(){
   var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
+  var tEcoDir=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).reduce(function(s,x){return s+(x.montant||0)},0);
   var ttRpt=buildTTSummary(start,end);
   var ttRush=ttRpt?ttRpt.rushCostInt:0;
   var ttHSuppI=ttRpt?ttRpt.heureSuppEco:0;
   var ttHSuppH=ttRpt?ttRpt.heuresSupp:0;
-  var ecoTotale=tEco+tEcoPieces+ttRush+ttHSuppI;
+  var ecoTotale=tEco+tEcoPieces+tEcoDir+ttRush+ttHSuppI;
   var pct=tE>0?(tEco/tE*100):0;
   var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
@@ -3380,6 +3519,40 @@ function deleteDeplExcFromList(id){
   refresh();
 }
 
+function renderEcoDirecteLastEntries(){
+  var el=document.getElementById('ecoDirecteLastEntries');
+  if(!el)return;
+  var list=getEcoDir().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:0}).slice(0,6);
+  if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:.5rem">Aucune économie directe saisie</div>';return}
+  var html='<table style="width:100%;font-size:.78rem;border-collapse:collapse"><thead><tr>'+
+    '<th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Date</th>'+
+    '<th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Objet</th>'+
+    '<th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Site</th>'+
+    '<th style="text-align:right;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Montant</th>'+
+    '<th style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)"></th>'+
+    '</tr></thead><tbody>';
+  list.forEach(function(x){
+    var siteName=SITES[x.site]?SITES[x.site].name:x.site;
+    var siteColor=SITES[x.site]?SITES[x.site].color:'#888';
+    html+='<tr>'+
+      '<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2)">'+fD(x.date)+'</td>'+
+      '<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);font-weight:500">💎 '+x.objet.replace(/</g,'&lt;')+'</td>'+
+      '<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04)"><span class="site-dot" style="background:'+siteColor+'"></span>'+siteName+'</td>'+
+      '<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04);text-align:right;font-weight:700;color:var(--purple)">'+fmt(x.montant||0)+'</td>'+
+      '<td style="padding:.35rem .5rem;border-bottom:1px solid rgba(255,255,255,.04)"><button class="btn btn-danger btn-sm" onclick="deleteEcoDirFromList('+x.id+')" style="padding:.2rem .4rem" title="Supprimer">🗑</button></td>'+
+      '</tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+function deleteEcoDirFromList(id){
+  if(!confirm('Supprimer cette économie directe ?'))return;
+  setEcoDir(getEcoDir().filter(function(x){return x.id!==id}));
+  toast('Économie directe supprimée');
+  refresh();
+}
+
 // ========== TT EDIT MODAL ==========
 var tteId=null;
 var tteRush=false;
@@ -3609,23 +3782,25 @@ function openKpiModal(type){
 
   if(type==='eco'){
     title='<span style="color:var(--green)">💰 Économies totales</span>';
-    formula='<strong>Formule :</strong> Éco. chiffrables + Éco. pièces<br>'+
+    formula='<strong>Formule :</strong> Éco. chiffrables + Éco. pièces + Éco. directes<br>'+
       '• <strong>Éco. chiffrables</strong> = Coût externe estimé − Coût interne chiffrable<br>'+
       '• Coût externe = Σ (heures × taux du métier) + déplacement le plus élevé parmi les métiers présents<br>'+
       '• Tarifs marché : Élec/Except. 150 · Solaire 130 · Plomb. 120 · Carrelage 110 · Peint./Divers 105 CHF/h<br>'+
       '• Coût interne = Heures chiffrables × <strong>32.40 CHF/h</strong> + matériaux + carburant aller<br>'+
-      '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux';
+      '• <strong>Éco. pièces</strong> = Somme prix société externe − ton coût matériaux<br>'+
+      '• <strong>💎 Éco. directes</strong> = Garanties obtenues, négociations réussies — économie intégrale du montant';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
       var ecoC=sd.reduce(function(sum,i){return sum+ecoCalc(i)},0);
       var ecoP=sd.reduce(function(sum,i){return sum+ecoPieces(i)},0);
-      siteData[s]={val:ecoC+ecoP,ecoP:ecoP,color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
+      var ecoD=ecoDirMonth(curMonth).filter(function(x){return x.site===s}).reduce(function(sum,x){return sum+(x.montant||0)},0);
+      siteData[s]={val:ecoC+ecoP+ecoD,ecoP:ecoP,ecoD:ecoD,color:SITES[s]?SITES[s].color:'#888',name:SITES[s]?SITES[s].name:s};
     });
     var autres=d.filter(function(i){return sites.indexOf(i.site)<0});
     if(autres.length){
       var ecoCA=autres.reduce(function(sum,i){return sum+ecoCalc(i)},0);
       var ecoPA=autres.reduce(function(sum,i){return sum+ecoPieces(i)},0);
-      siteData['AUTRES']={val:ecoCA+ecoPA,ecoP:ecoPA,color:'#A78BFA',name:'Autres'};
+      siteData['AUTRES']={val:ecoCA+ecoPA,ecoP:ecoPA,ecoD:0,color:'#A78BFA',name:'Autres'};
     }
     rows=d.map(function(i){
       var e=ecoCalc(i);
@@ -3638,6 +3813,22 @@ function openKpiModal(type){
       if(ep>0)detailStr+=' | pieces: +'+fmt(ep);
       return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,siteColor:SITES[i.site]?SITES[i.site].color:'#888',travaux:tvLabel(i),detail:detailStr,val:eTotal,valStr:eTotal>0?'<span style="color:var(--green);font-weight:600">'+fmt(eTotal)+'</span>'+(ep>0?'<span class="eco-piece-badge">dont '+fmt(ep)+' pieces</span>':''):'<span style="color:var(--text3)">-</span>'};
     });
+    // Append eco-directe entries as extra rows
+    var edRows=ecoDirMonth(curMonth);
+    edRows.forEach(function(x){
+      rows.push({
+        date:fD(x.date),
+        site:SITES[x.site]?SITES[x.site].name:x.site,
+        siteColor:SITES[x.site]?SITES[x.site].color:'#888',
+        travaux:'<span class="desc-tag" style="background:var(--purple-dim);color:var(--purple)">💎 '+x.objet.replace(/</g,'&lt;')+'</span>',
+        detail:x.note?x.note.replace(/</g,'&lt;'):'Économie directe',
+        val:x.montant||0,
+        valStr:'<span style="color:var(--purple);font-weight:600">'+fmt(x.montant||0)+'</span><span class="eco-directe-badge">directe</span>',
+        _isEcoDir:true,
+        _id:x.id
+      });
+    });
+    rows.sort(function(a,b){return a.date<b.date?1:-1});
 
   }else if(type==='heures'){
     title='<span style="color:var(--accent)">⏱ Heures totales</span>';
@@ -3739,6 +3930,7 @@ function openKpiModal(type){
     var subStr='';
     if(isH&&sd.valC!==undefined)subStr='<div style="font-size:.68rem;color:var(--text3);margin-top:2px">dont '+fH(sd.valC)+' chiffr.</div>';
     if(sd.ecoP!==undefined&&sd.ecoP>0)subStr='<div style="font-size:.68rem;color:var(--cyan);margin-top:2px">dont '+fmt(sd.ecoP)+' pieces</div>';
+    if(sd.ecoD!==undefined&&sd.ecoD>0)subStr+='<div style="font-size:.68rem;color:var(--purple);margin-top:2px">+ '+fmt(sd.ecoD)+' directe</div>';
     body+='<div class="kpi-site-card" style="border-color:'+sd.color+'">'+
       '<div class="kpi-site-name">'+sd.name+'</div>'+
       '<div class="kpi-site-val" style="color:'+sd.color+'">'+valStr+'</div>'+
@@ -3761,12 +3953,14 @@ function openKpiModal(type){
     body+='<div class="kpi-detail-list" id="'+listId+'">'+
       '<table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Détail calcul</th><th>Valeur</th></tr></thead><tbody>';
     rows.forEach(function(r){
+      var delBtn=r._isEcoDir?'<td><button class="btn btn-ghost btn-sm" onclick="deleteEcoDir('+r._id+')" title="Supprimer" style="padding:.2rem .4rem">🗑</button></td>':'<td></td>';
       body+='<tr>'+
         '<td style="white-space:nowrap">'+r.date+'</td>'+
         '<td style="white-space:nowrap"><span class="site-dot" style="background:'+r.siteColor+'"></span>'+r.site+'</td>'+
         '<td><div class="desc-tags">'+r.travaux+'</div></td>'+
-        '<td style="color:var(--text3);font-size:.73rem;white-space:nowrap">'+r.detail+'</td>'+
+        '<td style="color:var(--text3);font-size:.73rem">'+r.detail+'</td>'+
         '<td style="white-space:nowrap">'+r.valStr+'</td>'+
+        delBtn+
         '</tr>';
     });
     body+='</tbody></table></div>';
@@ -3781,6 +3975,13 @@ function openKpiModal(type){
 
 function closeKpiModal(){document.getElementById('kpiModal').classList.remove('open')}
 document.getElementById('kpiModal').addEventListener('click',function(e){if(e.target===this)closeKpiModal()});
+function deleteEcoDir(id){
+  if(!confirm('Supprimer cette économie directe ?'))return;
+  setEcoDir(getEcoDir().filter(function(x){return x.id!==id}));
+  closeKpiModal();
+  toast('Économie directe supprimée');
+  refresh();
+}
 function deleteDeplExc(id){
   if(!confirm('Supprimer ce déplacement exceptionnel ?'))return;
   setDeplExc(getDeplExc().filter(function(x){return x.id!==id}));
@@ -3803,7 +4004,7 @@ function toggleDeplExcPaid(id){
 }
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderHistorique();initTrimestreSelect();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 </script>
 </body>
