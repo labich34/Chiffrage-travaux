@@ -913,6 +913,15 @@ function setData(d){localStorage.setItem(LS_KEY,JSON.stringify(d))}
 // ========== DEPLACEMENTS EXCEPTIONNELS ==========
 function getDeplExc(){try{return JSON.parse(localStorage.getItem(LS_DEXC)||'[]')}catch(e){return[]}}
 function setDeplExc(d){localStorage.setItem(LS_DEXC,JSON.stringify(d))}
+// Liste visible : exclut les déplacements auto-générés cachés (ex: action poubelle NC)
+function getDeplExcVisible(){return getDeplExc().filter(function(x){return !x.hidden})}
+// Coût carburant total des déplacements cachés sur une période [start,end] (YYYY-MM-DD)
+function hiddenDexcFuel(start,end){
+  return getDeplExc().filter(function(x){return x.hidden&&x.date>=start&&x.date<=end}).reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
+}
+function hiddenDexcFuelMonth(month){
+  return getDeplExc().filter(function(x){return x.hidden&&x.date.slice(0,7)===month}).reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
+}
 
 // ========== ECONOMIES DIRECTES ==========
 function getEcoDir(){try{return JSON.parse(localStorage.getItem(LS_ECODIR)||'[]')}catch(e){return[]}}
@@ -1693,7 +1702,7 @@ function renderKPIs(){
   var tI=d.reduce(function(s,i){return s+coutInt(i)},0);
   var tE=d.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
-  var tDepl=d.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
+  var tDepl=d.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0)+hiddenDexcFuelMonth(curMonth);
   var tEcoPieces=d.reduce(function(s,i){return s+ecoPieces(i)},0);
   var tEcoDir=ecoDirTotal(curMonth);
   var mStart=curMonth+'-01';var mP=curMonth.split('-');var mEnd=new Date(parseInt(mP[0]),parseInt(mP[1]),0).toISOString().slice(0,10);
@@ -1707,8 +1716,8 @@ function renderKPIs(){
   if(tEcoDir>0)subEco+=' · 💎 '+fmt(tEcoDir)+' directe';
   if(ttRushEco>0)subEco+=' · '+fmt(ttRushEco)+' rush';
   if(ttHSuppEco>0)subEco+=' · 🎁 '+fmt(ttHSuppEco)+' h.supp';
-  // Déplacements exceptionnels mois en cours — seulement non remboursés
-  var dexcMonthAll=getDeplExc().filter(function(x){return x.date.slice(0,7)===curMonth});
+  // Déplacements exceptionnels mois en cours — seulement non remboursés (et non cachés)
+  var dexcMonthAll=getDeplExcVisible().filter(function(x){return x.date.slice(0,7)===curMonth});
   var dexcMonth=dexcMonthAll.filter(function(x){return !x.paid});
   var dexcKm=dexcMonth.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
   var dexcCostTot=dexcMonth.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
@@ -1826,7 +1835,7 @@ function genRapport(){
   var tI=all.reduce(function(s,i){return s+coutInt(i)},0);
   var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
-  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
+  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0)+hiddenDexcFuel(start,end);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
   var tEcoDir=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).reduce(function(s,x){return s+(x.montant||0)},0);
@@ -2120,7 +2129,7 @@ function genRapportInto(start,end,targetId){
   var tI=all.reduce(function(s,i){return s+coutInt(i)},0);
   var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
   var tEco=tE-tI;var pct=tE>0?(tEco/tE*100):0;
-  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
+  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0)+hiddenDexcFuel(start,end);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
   var tEcoDir=getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).reduce(function(s,x){return s+(x.montant||0)},0);
@@ -2814,13 +2823,13 @@ function exportInteractiveHTML(){
   var ttHSuppH=ttRpt?ttRpt.heuresSupp:0;
   var ecoTotale=tEco+tEcoPieces+tEcoDir+ttRush+ttHSuppI;
   var pct=tE>0?(tEco/tE*100):0;
-  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0);
+  var tDepl=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).cost},0)+hiddenDexcFuel(start,end);
   var tKm=all.reduce(function(s,i){return s+deplInt(i.depart,i.site).km},0);
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var combinedKm=tKm+(ttRpt?ttRpt.totalKm:0);
   var combinedFuel=tDepl+(ttRpt?ttRpt.totalFuel:0);
-  // Déplacements exceptionnels — TOUS les non remboursés jusqu'à la date de fin (rappel cumulatif)
-  var dexcReport=getDeplExc().filter(function(x){return x.date<=end&&!x.paid}).sort(function(a,b){return a.date<b.date?-1:1});
+  // Déplacements exceptionnels — TOUS les non remboursés jusqu'à la date de fin (rappel cumulatif), hors entrées cachées
+  var dexcReport=getDeplExcVisible().filter(function(x){return x.date<=end&&!x.paid}).sort(function(a,b){return a.date<b.date?-1:1});
   var dexcTotKm=dexcReport.reduce(function(s,x){return s+(x.kmAR||dexcKmAR(x))},0);
   var dexcTotCost=dexcReport.reduce(function(s,x){return s+(x.cost||dexcCost(x))},0);
 
@@ -3395,7 +3404,7 @@ function renderTTKpiHtml(tt){
 function buildDeplExcSection(start,end){
   // Inclut TOUS les trajets non remboursés jusqu'à la date de fin du rapport
   // (un trajet de janvier impayé apparaîtra dans les rapports suivants comme rappel)
-  var listAll=getDeplExc().filter(function(x){return x.date<=end}).sort(function(a,b){return a.date<b.date?-1:1});
+  var listAll=getDeplExcVisible().filter(function(x){return x.date<=end}).sort(function(a,b){return a.date<b.date?-1:1});
   var list=listAll.filter(function(x){return !x.paid});
   if(!list.length)return '';
   var listThisPeriod=list.filter(function(x){return x.date>=start});
@@ -3561,7 +3570,7 @@ function renderTTLastEntries(){
 function renderDexcLastEntries(){
   var el=document.getElementById('dexcLastEntries');
   if(!el)return;
-  var list=getDeplExc().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:b.id-a.id}).slice(0,8);
+  var list=getDeplExcVisible().sort(function(a,b){return b.date>a.date?1:b.date<a.date?-1:b.id-a.id}).slice(0,8);
   if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:.5rem">Aucun déplacement exceptionnel</div>';return}
   var html='<table style="width:100%;font-size:.78rem;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Date</th><th style="text-align:left;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Trajet</th><th style="text-align:right;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Coût</th><th style="text-align:center;padding:.35rem .5rem;color:var(--text3);font-size:.68rem;border-bottom:1px solid var(--glass-border)">Statut</th><th style="padding:.35rem .5rem;border-bottom:1px solid var(--glass-border)"></th></tr></thead><tbody>';
   list.forEach(function(x){
@@ -3648,7 +3657,7 @@ function confirmPoubelleNC(){
   edList.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:0});
   setEcoDir(edList);
 
-  // 2. Créer le déplacement exceptionnel ND → NC
+  // 2. Créer le déplacement (caché de la liste exceptionnels, mais coût carburant compté dans frais globaux)
   var deList=getDeplExc();
   var deObj={
     id:edId+1,  // garantir un id unique distinct
@@ -3662,7 +3671,9 @@ function confirmPoubelleNC(){
     km:km,
     prix:cfg.prix,
     conso:cfg.conso,
-    motif:'Vidage poubelles Nyon Centre (action rapide)'
+    motif:'Vidage poubelles Nyon Centre (action rapide)',
+    hidden:true,        // ne pas afficher dans la liste des déplacements exceptionnels
+    autoSource:'poubelleNC'
   };
   deObj.kmAR=dexcKmAR(deObj);
   deObj.cost=dexcCost(deObj);
@@ -3850,7 +3861,7 @@ function openKpiModal(type){
 
   // ----- BRANCHE DEPLACEMENT EXCEPTIONNEL (rendu custom avec motif + case payé) -----
   if(type==='deplExc'){
-    var dexcAll=getDeplExc().filter(function(x){return x.date.slice(0,7)===curMonth}).sort(function(a,b){return a.date>b.date?-1:1});
+    var dexcAll=getDeplExcVisible().filter(function(x){return x.date.slice(0,7)===curMonth}).sort(function(a,b){return a.date>b.date?-1:1});
     var dexcUnpaid=dexcAll.filter(function(x){return !x.paid});
     var dexcPaid=dexcAll.filter(function(x){return x.paid});
     var tTitle='<span style="color:#F97316">🚗 Déplacements exceptionnels</span>';
