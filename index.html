@@ -315,7 +315,10 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
         </div>
         <!-- HORAIRES (toujours visible sauf déplacement exc.) -->
         <div class="form-group full">
-          <label class="form-label">Horaires</label>
+          <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Horaires</span>
+            <button type="button" onclick="resetStartTo00()" title="Repartir à 00:00 (nouvelle journée)" style="background:none;border:none;color:var(--text3);font-size:.68rem;cursor:pointer;padding:.1rem .35rem;border-radius:4px">⟲ 00:00</button>
+          </label>
           <div class="tt-time-row">
             <input type="time" class="tt-input" id="uStart" oninput="calcUDuration()">
             <span class="tt-sep">→</span>
@@ -868,7 +871,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe';
+var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe',LS_LASTEND='maint_last_end_time';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
 
 // CHIFFRABLE = compte dans les économies | NON-CHIFFRABLE = suivi uniquement
@@ -916,6 +919,17 @@ function getEcoDir(){try{return JSON.parse(localStorage.getItem(LS_ECODIR)||'[]'
 function setEcoDir(d){localStorage.setItem(LS_ECODIR,JSON.stringify(d))}
 function ecoDirMonth(month){return getEcoDir().filter(function(x){return x.date.slice(0,7)===month})}
 function ecoDirTotal(month){return ecoDirMonth(month).reduce(function(s,x){return s+(x.montant||0)},0)}
+
+// ========== DERNIERE HEURE DE FIN (pour saisie chaînée en fin de journée) ==========
+function getLastEndTime(){return localStorage.getItem(LS_LASTEND)||''}
+function setLastEndTime(t){if(t&&/^\d{2}:\d{2}$/.test(t))localStorage.setItem(LS_LASTEND,t)}
+function clearLastEndTime(){localStorage.removeItem(LS_LASTEND)}
+function resetStartTo00(){
+  clearLastEndTime();
+  var el=document.getElementById('uStart');
+  if(el){el.value='00:00';calcUDuration();}
+  toast('Heure de début réinitialisée à 00:00');
+}
 
 function dexcCost(d){
   var km=parseFloat(d.km)||0;var conso=parseFloat(d.conso)||8;var prix=parseFloat(d.prix)||1.90;
@@ -1339,7 +1353,9 @@ function showTTDeplInfo(){
 
 function resetUnifiedForm(){
   document.getElementById('fDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('uStart').value='';
+  // Pré-remplissage chaîné : début = fin de la saisie précédente, sinon 00:00
+  var lastEnd=getLastEndTime();
+  document.getElementById('uStart').value=lastEnd||'00:00';
   document.getElementById('uEnd').value='';
   document.getElementById('uDurBox').style.display='none';
   document.getElementById('fMateriel').value='0';
@@ -1509,6 +1525,9 @@ function saveUnified(){
     localStorage.setItem('tt_entries',JSON.stringify(entries2));
     toast('Temps enregistre');
   }
+
+  // Mémoriser l'heure de fin pour pré-remplir la prochaine saisie
+  setLastEndTime(endVal);
 
   resetUnifiedForm();refresh();
 }
