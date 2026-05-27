@@ -921,9 +921,25 @@ function ecoDirMonth(month){return getEcoDir().filter(function(x){return x.date.
 function ecoDirTotal(month){return ecoDirMonth(month).reduce(function(s,x){return s+(x.montant||0)},0)}
 
 // ========== DERNIERE HEURE DE FIN (pour saisie chaînée en fin de journée) ==========
-function getLastEndTime(){return localStorage.getItem(LS_LASTEND)||''}
-function setLastEndTime(t){if(t&&/^\d{2}:\d{2}$/.test(t))localStorage.setItem(LS_LASTEND,t)}
+function normalizeHM(t){
+  if(!t)return '';
+  // Accepte "HH:MM" ou "HH:MM:SS", renvoie "HH:MM"
+  var m=String(t).match(/^(\d{1,2}):(\d{2})/);
+  if(!m)return '';
+  var hh=m[1].length===1?'0'+m[1]:m[1];
+  return hh+':'+m[2];
+}
+function getLastEndTime(){return normalizeHM(localStorage.getItem(LS_LASTEND)||'')}
+function setLastEndTime(t){var n=normalizeHM(t);if(n)localStorage.setItem(LS_LASTEND,n)}
 function clearLastEndTime(){localStorage.removeItem(LS_LASTEND)}
+function applyLastEndToStart(){
+  var el=document.getElementById('uStart');
+  if(!el)return;
+  // Ne remplace que si le champ est vide
+  if(el.value)return;
+  var lastEnd=getLastEndTime();
+  el.value=lastEnd||'00:00';
+}
 function resetStartTo00(){
   clearLastEndTime();
   var el=document.getElementById('uStart');
@@ -1090,6 +1106,8 @@ function goToPage(pageName,direction){
   var newPage=document.getElementById('page-'+pageName);
   if(!newPage)return;
   newPage.classList.add('active');
+  // Quand on entre dans la page Saisie, ré-appliquer la dernière heure de fin si champ vide
+  if(pageName==='saisie'){applyLastEndToStart();}
   // Slide animation
   if(direction==='right'){
     newPage.style.animation='none';
@@ -1355,7 +1373,12 @@ function resetUnifiedForm(){
   document.getElementById('fDate').value=new Date().toISOString().slice(0,10);
   // Pré-remplissage chaîné : début = fin de la saisie précédente, sinon 00:00
   var lastEnd=getLastEndTime();
-  document.getElementById('uStart').value=lastEnd||'00:00';
+  var startEl=document.getElementById('uStart');
+  startEl.value=lastEnd||'00:00';
+  // Safety on iOS Safari : re-appliquer après le cycle de rendu
+  setTimeout(function(){
+    if(!startEl.value)startEl.value=lastEnd||'00:00';
+  },50);
   document.getElementById('uEnd').value='';
   document.getElementById('uDurBox').style.display='none';
   document.getElementById('fMateriel').value='0';
