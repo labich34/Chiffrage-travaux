@@ -2995,12 +2995,9 @@ function exportInteractiveHTML(){
   if(dexcReport.length)h+='<div class="kp" style="border-color:#FB923C;animation-delay:.45s" onclick="openModal(\'kpiDexc\')"><div class="kl">Deplacements exc.</div><div class="kv" style="color:#FB923C">'+Math.round(dexcTotCost)+' CHF</div><div class="ks">'+dexcReport.length+' trajet'+(dexcReport.length>1?'s':'')+' · cliquez pour motifs</div></div>';
   h+='</div></div>';
 
-  // CHARTS — Graphique travaux (camemberts) + Heures de présence
+  // CHARTS — Graphique travaux (camemberts)
   h+='<div class="sec"><div class="st">Graphique travaux</div>';
   h+='<div class="cr"><div class="cb"><div class="ct">Heures par site — cliquez un segment</div><canvas id="c3"></canvas></div><div class="cb"><div class="ct">Heures par travaux — cliquez un segment</div><canvas id="c4"></canvas></div></div></div>';
-  // HEURES DE PRESENCE — total interventions + TT par site
-  h+='<div class="sec"><div class="st">Heures de présence</div>';
-  h+='<div class="cb"><div class="ct">Heures totales par site (interventions + présence)</div><canvas id="c5" style="max-height:340px"></canvas></div></div>';
 
   // SITE CARDS (clickable)
   h+='<div class="sec"><div class="st">Detail par restaurant</div><div class="sg">';
@@ -3032,7 +3029,7 @@ function exportInteractiveHTML(){
   h+='<div class="sec"><div class="st">Interventions ('+all.length+')</div><div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Int.</th><th>Ext.</th><th>Eco.</th></tr></thead><tbody>'+intRows+'</tbody></table></div></div>';
 
   // FOOTER
-  h+='<div class="ft">Rapport genere le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Cote <span style="opacity:.4;font-size:.65rem">· v4</span></div>';
+  h+='<div class="ft">Rapport genere le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Cote <span style="opacity:.4;font-size:.65rem">· v5 · debug tEcoDir='+tEcoDir.toFixed(2)+' CHF ('+getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).length+' entrées entre '+start+' et '+end+')</span></div>';
 
   // MODAL HTML
   h+='<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-hdr"><h3 id="modalTitle"></h3><button class="modal-x" onclick="closeModal()">&times;</button></div><div id="modalBody"></div></div></div>';
@@ -3081,27 +3078,6 @@ function exportInteractiveHTML(){
   h+='document.getElementById("modalTitle").innerHTML=t;document.getElementById("modalBody").innerHTML=b;document.getElementById("modalBg").classList.add("open")}';
   h+='function closeModal(){document.getElementById("modalBg").classList.remove("open")}';
 
-  // Heures de présence par site = heures interventions (sValues) + heures TT présence (ttRpt.siteH)
-  // Construction côté serveur (génération HTML)
-  var presenceLabels=[];var presenceValues=[];var presenceColors=[];
-  var presenceMap={};
-  // Heures interventions (depuis sLabels/sValues déjà calculés)
-  sLabels.forEach(function(lbl,i){presenceMap[lbl]={hI:sValues[i],hP:0,color:sColors[i]}});
-  // Heures TT présence (depuis ttRpt.siteH si dispo)
-  if(ttRpt&&ttRpt.siteH){
-    Object.keys(ttRpt.siteH).forEach(function(siteCode){
-      var siteName=SITES[siteCode]?SITES[siteCode].name:siteCode;
-      var siteCol=SITES[siteCode]?SITES[siteCode].color:'#888';
-      if(!presenceMap[siteName])presenceMap[siteName]={hI:0,hP:0,color:siteCol};
-      presenceMap[siteName].hP+=ttRpt.siteH[siteCode];
-    });
-  }
-  // Trier par total décroissant
-  var presenceKeys=Object.keys(presenceMap).sort(function(a,b){return (presenceMap[b].hI+presenceMap[b].hP)-(presenceMap[a].hI+presenceMap[a].hP)});
-  presenceKeys.forEach(function(k){var d=presenceMap[k];presenceLabels.push(k);presenceValues.push(Math.round((d.hI+d.hP)*10)/10);presenceColors.push(d.color)});
-  var presenceInt=presenceKeys.map(function(k){return Math.round(presenceMap[k].hI*10)/10});
-  var presenceTT=presenceKeys.map(function(k){return Math.round(presenceMap[k].hP*10)/10});
-
   // Doughnut sites with click
   h+='var sLabels='+JSON.stringify(sLabels)+';var sValues='+JSON.stringify(sValues)+';var sColors='+JSON.stringify(sColors)+';';
   h+='if(sLabels.length){var ch3=new Chart(document.getElementById("c3"),{type:"doughnut",data:{labels:sLabels,datasets:[{data:sValues,backgroundColor:sColors,borderWidth:0,hoverOffset:12}]},options:{responsive:true,animation:{animateRotate:true,duration:1200},plugins:{legend:{position:"right"},tooltip:{callbacks:{label:function(c){var t=c.dataset.data.reduce(function(a,b){return a+b},0);return c.label+": "+c.raw+"h ("+Math.round(c.raw/t*100)+"%)"}}}}}}); ';
@@ -3111,13 +3087,6 @@ function exportInteractiveHTML(){
   h+='var catLabels='+JSON.stringify(catLabels)+';var catValues='+JSON.stringify(catValues)+';var ccols='+JSON.stringify(ccArr.slice(0,catKeys.length))+';';
   h+='if(catLabels.length){var ch4=new Chart(document.getElementById("c4"),{type:"doughnut",data:{labels:catLabels,datasets:[{data:catValues,backgroundColor:ccols,borderWidth:0,hoverOffset:12}]},options:{responsive:true,animation:{animateRotate:true,duration:1200},plugins:{legend:{position:"right"},tooltip:{callbacks:{label:function(c){return c.label+": "+c.raw+"h"}}}}}}); ';
   h+='document.getElementById("c4").addEventListener("click",function(e){var pts=ch4.getElementsAtEventForMode(e,"nearest",{intersect:true},false);if(pts.length){var lbl=catLabels[pts[0].index];openModal("cat_"+encodeURIComponent(lbl))}})}';
-
-  // c5 — Heures de présence par site (histogramme horizontal empilé)
-  h+='var pLabels='+JSON.stringify(presenceLabels)+';';
-  h+='var pInt='+JSON.stringify(presenceInt)+';';
-  h+='var pTT='+JSON.stringify(presenceTT)+';';
-  h+='var pColors='+JSON.stringify(presenceColors)+';';
-  h+='if(pLabels.length){new Chart(document.getElementById("c5"),{type:"bar",data:{labels:pLabels,datasets:[{label:"Heures interventions",data:pInt,backgroundColor:"#60A5FA",borderRadius:4,borderSkipped:false},{label:"Heures présence (TT)",data:pTT,backgroundColor:"#FBBF24",borderRadius:4,borderSkipped:false}]},options:{indexAxis:"y",responsive:true,animation:{duration:1200,easing:"easeOutQuart"},plugins:{legend:{position:"top",labels:{color:"#cbd5e1"}},tooltip:{callbacks:{label:function(c){return c.dataset.label+": "+c.raw+"h"},footer:function(items){var t=0;items.forEach(function(it){t+=it.parsed.x});return"Total: "+(Math.round(t*10)/10)+"h"}}}},scales:{x:{stacked:true,ticks:{callback:function(v){return v+"h"},color:"#94a3b8"},grid:{color:"rgba(255,255,255,.04)"}},y:{stacked:true,ticks:{color:"#cbd5e1",font:{weight:"600"}},grid:{display:false}}}}})}';
 
   // Démarrage IMMÉDIAT (le script est en bas du body, le DOM au-dessus est déjà parsé)
   h+='var __animDone=false;function __startAnims(){if(__animDone)return;__animDone=true;animCount();animBars();animProgress();';
