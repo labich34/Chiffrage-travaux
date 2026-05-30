@@ -2981,10 +2981,12 @@ function exportInteractiveHTML(){
   if(dexcReport.length)h+='<div class="kp" style="border-color:#FB923C;animation-delay:.45s" onclick="openModal(\'kpiDexc\')"><div class="kl">Deplacements exc.</div><div class="kv" style="color:#FB923C">'+Math.round(dexcTotCost)+' CHF</div><div class="ks">'+dexcReport.length+' trajet'+(dexcReport.length>1?'s':'')+' · cliquez pour motifs</div></div>';
   h+='</div></div>';
 
-  // CHARTS
-  h+='<div class="sec"><div class="st">Evolution graphique</div>';
-  if(mKeys.length)h+='<div class="cr"><div class="cb"><div class="ct">Interne vs Externe par mois</div><canvas id="c1"></canvas></div><div class="cb"><div class="ct">Economies mensuelles</div><canvas id="c2"></canvas></div></div>';
+  // CHARTS — Graphique travaux (camemberts) + Heures de présence
+  h+='<div class="sec"><div class="st">Graphique travaux</div>';
   h+='<div class="cr"><div class="cb"><div class="ct">Heures par site — cliquez un segment</div><canvas id="c3"></canvas></div><div class="cb"><div class="ct">Heures par travaux — cliquez un segment</div><canvas id="c4"></canvas></div></div></div>';
+  // HEURES DE PRESENCE — total interventions + TT par site
+  h+='<div class="sec"><div class="st">Heures de présence</div>';
+  h+='<div class="cb"><div class="ct">Heures totales par site (interventions + présence)</div><canvas id="c5" style="max-height:340px"></canvas></div></div>';
 
   // SITE CARDS (clickable)
   h+='<div class="sec"><div class="st">Detail par restaurant</div><div class="sg">';
@@ -3061,15 +3063,26 @@ function exportInteractiveHTML(){
   h+='document.getElementById("modalTitle").innerHTML=t;document.getElementById("modalBody").innerHTML=b;document.getElementById("modalBg").classList.add("open")}';
   h+='function closeModal(){document.getElementById("modalBg").classList.remove("open")}';
 
-  // Charts with click handlers
-  if(mKeys.length){
-    h+='var mLabels='+JSON.stringify(mKeys.map(fM))+';';
-    h+='var mInt='+JSON.stringify(mKeys.map(function(k){return Math.round(months[k].ci)}))+';';
-    h+='var mExt='+JSON.stringify(mKeys.map(function(k){return Math.round(months[k].ce)}))+';';
-    h+='var mEco='+JSON.stringify(mKeys.map(function(k){return Math.round(months[k].eco)}))+';';
-    h+='new Chart(document.getElementById("c1"),{type:"bar",data:{labels:mLabels,datasets:[{label:"Interne",data:mInt,backgroundColor:"#60A5FA",borderRadius:6,barPercentage:.5},{label:"Externe",data:mExt,backgroundColor:"#DA2C38",borderRadius:6,barPercentage:.5}]},options:{responsive:true,animation:{duration:1200,easing:"easeOutQuart"},plugins:{tooltip:{callbacks:{label:function(c){return c.dataset.label+": "+c.raw+" CHF"}}}},scales:{y:{ticks:{callback:function(v){return v+" CHF"}},grid:{color:"rgba(255,255,255,.04)"}},x:{grid:{display:false}}}}});';
-    h+='new Chart(document.getElementById("c2"),{type:"line",data:{labels:mLabels,datasets:[{label:"Economies",data:mEco,borderColor:"#34D399",backgroundColor:"rgba(52,211,153,.1)",fill:true,tension:.35,pointRadius:6,pointBackgroundColor:"#34D399",pointHoverRadius:10}]},options:{responsive:true,animation:{duration:1500},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw+" CHF"}}}},scales:{y:{ticks:{callback:function(v){return v+" CHF"}},grid:{color:"rgba(255,255,255,.04)"}},x:{grid:{display:false}}}}});';
+  // Heures de présence par site = heures interventions (sValues) + heures TT présence (ttRpt.siteH)
+  // Construction côté serveur (génération HTML)
+  var presenceLabels=[];var presenceValues=[];var presenceColors=[];
+  var presenceMap={};
+  // Heures interventions (depuis sLabels/sValues déjà calculés)
+  sLabels.forEach(function(lbl,i){presenceMap[lbl]={hI:sValues[i],hP:0,color:sColors[i]}});
+  // Heures TT présence (depuis ttRpt.siteH si dispo)
+  if(ttRpt&&ttRpt.siteH){
+    Object.keys(ttRpt.siteH).forEach(function(siteCode){
+      var siteName=SITES[siteCode]?SITES[siteCode].name:siteCode;
+      var siteCol=SITES[siteCode]?SITES[siteCode].color:'#888';
+      if(!presenceMap[siteName])presenceMap[siteName]={hI:0,hP:0,color:siteCol};
+      presenceMap[siteName].hP+=ttRpt.siteH[siteCode];
+    });
   }
+  // Trier par total décroissant
+  var presenceKeys=Object.keys(presenceMap).sort(function(a,b){return (presenceMap[b].hI+presenceMap[b].hP)-(presenceMap[a].hI+presenceMap[a].hP)});
+  presenceKeys.forEach(function(k){var d=presenceMap[k];presenceLabels.push(k);presenceValues.push(Math.round((d.hI+d.hP)*10)/10);presenceColors.push(d.color)});
+  var presenceInt=presenceKeys.map(function(k){return Math.round(presenceMap[k].hI*10)/10});
+  var presenceTT=presenceKeys.map(function(k){return Math.round(presenceMap[k].hP*10)/10});
 
   // Doughnut sites with click
   h+='var sLabels='+JSON.stringify(sLabels)+';var sValues='+JSON.stringify(sValues)+';var sColors='+JSON.stringify(sColors)+';';
@@ -3080,6 +3093,13 @@ function exportInteractiveHTML(){
   h+='var catLabels='+JSON.stringify(catLabels)+';var catValues='+JSON.stringify(catValues)+';var ccols='+JSON.stringify(ccArr.slice(0,catKeys.length))+';';
   h+='if(catLabels.length){var ch4=new Chart(document.getElementById("c4"),{type:"doughnut",data:{labels:catLabels,datasets:[{data:catValues,backgroundColor:ccols,borderWidth:0,hoverOffset:12}]},options:{responsive:true,animation:{animateRotate:true,duration:1200},plugins:{legend:{position:"right"},tooltip:{callbacks:{label:function(c){return c.label+": "+c.raw+"h"}}}}}}); ';
   h+='document.getElementById("c4").addEventListener("click",function(e){var pts=ch4.getElementsAtEventForMode(e,"nearest",{intersect:true},false);if(pts.length){var lbl=catLabels[pts[0].index];openModal("cat_"+encodeURIComponent(lbl))}})}';
+
+  // c5 — Heures de présence par site (histogramme horizontal empilé)
+  h+='var pLabels='+JSON.stringify(presenceLabels)+';';
+  h+='var pInt='+JSON.stringify(presenceInt)+';';
+  h+='var pTT='+JSON.stringify(presenceTT)+';';
+  h+='var pColors='+JSON.stringify(presenceColors)+';';
+  h+='if(pLabels.length){new Chart(document.getElementById("c5"),{type:"bar",data:{labels:pLabels,datasets:[{label:"Heures interventions",data:pInt,backgroundColor:"#60A5FA",borderRadius:4,borderSkipped:false},{label:"Heures présence (TT)",data:pTT,backgroundColor:"#FBBF24",borderRadius:4,borderSkipped:false}]},options:{indexAxis:"y",responsive:true,animation:{duration:1200,easing:"easeOutQuart"},plugins:{legend:{position:"top",labels:{color:"#cbd5e1"}},tooltip:{callbacks:{label:function(c){return c.dataset.label+": "+c.raw+"h"},footer:function(items){var t=0;items.forEach(function(it){t+=it.parsed.x});return"Total: "+(Math.round(t*10)/10)+"h"}}}},scales:{x:{stacked:true,ticks:{callback:function(v){return v+"h"},color:"#94a3b8"},grid:{color:"rgba(255,255,255,.04)"}},y:{stacked:true,ticks:{color:"#cbd5e1",font:{weight:"600"}},grid:{display:false}}}}})}';
 
   // Démarrage IMMÉDIAT (le script est en bas du body, le DOM au-dessus est déjà parsé)
   h+='var __animDone=false;function __startAnims(){if(__animDone)return;__animDone=true;animCount();animBars();animProgress();';
