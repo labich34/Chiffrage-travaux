@@ -3864,7 +3864,7 @@ function renderHistorique(){
 }
 
 // ========== EXPORT/IMPORT ==========
-function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:getEcoDir()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
 function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);var total=0;
 if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));total+=nw.length;if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc));total+=nc.length}}
@@ -3872,6 +3872,7 @@ var ttNew=j.tt_entries||j.entries||[];if(Array.isArray(ttNew)&&ttNew.length){var
 var excNew=j.tt_exc_trips||j.excTrips||[];if(Array.isArray(excNew)&&excNew.length){var excEx=getTTExcTrips();var excIds={};excEx.forEach(function(x){excIds[x.id]=true});var excAdd=excNew.filter(function(x){return x.id&&!excIds[x.id]});if(excAdd.length){excEx=excEx.concat(excAdd);localStorage.setItem('tt_exc_trips',JSON.stringify(excEx));total+=excAdd.length}}
 if(j.tt_settings)localStorage.setItem('tt_settings',JSON.stringify(j.tt_settings));
 var deNew=j.depl_exc||[];if(Array.isArray(deNew)&&deNew.length){var deEx=getDeplExc();var deIds={};deEx.forEach(function(x){deIds[x.id]=true});var deAdd=deNew.filter(function(x){return x.id&&!deIds[x.id]});if(deAdd.length){deEx=deEx.concat(deAdd);deEx.sort(function(a,b){return a.date>b.date?-1:1});setDeplExc(deEx);total+=deAdd.length}}
+var edNew=j.eco_directe||[];if(Array.isArray(edNew)&&edNew.length){var edEx=getEcoDir();var edIds={};edEx.forEach(function(x){edIds[x.id]=true});var edAdd=edNew.filter(function(x){return x.id&&!edIds[x.id]&&x.date&&typeof x.montant!=='undefined'});if(edAdd.length){edEx=edEx.concat(edAdd);edEx.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:0});setEcoDir(edEx);total+=edAdd.length}}
 toast(total+' elements importes');refresh()}catch(err){toast('Fichier invalide')}};r.readAsText(f);e.target.value=''}
 
 // ========== KPI DETAIL MODALS ==========
