@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Editor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;700;800&display=swap');
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --accent: #58a6ff; --accent2: #3fb950; --danger: #f85149;
+    --text: #e6edf3; --muted: #8b949e; --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 16px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .logo { font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+  .logo span { color: var(--muted); font-weight: 400; }
+  main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px) { .field-row { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .field input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; width: 100%; }
+  .field input:focus { border-color: var(--accent); }
+  .field-full { grid-column: 1 / -1; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: var(--radius); border: none; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #0d1117; }
+  .btn-primary:hover { background: #79c0ff; }
+  .btn-success { background: var(--accent2); color: #0d1117; }
+  .btn-success:hover { background: #56d364; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .editor-area { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); padding: 14px; width: 100%; resize: vertical; outline: none; line-height: 1.6; min-height: 350px; transition: border-color 0.2s; }
+  .editor-area:focus { border-color: var(--accent); }
+  .status-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 600; }
+  .status-idle { background: rgba(88,166,255,0.08); color: var(--accent); border: 1px solid rgba(88,166,255,0.2); }
+  .status-ok { background: rgba(63,185,80,0.08); color: var(--accent2); border: 1px solid rgba(63,185,80,0.2); }
+  .status-error { background: rgba(248,81,73,0.08); color: var(--danger); border: 1px solid rgba(248,81,73,0.2); }
+  .status-loading { background: rgba(139,148,158,0.08); color: var(--muted); border: 1px solid var(--border); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sha-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .token-note { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .token-note a { color: var(--accent); }
+  .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; flex-wrap: wrap; }
+  .tab { padding: 8px 14px; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .tab.active { color: var(--accent); border-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+  .tab.paste-tab { color: #3fb950; }
+  .tab.paste-tab.active { color: #3fb950; border-color: #3fb950; }
+  #previewFrame { width: 100%; min-height: 350px; border: 1px solid var(--border); border-radius: var(--radius); background: white; display: none; }
+  .paste-info { background: rgba(63,185,80,0.06); border: 1px solid rgba(63,185,80,0.2); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .paste-info strong { color: var(--text); }
+  .paste-count { font-size: 11px; color: var(--muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace; min-height: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">GH Editor <span>/ direct commit</span></div>
+</header>
+<main>
+
+  <!-- CONFIG -->
+  <div class="card">
+    <div class="card-title">🔗 Configuration du dépôt</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Owner (utilisateur ou org)</label>
+        <input type="text" id="owner" placeholder="ex: fabien-dupont" />
+      </div>
+      <div class="field">
+        <label>Nom du repo</label>
+        <input type="text" id="repo" placeholder="ex: mon-projet" />
+      </div>
+      <div class="field">
+        <label>Fichier (chemin)</label>
+        <input type="text" id="filepath" placeholder="ex: index.html" />
+      </div>
+      <div class="field">
+        <label>Branche</label>
+        <input type="text" id="branch" value="main" placeholder="main" />
+      </div>
+      <div class="field field-full">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+        <p class="token-note">
+          Générer un token : <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens</a> — scope requis : <strong>repo</strong>.
+        </p>
+      </div>
+    </div>
+    <div style="margin-top: 14px;">
+      <button class="btn btn-primary" onclick="loadFile()">⬇️ Charger le fichier</button>
+    </div>
+    <div id="loadSha" class="sha-info"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="card" id="editorCard" style="display:none">
+    <div class="tab-bar">
+      <div class="tab active" id="tabBtnEdit" onclick="switchTab('edit', this)">✏️ Édition</div>
+      <div class="tab paste-tab" id="tabBtnPaste" onclick="switchTab('paste', this)">📋 Coller depuis Claude</div>
+      <div class="tab" id="tabBtnPreview" onclick="switchTab('preview', this)">👁 Aperçu</div>
+    </div>
+
+    <!-- TAB: EDITION -->
+    <div id="tabEdit">
+      <textarea class="editor-area" id="editor" spellcheck="false" oninput="markDirty()"></textarea>
+      <div style="margin-top: 14px; display:flex; flex-direction:column; gap:10px;">
+        <div class="field">
+          <label>Message de commit</label>
+          <input type="text" id="commitMsg" placeholder="ex: Update index.html depuis mobile" />
+        </div>
+        <div class="actions">
+          <button class="btn btn-success" onclick="commitFile()">🚀 Commiter</button>
+          <button class="btn btn-ghost" onclick="loadFile()">🔄 Recharger</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: COLLER DEPUIS CLAUDE -->
+    <div id="tabPaste" style="display:none">
+      <div class="paste-info">
+        👋 <strong>Mode mobile :</strong> Claude t'a donné un nouveau fichier complet ?<br>
+        Copie-le depuis le chat Claude → colle-le ici → clique <strong style="color:#3fb950">Remplacer et commiter</strong>.<br>
+        L'ancien fichier est automatiquement remplacé sur GitHub.
+      </div>
+      <textarea class="editor-area" id="pasteArea" spellcheck="false"
+        placeholder="Colle ici le nouveau code reçu de Claude…"
+        style="min-height:280px; border-color:rgba(63,185,80,0.4);"
+        oninput="updatePasteCount()"></textarea>
+      <div class="paste-count" id="pasteCount"></div>
+      <div style="margin-top: 14px; display:flex; flex-direction:column; gap:10px;">
+        <div class="field">
+          <label>Message de commit</label>
+          <input type="text" id="commitMsgPaste" placeholder="ex: Update via Claude" />
+        </div>
+        <div class="actions">
+          <button class="btn btn-success" onclick="replaceAndCommit()">✅ Remplacer et commiter</button>
+          <button class="btn btn-ghost" onclick="clearPaste()">🗑 Vider</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: APERCU -->
+    <iframe id="previewFrame"></iframe>
+  </div>
+
+  <!-- STATUS -->
+  <div id="statusBar" class="status-bar status-idle">
+    <span class="dot"></span> Prêt — configurez le dépôt et chargez un fichier
+  </div>
+
+</main>
+<script>
+  let currentSha = null;
+  let isDirty = false;
+
+  function setStatus(type, msg, loading=false) {
+    const bar = document.getElementById('statusBar');
+    bar.className = 'status-bar status-' + type;
+    bar.innerHTML = loading
+      ? `<span class="spinner"></span> ${msg}`
+      : `<span class="dot"></span> ${msg}`;
+  }
+
+  function markDirty() { isDirty = true; }
+
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tabEdit').style.display = 'none';
+    document.getElementById('tabPaste').style.display = 'none';
+    document.getElementById('previewFrame').style.display = 'none';
+    if (tab === 'edit') {
+      document.getElementById('tabEdit').style.display = 'block';
+    } else if (tab === 'paste') {
+      document.getElementById('tabPaste').style.display = 'block';
+      const filepath = document.getElementById('filepath').value.trim();
+      document.getElementById('commitMsgPaste').value = `Update ${filepath} via Claude`;
+    } else if (tab === 'preview') {
+      const frame = document.getElementById('previewFrame');
+      frame.style.display = 'block';
+      const blob = new Blob([document.getElementById('editor').value], { type: 'text/html' });
+      frame.src = URL.createObjectURL(blob);
+    }
+  }
+
+  function updatePasteCount() {
+    const val = document.getElementById('pasteArea').value;
+    const lines = val ? val.split('\n').length : 0;
+    const chars = val.length;
+    document.getElementById('pasteCount').textContent = chars > 0
+      ? `${chars.toLocaleString()} caractères · ${lines.toLocaleString()} lignes`
+      : '';
+  }
+
+  function clearPaste() {
+    document.getElementById('pasteArea').value = '';
+    document.getElementById('pasteCount').textContent = '';
+  }
+
+  async function replaceAndCommit() {
+    const newContent = document.getElementById('pasteArea').value.trim();
+    if (!newContent) {
+      setStatus('error', 'La zone de collage est vide — colle le code de Claude d\'abord');
+      return;
+    }
+    if (!currentSha) {
+      setStatus('error', 'Charge d\'abord le fichier depuis GitHub (bouton ⬇️)');
+      return;
+    }
+    // Replace editor content
+    document.getElementById('editor').value = newContent;
+    markDirty();
+    // Use paste commit message
+    const pasteMsg = document.getElementById('commitMsgPaste').value.trim();
+    document.getElementById('commitMsg').value = pasteMsg;
+    // Commit
+    await commitFile();
+    // Clear paste area on success
+    if (document.getElementById('statusBar').classList.contains('status-ok')) {
+      clearPaste();
+    }
+  }
+
+  function getConfig() {
+    return {
+      owner: document.getElementById('owner').value.trim(),
+      repo: document.getElementById('repo').value.trim(),
+      filepath: document.getElementById('filepath').value.trim(),
+      branch: document.getElementById('branch').value.trim() || 'main',
+      token: document.getElementById('token').value.trim(),
+    };
+  }
+
+  async function loadFile() {
+    const { owner, repo, filepath, branch, token } = getConfig();
+    if (!owner || !repo || !filepath || !token) {
+      setStatus('error', 'Remplissez tous les champs avant de charger');
+      return;
+    }
+    setStatus('loading', 'Chargement du fichier depuis GitHub…', true);
+    try {
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filepath}?ref=${branch}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.message || `HTTP ${res.status}`); }
+      const data = await res.json();
+      currentSha = data.sha;
+      const content = atob(data.content.replace(/\n/g, ''));
+      document.getElementById('editor').value = content;
+      document.getElementById('editorCard').style.display = 'block';
+      document.getElementById('loadSha').textContent = `SHA: ${currentSha.slice(0,12)}… — ${data.size} octets`;
+      document.getElementById('commitMsg').value = `Update ${filepath}`;
+      isDirty = false;
+      setStatus('ok', `Fichier chargé : ${filepath} (branche ${branch})`);
+    } catch(e) {
+      setStatus('error', `Erreur chargement : ${e.message}`);
+    }
+  }
+
+  async function commitFile() {
+    const { owner, repo, filepath, branch, token } = getConfig();
+    const content = document.getElementById('editor').value;
+    const commitMsg = document.getElementById('commitMsg').value.trim() || `Update ${filepath}`;
+    if (!currentSha) { setStatus('error', 'Chargez d\'abord le fichier'); return; }
+    setStatus('loading', 'Envoi du commit vers GitHub…', true);
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(content)));
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filepath}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: commitMsg, content: encoded, sha: currentSha, branch: branch })
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.message || `HTTP ${res.status}`); }
+      const data = await res.json();
+      currentSha = data.content.sha;
+      isDirty = false;
+      document.getElementById('loadSha').textContent = `SHA: ${currentSha.slice(0,12)}… — commit OK`;
+      setStatus('ok', `✅ Commit effectué : "${commitMsg}"`);
+    } catch(e) {
+      setStatus('error', `Erreur commit : ${e.message}`);
+    }
+  }
+
+  window.addEventListener('beforeunload', e => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  ['owner','repo','filepath','branch'].forEach(k => {
+    const saved = localStorage.getItem('ghe_' + k);
+    if (saved) document.getElementById(k).value = saved;
+    document.getElementById(k).addEventListener('input', function() {
+      localStorage.setItem('ghe_' + k, this.value);
+    });
+  });
+</script>
+</body>
+</html>
