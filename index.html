@@ -30,13 +30,60 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}
 button{font-family:inherit;cursor:pointer;border:none;outline:none}
 input,select,textarea{font-family:inherit;outline:none}
-.nav{position:sticky;top:0;z-index:100;background:rgba(10,15,30,.65);border-bottom:1px solid var(--glass-border);backdrop-filter:blur(var(--blur-heavy)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur-heavy)) saturate(1.8);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem}
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,15,30,.7);border-bottom:1px solid var(--glass-border);backdrop-filter:blur(var(--blur-heavy)) saturate(1.8);-webkit-backdrop-filter:blur(var(--blur-heavy)) saturate(1.8);padding:.75rem 1.25rem;display:flex;flex-direction:column;gap:.6rem}
+.nav-header{display:flex;align-items:center;gap:1rem;width:100%}
 .nav-logo{font-weight:700;font-size:1.15rem;color:var(--accent);letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem}
 .nav-logo span{font-size:.7rem;background:var(--accent-dim);color:var(--accent2);padding:2px 8px;border-radius:20px;font-weight:500;border:1px solid rgba(255,199,44,.15)}
-.nav-tabs{display:flex;gap:.25rem;margin-left:auto}
-.nav-tab{padding:.5rem 1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:500;color:var(--text2);background:transparent;transition:all .3s var(--ease-glass);position:relative}
-.nav-tab:hover{color:var(--text);background:var(--glass-hover)}
-.nav-tab.active{color:var(--accent);background:rgba(255,199,44,.08);box-shadow:0 0 16px rgba(255,199,44,.06),inset 0 0 0 1px rgba(255,199,44,.12);border:1px solid rgba(255,199,44,.1)}
+.nav-tabs{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:auto auto;gap:.5rem;width:100%}
+.nav-tab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;
+  padding:.7rem .5rem;
+  min-height:58px;
+  border-radius:18px;
+  font-size:.74rem;font-weight:600;
+  color:var(--text2);
+  background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:inset 0 1px 0 0 rgba(255,255,255,.08),0 2px 8px -2px rgba(0,0,0,.3);
+  transition:all .35s var(--ease-glass);
+  position:relative;overflow:hidden;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.nav-tab::before{
+  /* Reflet du dessus (effet bombé) */
+  content:"";position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);
+  border-radius:18px 18px 0 0;pointer-events:none;
+}
+.nav-tab .nav-icon{font-size:1.15rem;line-height:1;filter:saturate(1.1)}
+.nav-tab .nav-label{font-size:.72rem;line-height:1.1;letter-spacing:-.01em;text-align:center}
+.nav-tab:hover{
+  color:var(--text);
+  background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.04) 100%);
+  border-color:rgba(255,255,255,.14);
+  transform:translateY(-1px);
+}
+.nav-tab:active{transform:translateY(0) scale(.97)}
+.nav-tab.active{
+  color:var(--accent);
+  background:linear-gradient(180deg,rgba(255,199,44,.18) 0%,rgba(255,199,44,.06) 100%);
+  border-color:rgba(255,199,44,.35);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.18),
+    0 0 0 1px rgba(255,199,44,.18),
+    0 4px 16px -2px rgba(255,199,44,.25),
+    0 2px 8px -2px rgba(0,0,0,.3);
+}
+.nav-tab.active::after{
+  /* Glow halo derrière */
+  content:"";position:absolute;inset:-1px;border-radius:18px;
+  background:radial-gradient(ellipse at top,rgba(255,199,44,.25) 0%,transparent 70%);
+  pointer-events:none;z-index:-1;
+}
+.nav-tab.active .nav-icon{filter:drop-shadow(0 0 4px rgba(255,199,44,.5)) saturate(1.3)}
+.nav-tab-spacer{display:block;pointer-events:none;visibility:hidden}
 .container{max-width:1200px;margin:0 auto;padding:1.5rem}
 .page{display:none}.page.active{display:block;animation:fadeIn .35s ease}
 .card{position:relative;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;animation:fadeIn .35s ease;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 32px rgba(0,0,0,.2),0 1px 0 var(--glass-shine) inset;overflow:hidden}
@@ -239,7 +286,19 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 @media(max-width:768px){.rpt-chart-row{grid-template-columns:1fr}.rpt-site-grid{grid-template-columns:1fr}}
 
 @media print{.nav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000;background-image:none}.card{border:1px solid #ddd;background:#fff;backdrop-filter:none}.card::after{display:none}.kpi{border:1px solid #ddd;background:#f9f9f9;backdrop-filter:none}.kpi::after{display:none}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
-@media(max-width:768px){.nav{flex-wrap:wrap;padding:.5rem .75rem}.nav-tabs{width:100%;overflow-x:auto;margin-left:0;gap:.2rem;padding-bottom:.25rem}.nav-tab{padding:.4rem .7rem;font-size:.78rem;white-space:nowrap}.form-grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:1.2rem}.obj-remaining{font-size:1.5rem}.tt-site-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .nav{padding:.5rem .75rem;gap:.5rem}
+  .nav-tabs{gap:.4rem}
+  .nav-tab{min-height:54px;padding:.55rem .3rem;border-radius:16px}
+  .nav-tab .nav-icon{font-size:1.05rem}
+  .nav-tab .nav-label{font-size:.66rem}
+  .form-grid{grid-template-columns:1fr}
+  .chart-row{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .kpi-value{font-size:1.2rem}
+  .obj-remaining{font-size:1.5rem}
+  .tt-site-grid{grid-template-columns:repeat(2,1fr)}
+}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
@@ -249,17 +308,20 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 </head>
 <body>
 <nav class="nav">
-  <div class="nav-logo"><span style="font-size:1.3rem;line-height:1">🟡</span> Maintenance <span>La Côte</span></div>
+  <div class="nav-header">
+    <div class="nav-logo"><span style="font-size:1.3rem;line-height:1">🟡</span> Maintenance <span>La Côte</span></div>
+  </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" data-page="dashboard">Dashboard</button>
-    <button class="nav-tab" data-page="saisie">+ Saisie</button>
-    <button class="nav-tab" data-page="interventions">Interventions</button>
-    <button class="nav-tab" data-page="contrats">Contrats</button>
-    <button class="nav-tab" data-page="temps">⏱ Temps</button>
-    <button class="nav-tab" data-page="rapport">Rapport</button>
-    <button class="nav-tab" data-page="config">Config</button>
-    <button class="nav-tab" data-page="historique">📋 Historique</button>
-    <button class="nav-tab" data-page="doc">📖 Guide</button>
+    <button class="nav-tab active" data-page="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></button>
+    <button class="nav-tab" data-page="saisie"><span class="nav-icon">➕</span><span class="nav-label">Saisie</span></button>
+    <button class="nav-tab" data-page="interventions"><span class="nav-icon">🔧</span><span class="nav-label">Interventions</span></button>
+    <button class="nav-tab" data-page="contrats"><span class="nav-icon">📑</span><span class="nav-label">Contrats</span></button>
+    <button class="nav-tab" data-page="temps"><span class="nav-icon">⏱️</span><span class="nav-label">Temps</span></button>
+    <button class="nav-tab" data-page="rapport"><span class="nav-icon">📈</span><span class="nav-label">Rapport</span></button>
+    <span class="nav-tab-spacer"></span>
+    <button class="nav-tab" data-page="historique"><span class="nav-icon">📋</span><span class="nav-label">Historique</span></button>
+    <button class="nav-tab" data-page="config"><span class="nav-icon">⚙️</span><span class="nav-label">Config</span></button>
+    <button class="nav-tab" data-page="doc"><span class="nav-icon">📖</span><span class="nav-label">Guide</span></button>
   </div>
 </nav>
 <div class="container">
@@ -1111,7 +1173,7 @@ function ecoPieces(i){
 }
 
 // ========== NAV ==========
-var TAB_ORDER=['dashboard','saisie','interventions','contrats','temps','rapport','config','historique','doc'];
+var TAB_ORDER=['dashboard','saisie','interventions','contrats','temps','rapport','historique','config','doc'];
 
 function goToPage(pageName,direction){
   var tabs=document.querySelectorAll('.nav-tab');
