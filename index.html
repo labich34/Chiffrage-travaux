@@ -663,6 +663,51 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 
 <!-- CONFIG -->
 <div class="page" id="page-config">
+  <!-- SAUVEGARDE AUTOMATIQUE -->
+  <div class="card" style="border-color:rgba(96,165,250,.3)">
+    <div class="card-title" style="color:var(--blue)">🔄 Sauvegarde automatique GitHub Gist</div>
+    <p style="font-size:.78rem;color:var(--text2);margin-bottom:.75rem">Sauvegarde automatique de toutes tes données vers un Gist GitHub privé, toutes les heures. Restauration possible à tout moment depuis n'importe quel appareil.</p>
+    <!-- État : non configuré -->
+    <div id="backupNotConfigured" style="display:none">
+      <div style="padding:1rem;border:1px dashed rgba(255,199,44,.3);border-radius:12px;background:rgba(255,199,44,.04);margin-bottom:.75rem">
+        <div style="font-size:.85rem;color:var(--accent);font-weight:600;margin-bottom:.4rem">⚙️ Configuration requise</div>
+        <div style="font-size:.78rem;color:var(--text2);line-height:1.5">
+          1. Va sur <strong>github.com/settings/tokens?type=beta</strong><br>
+          2. Crée un nouveau token "fine-grained" avec permission <strong>Gists: Read and write</strong><br>
+          3. Copie le token ici puis clique sur "Connecter"
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Token GitHub (commence par github_pat_…)</label>
+          <input type="password" class="form-input" id="ghTokenInput" placeholder="github_pat_..." autocomplete="off">
+        </div>
+        <div class="form-group full">
+          <button class="btn btn-primary" onclick="connectGitHubBackup()" style="width:100%;background:linear-gradient(135deg,#60A5FA,#3B82F6);color:#fff">🔗 Connecter et créer la sauvegarde</button>
+        </div>
+      </div>
+    </div>
+    <!-- État : configuré -->
+    <div id="backupConfigured" style="display:none">
+      <div style="padding:.85rem 1rem;border:1px solid rgba(52,211,153,.3);border-radius:12px;background:rgba(52,211,153,.05);margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+          <div>
+            <div style="font-size:.85rem;color:var(--green);font-weight:600">✅ Sauvegarde active</div>
+            <div style="font-size:.72rem;color:var(--text2);margin-top:.2rem" id="backupStatusLine">Initialisation…</div>
+          </div>
+          <div id="backupIndicator" style="width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(52,211,153,.6)"></div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full" style="flex-direction:row;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="syncBackupNow()" style="flex:1;min-width:140px">☁️ Sauvegarder maintenant</button>
+          <button class="btn btn-ghost" onclick="openRestoreModal()" style="flex:1;min-width:140px">📥 Restaurer</button>
+          <button class="btn btn-danger" onclick="disconnectGitHubBackup()" style="flex:1;min-width:140px">🔌 Déconnecter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card"><div class="card-title">Objectif mensuel</div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
@@ -783,6 +828,22 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       <div class="form-group full" style="flex-direction:row;gap:.5rem;margin-top:.5rem">
         <button class="btn btn-primary" onclick="updateTTEntry()">Mettre à jour</button>
         <button class="btn btn-danger" onclick="deleteTTFromModal()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESTORE BACKUP MODAL -->
+<div class="modal-overlay" id="restoreBackupModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3>📥 Restaurer une sauvegarde</h3><button class="modal-close" onclick="closeRestoreModal()">&times;</button></div>
+    <div style="padding:.4rem 0">
+      <p style="color:var(--text2);font-size:.82rem;line-height:1.55;margin-bottom:.85rem">
+        Chaque sauvegarde horaire crée une révision dans GitHub. Sélectionne une révision pour restaurer.
+        <br><strong style="color:var(--red)">⚠ Attention :</strong> les données actuelles seront remplacées.
+      </p>
+      <div id="restoreListContainer" style="max-height:340px;overflow-y:auto;border:1px solid var(--glass-border);border-radius:12px;padding:.5rem">
+        <div style="color:var(--text3);text-align:center;padding:1rem;font-size:.85rem">Chargement…</div>
       </div>
     </div>
   </div>
@@ -945,7 +1006,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe',LS_LASTEND='maint_last_end_time';
+var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe',LS_LASTEND='maint_last_end_time',LS_GHTOKEN='maint_gh_token',LS_GHGIST='maint_gh_gist_id',LS_LASTSYNC='maint_last_sync',LS_LASTHASH='maint_last_hash';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
 
 // CHIFFRABLE = compte dans les économies | NON-CHIFFRABLE = suivi uniquement
@@ -3928,6 +3989,203 @@ function renderHistorique(){
 }
 
 // ========== EXPORT/IMPORT ==========
+// ========== SAUVEGARDE AUTOMATIQUE GITHUB GIST ==========
+var GIST_FILENAME='maintenance_backup.json';
+var BACKUP_INTERVAL_MS=60*60*1000; // 1 heure
+var backupTimer=null;
+
+// Obfuscation faible du token (pas de la sécu cryptographique, juste pour éviter qu'il traîne en clair dans localStorage)
+function obfToken(t){if(!t)return '';var r='';for(var i=0;i<t.length;i++)r+=String.fromCharCode(t.charCodeAt(i)^7);return btoa(r)}
+function deobfToken(s){if(!s)return '';try{var r=atob(s);var t='';for(var i=0;i<r.length;i++)t+=String.fromCharCode(r.charCodeAt(i)^7);return t}catch(e){return ''}}
+function getGhToken(){return deobfToken(localStorage.getItem(LS_GHTOKEN)||'')}
+function setGhToken(t){if(t)localStorage.setItem(LS_GHTOKEN,obfToken(t));else localStorage.removeItem(LS_GHTOKEN)}
+function getGistId(){return localStorage.getItem(LS_GHGIST)||''}
+function setGistId(id){if(id)localStorage.setItem(LS_GHGIST,id);else localStorage.removeItem(LS_GHGIST)}
+
+// Données complètes sérialisées (idem exportJSON mais récupérable)
+function buildBackupPayload(){
+  return JSON.stringify({
+    version:'v5',
+    exportedAt:new Date().toISOString(),
+    interventions:getData(),
+    config:getConfig(),
+    contrats:getContrats(),
+    tt_entries:getTTEntries(),
+    tt_exc_trips:getTTExcTrips(),
+    tt_settings:getTTSettings(),
+    depl_exc:getDeplExc(),
+    eco_directe:getEcoDir()
+  },null,2);
+}
+
+// Hash simple pour détecter si les données ont changé depuis la dernière sync
+function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h.toString(36)}
+
+function ghTestToken(token,cb){
+  fetch('https://api.github.com/user',{headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}}).then(function(r){if(!r.ok){cb(false,'HTTP '+r.status);return}return r.json()}).then(function(d){if(d)cb(true,d.login||'OK')}).catch(function(e){cb(false,e.message)});
+}
+
+function ghCreateGist(token,payload,cb){
+  var body={description:'McDonald\'s La Cote — Maintenance backup (auto)',public:false,files:{}};
+  body.files[GIST_FILENAME]={content:payload};
+  fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok){r.text().then(function(t){cb(false,'HTTP '+r.status+': '+t)});return}return r.json()}).then(function(d){if(d)cb(true,d.id)}).catch(function(e){cb(false,e.message)});
+}
+
+function ghUpdateGist(token,gistId,payload,cb){
+  var body={files:{}};
+  body.files[GIST_FILENAME]={content:payload};
+  fetch('https://api.github.com/gists/'+gistId,{method:'PATCH',headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok){r.text().then(function(t){cb(false,'HTTP '+r.status+': '+t)});return}return r.json()}).then(function(d){if(d)cb(true,d.id)}).catch(function(e){cb(false,e.message)});
+}
+
+function ghListGistVersions(token,gistId,cb){
+  fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}}).then(function(r){if(!r.ok){cb(false,'HTTP '+r.status);return}return r.json()}).then(function(d){if(d)cb(true,d.history||[])}).catch(function(e){cb(false,e.message)});
+}
+
+function ghGetGistVersion(token,gistId,sha,cb){
+  fetch('https://api.github.com/gists/'+gistId+'/'+sha,{headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}}).then(function(r){if(!r.ok){cb(false,'HTTP '+r.status);return}return r.json()}).then(function(d){if(!d){cb(false,'Pas de donnees');return}var f=d.files&&d.files[GIST_FILENAME];if(!f){cb(false,'Fichier introuvable');return}cb(true,f.content)}).catch(function(e){cb(false,e.message)});
+}
+
+function connectGitHubBackup(){
+  var input=document.getElementById('ghTokenInput');
+  var token=input.value.trim();
+  if(!token){toast('Colle ton token GitHub');return}
+  if(token.indexOf('github_pat_')!==0&&token.indexOf('ghp_')!==0){if(!confirm('Le token ne commence pas par github_pat_ ou ghp_. Continuer ?'))return}
+  toast('Test du token...');
+  ghTestToken(token,function(ok,info){
+    if(!ok){toast('Token invalide : '+info);return}
+    toast('Token valide ('+info+'). Creation de la sauvegarde...');
+    setGhToken(token);
+    var payload=buildBackupPayload();
+    ghCreateGist(token,payload,function(ok2,res){
+      if(!ok2){toast('Erreur creation Gist : '+res);setGhToken('');return}
+      setGistId(res);
+      localStorage.setItem(LS_LASTSYNC,new Date().toISOString());
+      localStorage.setItem(LS_LASTHASH,simpleHash(payload));
+      toast('Sauvegarde creee');
+      input.value='';
+      renderBackupStatus();
+      startBackupTimer();
+    });
+  });
+}
+
+function disconnectGitHubBackup(){
+  if(!confirm('Deconnecter la sauvegarde automatique ?\n\nTon Gist GitHub reste accessible sur github.com mais ne sera plus mis a jour automatiquement. Le token sera supprime de ce telephone.'))return;
+  setGhToken('');setGistId('');
+  localStorage.removeItem(LS_LASTSYNC);localStorage.removeItem(LS_LASTHASH);
+  if(backupTimer){clearInterval(backupTimer);backupTimer=null}
+  toast('Sauvegarde deconnectee');
+  renderBackupStatus();
+}
+
+function renderBackupStatus(){
+  var token=getGhToken();var gistId=getGistId();
+  var notCfg=document.getElementById('backupNotConfigured');
+  var cfg=document.getElementById('backupConfigured');
+  if(!notCfg||!cfg)return;
+  if(token&&gistId){
+    notCfg.style.display='none';cfg.style.display='';
+    var last=localStorage.getItem(LS_LASTSYNC);
+    var statusLine=document.getElementById('backupStatusLine');
+    if(last){
+      var d=new Date(last);
+      var diffMin=Math.round((Date.now()-d.getTime())/60000);
+      var ago=diffMin<1?'a l\'instant':diffMin<60?diffMin+' min':Math.round(diffMin/60)+' h';
+      var dateStr=d.toLocaleString('fr-CH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      statusLine.textContent='Derniere sauvegarde : '+dateStr+' (il y a '+ago+')';
+    }else{statusLine.textContent='Pas encore synchronise'}
+  }else{notCfg.style.display='';cfg.style.display='none'}
+}
+
+function syncBackupNow(){
+  var token=getGhToken();var gistId=getGistId();
+  if(!token||!gistId){toast('Connexion requise');return}
+  var indicator=document.getElementById('backupIndicator');
+  if(indicator){indicator.style.background='var(--accent)';indicator.style.boxShadow='0 0 8px rgba(255,199,44,.6)'}
+  toast('Sauvegarde en cours...');
+  var payload=buildBackupPayload();
+  ghUpdateGist(token,gistId,payload,function(ok,res){
+    if(!ok){if(indicator){indicator.style.background='var(--red)';indicator.style.boxShadow='0 0 8px rgba(218,44,56,.6)'}toast('Echec : '+res);return}
+    localStorage.setItem(LS_LASTSYNC,new Date().toISOString());
+    localStorage.setItem(LS_LASTHASH,simpleHash(payload));
+    if(indicator){indicator.style.background='var(--green)';indicator.style.boxShadow='0 0 8px rgba(52,211,153,.6)'}
+    toast('Sauvegarde effectuee');
+    renderBackupStatus();
+  });
+}
+
+function syncBackupSilent(){
+  var token=getGhToken();var gistId=getGistId();
+  if(!token||!gistId)return;
+  var payload=buildBackupPayload();
+  var newHash=simpleHash(payload);
+  var lastHash=localStorage.getItem(LS_LASTHASH);
+  if(lastHash===newHash)return;
+  ghUpdateGist(token,gistId,payload,function(ok,res){
+    if(ok){
+      localStorage.setItem(LS_LASTSYNC,new Date().toISOString());
+      localStorage.setItem(LS_LASTHASH,newHash);
+      renderBackupStatus();
+    }
+  });
+}
+
+function startBackupTimer(){
+  if(backupTimer)clearInterval(backupTimer);
+  if(!getGhToken()||!getGistId())return;
+  backupTimer=setInterval(syncBackupSilent,BACKUP_INTERVAL_MS);
+}
+
+function openRestoreModal(){
+  var token=getGhToken();var gistId=getGistId();
+  if(!token||!gistId){toast('Connexion requise');return}
+  var container=document.getElementById('restoreListContainer');
+  container.innerHTML='<div style="color:var(--text3);text-align:center;padding:1rem;font-size:.85rem">Chargement de l\'historique...</div>';
+  document.getElementById('restoreBackupModal').classList.add('open');
+  ghListGistVersions(token,gistId,function(ok,versions){
+    if(!ok){container.innerHTML='<div style="color:var(--red);text-align:center;padding:1rem">Erreur : '+versions+'</div>';return}
+    if(!versions.length){container.innerHTML='<div style="color:var(--text3);text-align:center;padding:1rem">Aucune revision disponible</div>';return}
+    var html='';
+    versions.slice(0,30).forEach(function(v,idx){
+      var d=new Date(v.committed_at);
+      var dateStr=d.toLocaleString('fr-CH',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+      var isLatest=idx===0;
+      html+='<div style="padding:.7rem;border:1px solid var(--glass-border);border-radius:10px;margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;background:'+(isLatest?'rgba(52,211,153,.05)':'rgba(255,255,255,.02)')+'">';
+      html+='<div><div style="font-size:.85rem;color:var(--text);font-weight:600">'+dateStr+(isLatest?' <span style="color:var(--green);font-size:.7rem">(derniere)</span>':'')+'</div>';
+      html+='<div style="font-size:.7rem;color:var(--text3);margin-top:.2rem">'+(v.change_status?'+'+v.change_status.additions+' / -'+v.change_status.deletions+' lignes':'')+'</div></div>';
+      html+='<button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:.78rem" onclick="restoreVersion(\''+v.version+'\')">Restaurer</button>';
+      html+='</div>';
+    });
+    container.innerHTML=html;
+  });
+}
+
+function closeRestoreModal(){document.getElementById('restoreBackupModal').classList.remove('open')}
+
+function restoreVersion(sha){
+  if(!confirm('ATTENTION\n\nCette restauration va REMPLACER toutes tes donnees actuelles par cette sauvegarde.\n\nContinuer ?'))return;
+  var token=getGhToken();var gistId=getGistId();
+  toast('Restauration en cours...');
+  ghGetGistVersion(token,gistId,sha,function(ok,content){
+    if(!ok){toast('Echec : '+content);return}
+    try{
+      var j=JSON.parse(content);
+      if(j.interventions)localStorage.setItem(LS_KEY,JSON.stringify(j.interventions));
+      if(j.config)localStorage.setItem(LS_CFG,JSON.stringify(j.config));
+      if(j.contrats)localStorage.setItem(LS_CTR,JSON.stringify(j.contrats));
+      if(j.tt_entries)localStorage.setItem('tt_entries',JSON.stringify(j.tt_entries));
+      if(j.tt_exc_trips)localStorage.setItem('tt_exc_trips',JSON.stringify(j.tt_exc_trips));
+      if(j.tt_settings)localStorage.setItem('tt_settings',JSON.stringify(j.tt_settings));
+      if(j.depl_exc)setDeplExc(j.depl_exc);
+      if(j.eco_directe)setEcoDir(j.eco_directe);
+      localStorage.removeItem(LS_LASTHASH);
+      toast('Restauration reussie');
+      closeRestoreModal();
+      refresh();
+    }catch(err){toast('Fichier corrompu, rien n\'a ete modifie')}
+  });
+}
+
 function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:getEcoDir()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
 function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);var total=0;
@@ -4222,8 +4480,12 @@ function toggleDeplExcPaid(id){
 }
 
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();renderBackupStatus();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
+// Démarrer la sauvegarde automatique horaire si déjà configurée
+startBackupTimer();
+// Rafraîchir le statut toutes les minutes pour mettre à jour le "il y a X min"
+setInterval(renderBackupStatus,60000);
 </script>
 </body>
 </html>
