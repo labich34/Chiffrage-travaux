@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>McDonald's La Côte — Suivi Maintenance</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
@@ -673,8 +674,12 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
         <div style="font-size:.85rem;color:var(--accent);font-weight:600;margin-bottom:.4rem">⚙️ Configuration requise</div>
         <div style="font-size:.78rem;color:var(--text2);line-height:1.5">
           1. Va sur <strong>github.com/settings/tokens?type=beta</strong><br>
-          2. Crée un nouveau token "fine-grained" avec permission <strong>Gists: Read and write</strong><br>
-          3. Copie le token ici puis clique sur "Connecter"
+          2. Crée un nouveau token "fine-grained" avec permission <strong>Gists: Read and write</strong> (et <strong>rien d'autre</strong>)<br>
+          3. Mets une <strong>expiration courte</strong> (90 jours) et renouvelle quand nécessaire<br>
+          4. Copie le token ici puis clique sur "Connecter"
+        </div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:.6rem;padding:.6rem .8rem;background:rgba(255,199,44,.06);border-radius:8px;border-left:2px solid var(--accent)">
+          🔒 Le token est stocké uniquement sur cet appareil. Ne crée jamais de token avec des permissions plus larges que "Gists". Si ton appareil est partagé ou perdu, révoque le token sur GitHub.
         </div>
       </div>
       <div class="form-grid">
@@ -718,7 +723,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
     <div class="table-wrap"><table><thead><tr><th>Tag</th><th>Taux</th><th>Type</th></tr></thead><tbody>
       <tr><td>💡 Électricité, 🔧 Plomberie, 🧱 Carrelage, ☀️ Panneaux solaires, ⚠️ Interv. except., 🎨 Peinture, 🔨 Divers</td><td style="color:var(--green);font-weight:600">32.40 CHF/h</td><td><span class="badge badge-chiffrable">Chiffrable</span></td></tr>
-      <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">26.90 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
+      <tr><td>🏗 Extérieur, 💦 Kärcher, 🍽 Salle restaurant, 📦 Livraison, 🧹 Nettoyage PEP</td><td style="color:var(--accent);font-weight:600">26.90 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
       <tr><td>🍦 Machine à glace</td><td style="color:var(--accent);font-weight:600">32 CHF/h</td><td><span class="badge badge-nonchiffrable">Suivi</span></td></tr>
     </tbody></table></div>
   </div>
@@ -924,7 +929,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       <strong style="color:var(--green)">Coût interne — 32.40 CHF/h pour les travaux chiffrables</strong><br>
       💡 Électricité · 🔧 Plomberie · 🧱 Carrelage · ☀️ Panneaux solaires · ⚠️ Intervention exceptionnelle · 🎨 Peinture · 🔨 Divers<br><br>
       <strong style="color:var(--accent)">Travaux de suivi — 26.90 CHF/h</strong><br>
-      🏗 Extérieur · 💦 Kärcher · 🍽 Salle restaurant · 🧹 Nettoyage PEP<br>
+      🏗 Extérieur · 💦 Kärcher · 🍽 Salle restaurant · 📦 Livraison · 🧹 Nettoyage PEP<br>
       Ces tâches sont essentielles au bon fonctionnement mais ne sont pas comparées à un prestataire externe dans le calcul d'économie.<br><br>
       <strong style="color:var(--accent)">Machine à glace — 32 CHF/h</strong><br>
       🍦 Taux spécifique pour la maintenance des machines à glace.<br><br>
@@ -1021,6 +1026,7 @@ var TRAVAUX=[
   {id:'exterieur',icon:'🏗',label:'Extérieur & terrasse',chiffrable:false,taux:26.90},
   {id:'karcher',icon:'💦',label:'Kärcher',chiffrable:false,taux:26.90},
   {id:'salle',icon:'🍽',label:'Salle restaurant',chiffrable:false,taux:26.90},
+  {id:'livraison',icon:'📦',label:'Livraison',chiffrable:false,taux:26.90},
   {id:'pep',icon:'🧹',label:'Nettoyage PEP',chiffrable:false,taux:26.90},
   {id:'glace',icon:'🍦',label:'Machine à glace',chiffrable:false,taux:32}
 ];
@@ -1097,8 +1103,8 @@ function dexcCost(d){
 }
 function dexcKmAR(d){return Math.round((parseFloat(d.km)||0)*2*10)/10}
 function dexcLabel(d,which){
-  if(which==='from'){return d.fromType==='libre'?(d.fromLabel||'Libre'):(SITES[d.fromSite]?SITES[d.fromSite].name:(d.fromSite||'?'))}
-  return d.toType==='libre'?(d.toLabel||'Libre'):(SITES[d.toSite]?SITES[d.toSite].name:(d.toSite||'?'));
+  if(which==='from'){return d.fromType==='libre'?esc(d.fromLabel||'Libre'):(SITES[d.fromSite]?SITES[d.fromSite].name:esc(d.fromSite||'?'))}
+  return d.toType==='libre'?esc(d.toLabel||'Libre'):(SITES[d.toSite]?SITES[d.toSite].name:esc(d.toSite||'?'));
 }
 
 function deplInt(depart,site){
@@ -1154,6 +1160,14 @@ function coutExt(i){
 function ecoCalc(i){return coutExt(i)-coutInt(i)}
 function coutIntTotal(i){var dp=deplInt(i.depart,i.site);return coutIntTravaux(i.travaux)+(i.materiel||0)+dp.cost}
 function rH(n){return Math.round(n*100)/100}
+// ========== SECURITE : echappement HTML (anti-XSS) ==========
+// Echappe tout caractere dangereux avant injection via innerHTML.
+function esc(s){
+  if(s===null||s===undefined)return '';
+  return String(s).replace(/[&<>"'`]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c];
+  });
+}
 function fH(n){var h=Math.floor(Math.abs(n));var m=Math.round((Math.abs(n)-h)*60);if(m===60){h++;m=0}return(n<0?'-':'')+h+'h'+(m>0?(m<10?'0':'')+m:'')}
 function sumH(tv){return rH((tv||[]).reduce(function(s,t){return s+(t.heures||0)},0))}
 function totalH(i){return rH(i.heures||sumH(i.travaux))}
@@ -1712,7 +1726,7 @@ function lastDayOfMonth(ym){
   var da=d.getDate();
   return y+'-'+(mo<10?'0':'')+mo+'-'+(da<10?'0':'')+da;
 }
-function tvLabel(i){var tv=i.travaux||[];if(!tv.length)return i.extra||'-';return tv.map(function(t){var def=TMAP[t.id];var isC=CHIFFRABLE_IDS.indexOf(t.id)>=0;return '<span class="desc-tag'+(isC?' chiffrable':'')+'">'+(def?def.icon+' '+def.label:t.id)+' '+fH(t.heures)+'</span>'}).join(' ')+(i.extra?'<div class="desc-extra">'+i.extra+'</div>':'')}
+function tvLabel(i){var tv=i.travaux||[];if(!tv.length)return esc(i.extra||'-');return tv.map(function(t){var def=TMAP[t.id];var isC=CHIFFRABLE_IDS.indexOf(t.id)>=0;return '<span class="desc-tag'+(isC?' chiffrable':'')+'">'+(def?def.icon+' '+def.label:esc(t.id))+' '+fH(t.heures)+'</span>'}).join(' ')+(i.extra?'<div class="desc-extra">'+esc(i.extra)+'</div>':'')}
 
 // ========== CONFETTI ==========
 function launchConfetti(canvasId){
@@ -2977,7 +2991,7 @@ function exportInteractiveHTML(){
     var sn=SITES[s]?SITES[s].name:s;var sc=SITES[s]?SITES[s].color:'#888';
     sLabels.push(sn);sValues.push(rH(sd.reduce(function(x,i){return x+totalH(i)},0)));sColors.push(sc);
     sDetailJson[sn]=sd.map(function(i){
-      var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):t.id}).join(', ');
+      var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):esc(t.id)}).join(', ');
       return{date:fD(i.date),travaux:tvl,heures:fH(totalH(i)),ci:Math.round(coutInt(i)),ce:Math.round(coutExt(i)),eco:Math.round(ecoCalc(i)+ecoPieces(i))};
     });
   });
@@ -3008,7 +3022,7 @@ function exportInteractiveHTML(){
 
   // KPI detail data
   var kpiEcoDetail=all.filter(function(i){return ecoCalc(i)+ecoPieces(i)>0}).map(function(i){
-    var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?d.label:t.id}).join(', ');
+    var tvl=esc((i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?d.label:t.id}).join(', '));
     return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,travaux:tvl,eco:Math.round(ecoCalc(i)+ecoPieces(i))};
   });
 
@@ -3029,12 +3043,12 @@ function exportInteractiveHTML(){
   all.forEach(function(i){
     var ci=coutInt(i),ce=coutExt(i),ep=ecoPieces(i),eTotal=ce-ci+ep;
     var sc=SITES[i.site]?SITES[i.site].color:'#888';var sn=SITES[i.site]?SITES[i.site].name:i.site;
-    var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):t.id}).join(', ');
+    var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):esc(t.id)}).join(', ');
     intRows+='<tr><td>'+fD(i.date)+'</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+sc+';margin-right:6px"></span>'+sn+'</td><td>'+tvl+'</td><td>'+fH(totalH(i))+'</td><td>'+(ci>0?Math.round(ci)+' CHF':'-')+'</td><td style="color:#DA2C38">'+(ce>0?Math.round(ce)+' CHF':'-')+'</td><td style="color:#34D399;font-weight:700">'+(eTotal>0?Math.round(eTotal)+' CHF':'-')+'</td></tr>';
   });
 
   // ============ BUILD HTML ============
-  var h='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapport Maintenance - McDonald\'s La Cote</title>';
+  var h='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src https://cdn.jsdelivr.net \'unsafe-inline\'; style-src \'unsafe-inline\' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src https://fonts.gstatic.com"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapport Maintenance - McDonald\'s La Cote</title>';
   h+='<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"><\/script>';
   h+='<style>';
   h+='@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap");';
@@ -3172,15 +3186,15 @@ function exportInteractiveHTML(){
   h+='function animBars(){document.querySelectorAll(".anim-bar").forEach(function(b){setTimeout(function(){b.style.transition="width 1s ease";b.style.width=b.dataset.w},300)})}';
 
   // Modal system
-  h+='var DETAIL_DATA='+JSON.stringify({sites:sDetailJson,cats:catDetail,rush:rushDetail,ecoList:kpiEcoDetail,
-    heuresList:all.map(function(i){return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,travaux:(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?d.label:t.id}).join(', '),heures:fH(totalH(i)),hc:fH(heuresChiffrables(i))}}),
+  h+='var DETAIL_DATA='+JSON.stringify({sites:sDetailJson,cats:catDetail,rush:rushDetail.map(function(r){return{date:r.date,site:r.site,horaires:r.horaires,duree:r.duree,note:esc(r.note)}}),ecoList:kpiEcoDetail,
+    heuresList:all.map(function(i){return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,travaux:esc((i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?d.label:t.id}).join(', ')),heures:fH(totalH(i)),hc:fH(heuresChiffrables(i))}}),
     interneList:all.map(function(i){var ci=coutInt(i);var dp=deplInt(i.depart,i.site);return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,travaux:fH(totalH(i)),ci:Math.round(ci),mat:Math.round(i.materiel||0),carb:dp.cost.toFixed(2)}}),
     externeList:all.filter(function(i){return coutExt(i)>0}).map(function(i){var ce=coutExt(i);var he=heuresExternalisables(i);return{date:fD(i.date),site:SITES[i.site]?SITES[i.site].name:i.site,he:fH(he),ce:Math.round(ce)}}),
-    deplList:all.filter(function(i){return deplInt(i.depart,i.site).km>0}).map(function(i){var dp=deplInt(i.depart,i.site);return{date:fD(i.date),de:i.depart,vers:i.site,km:dp.km.toFixed(1),cout:dp.cost.toFixed(2)}}),
-    dexcList:dexcReport.map(function(x){return{date:fD(x.date),from:dexcLabel(x,'from'),to:dexcLabel(x,'to'),kmAR:(x.kmAR||dexcKmAR(x)).toFixed(1),prix:(x.prix||0).toFixed(2),conso:(x.conso||0).toFixed(1),cost:(x.cost||dexcCost(x)).toFixed(2),motif:x.motif||''}}),
+    deplList:all.filter(function(i){return deplInt(i.depart,i.site).km>0}).map(function(i){var dp=deplInt(i.depart,i.site);return{date:fD(i.date),de:esc(i.depart),vers:esc(i.site),km:dp.km.toFixed(1),cout:dp.cost.toFixed(2)}}),
+    dexcList:dexcReport.map(function(x){return{date:fD(x.date),from:dexcLabel(x,'from'),to:dexcLabel(x,'to'),kmAR:(x.kmAR||dexcKmAR(x)).toFixed(1),prix:(x.prix||0).toFixed(2),conso:(x.conso||0).toFixed(1),cost:(x.cost||dexcCost(x)).toFixed(2),motif:esc(x.motif||'')}}),
     dexcTotKm:dexcTotKm.toFixed(1),
     dexcTotCost:dexcTotCost.toFixed(2),
-    ecoDirList:getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).sort(function(a,b){return a.date>b.date?-1:1}).map(function(x){return{date:fD(x.date),site:SITES[x.site]?SITES[x.site].name:x.site,siteColor:SITES[x.site]?SITES[x.site].color:'#888',objet:x.objet||'',montant:Math.round(x.montant||0),note:x.note||''}}),
+    ecoDirList:getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).sort(function(a,b){return a.date>b.date?-1:1}).map(function(x){return{date:fD(x.date),site:SITES[x.site]?SITES[x.site].name:x.site,siteColor:SITES[x.site]?SITES[x.site].color:'#888',objet:esc(x.objet||''),montant:Math.round(x.montant||0),note:esc(x.note||'')}}),
     ecoDirTotal:Math.round(tEcoDir)
   })+';';
   h+='function openModal(key){var t="",b="";';
@@ -3319,7 +3333,7 @@ function renderContrats(){
       html+='<table><thead><tr><th>Date</th><th>Prestataire</th><th>Type</th><th>Coût</th><th>Remarque</th><th></th></tr></thead><tbody>';
       sc.forEach(function(ct){
         var tp=CONTRAT_TYPES[ct.type]||CONTRAT_TYPES.autre_contrat;
-        html+='<tr><td>'+fD(ct.date)+'</td><td style="font-weight:500">'+ct.nom+'</td><td>'+tp.icon+' '+tp.label+'</td><td style="color:var(--red);font-weight:600">'+fmt(ct.montant)+'</td><td style="color:var(--text3);font-size:.78rem">'+(ct.remarque||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteContrat('+ct.id+')">🗑</button></td></tr>';
+        html+='<tr><td>'+fD(ct.date)+'</td><td style="font-weight:500">'+esc(ct.nom)+'</td><td>'+tp.icon+' '+tp.label+'</td><td style="color:var(--red);font-weight:600">'+fmt(ct.montant)+'</td><td style="color:var(--text3);font-size:.78rem">'+esc(ct.remarque||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteContrat('+ct.id+')">🗑</button></td></tr>';
       });
       html+='</tbody></table>';
     }else{
@@ -3572,7 +3586,7 @@ function buildDeplExcSection(start,end){
   list.forEach(function(x){
     var kmAR2=(x.kmAR||dexcKmAR(x)).toFixed(1);
     var cost2=(x.cost||dexcCost(x));
-    var motifEsc=(x.motif||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var motifEsc=esc(x.motif||'');
     var isOld=x.date<start;
     var rowBg=isOld?'background:rgba(218,44,56,.06)':'';
     var oldBadge=isOld?'<span style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:.65rem;font-weight:600;background:rgba(218,44,56,.15);color:var(--red);margin-left:4px">⚠ retard</span>':'';
@@ -3919,14 +3933,14 @@ function renderHistorique(){
     getData().forEach(function(i){
       if(fm!=='all'&&i.date.slice(0,7)!==fm)return;
       if(fs2!=='all'&&i.site!==fs2)return;
-      var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):t.id}).join(', ');
+      var tvl=(i.travaux||[]).map(function(t){var d=TMAP[t.id];return d?(d.icon+' '+d.label):esc(t.id)}).join(', ');
       rows.push({
         date:i.date,sortKey:i.date+'_0_'+(i.id||0),
         type:'intervention',
         site:i.site,
         siteName:SITES[i.site]?SITES[i.site].name:i.site,
         siteColor:SITES[i.site]?SITES[i.site].color:'#888',
-        detail:tvl+(i.extra?' — '+i.extra:''),
+        detail:tvl+(i.extra?' — '+esc(i.extra):''),
         heures:fH(totalH(i)),
         rush:false,
         id:i.id,
@@ -3951,7 +3965,7 @@ function renderHistorique(){
         site:ttSiteId,
         siteName:si?si.name:ttSiteId,
         siteColor:si?si.color:'#888',
-        detail:(e.start||'')+' - '+(e.end||'')+(e.note?' — '+e.note:''),
+        detail:esc(e.start||'')+' - '+esc(e.end||'')+(e.note?' — '+esc(e.note):''),
         heures:h+'h'+(m>0?(m<10?'0':'')+m:''),
         rush:!!e.rush,
         id:e.id,
@@ -4239,7 +4253,7 @@ function openKpiModal(type){
           '<td style="padding:.5rem"><strong>'+dexcLabel(x,'from')+'</strong><br><span style="color:var(--text3);font-size:.72rem">→ '+dexcLabel(x,'to')+'</span></td>'+
           '<td style="padding:.5rem;text-align:right;font-weight:600;color:#FBBF24">'+kmAR2+'</td>'+
           '<td style="padding:.5rem;text-align:right;font-weight:700;color:'+(isPaid?'var(--green)':'#F97316')+'">'+fmt2(cost2)+'</td>'+
-          '<td style="padding:.5rem;color:var(--text2);font-size:.78rem;max-width:250px">'+(x.motif||'').replace(/</g,'&lt;')+'</td>'+
+          '<td style="padding:.5rem;color:var(--text2);font-size:.78rem;max-width:250px">'+esc(x.motif||'')+'</td>'+
           '<td style="padding:.5rem"><button class="btn btn-ghost btn-sm" onclick="deleteDeplExc('+x.id+')" title="Supprimer" style="padding:.2rem .4rem">🗑</button></td>'+
           '</tr>';
       });
@@ -4310,7 +4324,7 @@ function openKpiModal(type){
     title='<span style="color:var(--accent)">⏱ Heures totales</span>';
     formula='<strong>Formule :</strong> Somme de toutes les heures saisies sur le mois en cours<br>'+
       '• Heures <strong>chiffrables</strong> = 💡 Élec · 🔧 Plomberie · 🧱 Carrelage · ☀️ Solaire · ⚠️ Exception · 🎨 Peinture · 🔨 Divers<br>'+
-      '• Heures <strong>suivi</strong> = 🏗 Extérieur · 💦 Kärcher · 🍽 Salle · 🧹 PEP · 🍦 Machine à glace<br>'+
+      '• Heures <strong>suivi</strong> = 🏗 Extérieur · 💦 Kärcher · 🍽 Salle · 📦 Livraison · 🧹 PEP · 🍦 Machine à glace<br>'+
       '• Total = chiffrables + suivi (les deux comptent dans le total affiché)';
     sites.forEach(function(s){
       var sd=d.filter(function(i){return i.site===s});
