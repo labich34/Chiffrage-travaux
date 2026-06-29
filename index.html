@@ -629,6 +629,14 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
         <button class="btn btn-ghost" onclick="importJSON()">📤 Import</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
       </div>
+      <div class="form-group full" style="margin-top:.75rem">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📝 Analyse du mois (apparaît à la fin du rapport interactif)</span>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="autoAnalyse()" style="padding:.25rem .6rem;font-size:.72rem">✨ Générer auto</button>
+        </label>
+        <textarea class="form-input" id="rapportAnalyse" rows="5" placeholder="Clique sur « Générer auto » pour une analyse basée sur tes chiffres, puis complète ou modifie librement…" style="resize:vertical;line-height:1.5"></textarea>
+        <p style="font-size:.7rem;color:var(--text3);margin-top:.25rem">Ce texte est facultatif. Laisse vide pour ne pas l'afficher dans le rapport.</p>
+      </div>
     </div>
   </div>
   <!-- DEMANDE DE PRIME (sélection libre de 2 mois) -->
@@ -2943,6 +2951,145 @@ function exportTrimestrielHTML(){
   toast('Demande de prime exportée');
 }
 
+function autoAnalyse(){
+  var start=document.getElementById('rStart').value;
+  var end=document.getElementById('rEnd').value;
+  if(!start||!end){toast('Génère un rapport d\'abord');return}
+  var c=getConfig();
+  var obj=c.objectif||0;
+
+  // Calcule toutes les métriques d'un mois 'YYYY-MM'
+  function computeMonth(ym){
+    var mStart=ym+'-01';
+    var mEnd=lastDayOfMonth(ym);
+    var all=getData().filter(function(i){return i.date>=mStart&&i.date<=mEnd});
+    var tI=all.reduce(function(s,i){return s+coutInt(i)},0);
+    var tE=all.reduce(function(s,i){return s+coutExt(i)},0);
+    var tEco=tE-tI;
+    var tEcoPieces=all.reduce(function(s,i){return s+ecoPieces(i)},0);
+    var tEcoDir=getEcoDir().filter(function(x){return x.date>=mStart&&x.date<=mEnd}).reduce(function(s,x){return s+(x.montant||0)},0);
+    var ttRpt=buildTTSummary(mStart,mEnd);
+    var ttRush=ttRpt?ttRpt.rushCostInt:0;
+    var ttHSuppI=ttRpt?ttRpt.heureSuppEco:0;
+    var ecoTotale=tEco+tEcoPieces+tEcoDir+ttRush+ttHSuppI;
+    var pctObj=obj>0?Math.round(ecoTotale/obj*100):0;
+    var hChiffr=rH(all.reduce(function(s,i){return s+heuresChiffrables(i)},0));
+    var hTot=rH(all.reduce(function(s,i){return s+totalH(i)},0));
+    var hSuivi=rH(hTot-hChiffr);
+    // Heures par catégorie dans le temps de travail
+    var ttEntries=getTTEntries().filter(function(e){return e.date>=mStart&&e.date<=mEnd});
+    var catH={};
+    ttEntries.forEach(function(e){(e.travaux||[]).forEach(function(t){catH[t.id]=(catH[t.id]||0)+(t.heures||t.hours||0)})});
+    var hLivraison=rH(catH['livraison']||0);
+    var hCuisineSalle=rH((catH['salle']||0)+(catH['glace']||0)+(catH['pep']||0));
+    return{
+      ym:ym,label:fML(ym),ecoTotale:ecoTotale,pctObj:pctObj,atteint:pctObj>=100,
+      tEcoDir:tEcoDir,tEco:tEco,tEcoPieces:tEcoPieces,ttRush:ttRush,
+      hChiffr:hChiffr,hSuivi:hSuivi,hLivraison:hLivraison,hCuisineSalle:hCuisineSalle,
+      nbInt:all.length,rushH:ttRpt?ttRpt.rushH:0,hasData:(all.length>0||ttEntries.length>0)
+    };
+  }
+
+  // Mois en cours = mois de la date de début ; mois précédent = mois civil d'avant
+  var curYM=start.slice(0,7);
+  var py=parseInt(curYM.slice(0,4)),pm=parseInt(curYM.slice(5,7));
+  pm--;if(pm<1){pm=12;py--}
+  var prevYM=py+'-'+(pm<10?'0':'')+pm;
+
+  var cur=computeMonth(curYM);
+  var prev=computeMonth(prevYM);
+
+  // ===== Construction du texte d'analyse =====
+  var txt='';
+
+  // 1) Résultat du mois en cours
+  if(cur.atteint){
+    txt+='✅ '+cap(cur.label)+' : objectif atteint à '+cur.pctObj+'% ('+Math.round(cur.ecoTotale).toLocaleString('fr-CH')+' CHF d\'économies pour un objectif de '+Math.round(obj).toLocaleString('fr-CH')+' CHF). ';
+  }else{
+    txt+=cap(cur.label)+' : objectif réalisé à '+cur.pctObj+'% ('+Math.round(cur.ecoTotale).toLocaleString('fr-CH')+' CHF sur '+Math.round(obj).toLocaleString('fr-CH')+' CHF visés). ';
+  }
+
+  // 2) Comparaison au mois précédent
+  if(prev.hasData){
+    var diff=cur.pctObj-prev.pctObj;
+    txt+='\n\nEn comparaison, '+prev.label+' avait atteint '+prev.pctObj+'%';
+    // Expliquer ce qui a changé
+    var causes=[];
+
+    // On évalue TOUS les leviers économiques et on calcule leur variation (CHF) entre les 2 mois.
+    var leviers=[
+      {nom:'eco_dir',delta:cur.tEcoDir-prev.tEcoDir,cur:cur.tEcoDir,prev:prev.tEcoDir,
+        labelMore:'une économie directe de '+Math.round(cur.tEcoDir).toLocaleString('fr-CH')+' CHF (garantie ou négociation) qui n\'existait pas le mois précédent',
+        labelLess:'l\'absence d\'économie directe ce mois-ci (il y avait '+Math.round(prev.tEcoDir).toLocaleString('fr-CH')+' CHF le mois précédent)'},
+      {nom:'eco_chiffr',delta:cur.tEco-prev.tEco,cur:cur.tEco,prev:prev.tEco,
+        labelMore:'davantage d\'économies sur interventions chiffrables ('+Math.round(cur.tEco).toLocaleString('fr-CH')+' CHF contre '+Math.round(prev.tEco).toLocaleString('fr-CH')+' CHF)',
+        labelLess:'moins d\'économies sur interventions chiffrables ('+Math.round(cur.tEco).toLocaleString('fr-CH')+' CHF contre '+Math.round(prev.tEco).toLocaleString('fr-CH')+' CHF)'},
+      {nom:'eco_pieces',delta:cur.tEcoPieces-prev.tEcoPieces,cur:cur.tEcoPieces,prev:prev.tEcoPieces,
+        labelMore:'plus d\'économies sur pièces ('+Math.round(cur.tEcoPieces).toLocaleString('fr-CH')+' CHF)',
+        labelLess:'moins d\'économies sur pièces ('+Math.round(cur.tEcoPieces).toLocaleString('fr-CH')+' CHF contre '+Math.round(prev.tEcoPieces).toLocaleString('fr-CH')+' CHF)'},
+      {nom:'rush',delta:cur.ttRush-prev.ttRush,cur:cur.ttRush,prev:prev.ttRush,
+        labelMore:'davantage d\'heures de rush valorisées ('+Math.round(cur.ttRush).toLocaleString('fr-CH')+' CHF)',
+        labelLess:'moins d\'heures de rush ('+Math.round(cur.ttRush).toLocaleString('fr-CH')+' CHF contre '+Math.round(prev.ttRush).toLocaleString('fr-CH')+' CHF)'}
+    ];
+    // Ne garder que les variations significatives (> 5% de l'objectif), triées par ampleur décroissante
+    var seuil=Math.max(200,obj*0.05);
+    var signif=leviers.filter(function(l){return Math.abs(l.delta)>=seuil}).sort(function(a,b){return Math.abs(b.delta)-Math.abs(a.delta)});
+    // On prend les 2 plus gros facteurs
+    signif.slice(0,2).forEach(function(l){
+      causes.push(l.delta>0?l.labelMore:l.labelLess);
+    });
+
+    // Facteur "livraisons" : du temps de travail réel mais non chiffré (à signaler s'il est notable)
+    if(cur.hLivraison>=4&&cur.hLivraison>prev.hLivraison){
+      causes.push('un volume de livraisons plus important ('+fH(cur.hLivraison)+'), temps de travail réel mais non comptabilisé comme économie de maintenance');
+    }
+
+    if(causes.length){
+      txt+=', principalement en raison de : '+causes.join(' ; ')+'. ';
+    }else{
+      txt+=', avec une activité globalement comparable. ';
+    }
+  }
+
+  // 3) Explication de fond si objectif non atteint
+  if(!cur.atteint){
+    txt+='\n\nL\'écart avec l\'objectif s\'explique surtout par la nature du travail du mois : ';
+    var details=[];
+    if(cur.hLivraison>0)details.push(fH(cur.hLivraison)+' de livraisons');
+    if(cur.hCuisineSalle>0)details.push(fH(cur.hCuisineSalle)+' en cuisine et salle');
+    if(cur.hSuivi>cur.hChiffr&&cur.hSuivi>0)details.push('plus d\'heures de suivi ('+fH(cur.hSuivi)+') que de chiffrables ('+fH(cur.hChiffr)+')');
+    if(details.length){
+      txt+=details.join(', ')+'. Ces tâches sont indispensables au bon fonctionnement des restaurants mais ne génèrent pas d\'économie de maintenance chiffrable. C\'est donc un résultat normal compte tenu de la charge non technique du mois.';
+    }else{
+      txt+='le volume d\'interventions chiffrables a été plus faible que d\'habitude. C\'est un résultat normal selon les besoins du mois.';
+    }
+  }else{
+    txt+='\n\nLe niveau d\'interventions chiffrables ('+fH(cur.hChiffr)+') a permis de dépasser l\'objectif.';
+    if(cur.tEcoDir>0)txt+=' L\'économie directe de '+Math.round(cur.tEcoDir).toLocaleString('fr-CH')+' CHF y a fortement contribué.';
+  }
+
+  // 4) Phrase de synthèse sur les 2 derniers mois
+  if(prev.hasData){
+    var moy=Math.round((cur.pctObj+prev.pctObj)/2);
+    txt+='\n\nSur les deux derniers mois ('+prev.label+' et '+cur.label+'), la moyenne s\'établit à '+moy+'% de l\'objectif';
+    if(moy>=100){
+      txt+=', un résultat solide qui confirme la rentabilité de la maintenance interne.';
+    }else if(prev.atteint&&!cur.atteint){
+      txt+=' : un très bon mois suivi d\'un mois plus orienté vers les tâches non chiffrables, ce qui est normal et cyclique.';
+    }else{
+      txt+=', avec une marge de progression sur les interventions chiffrables.';
+    }
+  }
+
+  document.getElementById('rapportAnalyse').value=txt;
+  toast('Analyse générée — tu peux la modifier');
+}
+
+// Majuscule en début de chaîne
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s}
+
+
+
 function exportInteractiveHTML(){
   var start=document.getElementById('rStart').value;
   var end=document.getElementById('rEnd').value;
@@ -3167,8 +3314,16 @@ function exportInteractiveHTML(){
   // TABLE
   h+='<div class="sec"><div class="st">Interventions ('+all.length+')</div><div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Site</th><th>Travaux</th><th>Heures</th><th>Int.</th><th>Ext.</th><th>Eco.</th></tr></thead><tbody>'+intRows+'</tbody></table></div></div>';
 
+  // ANALYSE DU MOIS (texte libre saisi par l'utilisateur)
+  var analyseTxt=document.getElementById('rapportAnalyse')?document.getElementById('rapportAnalyse').value.trim():'';
+  if(analyseTxt){
+    var analyseHtml=esc(analyseTxt).replace(/\n/g,'<br>');
+    h+='<div class="sec"><div class="st">📝 Analyse du mois</div>';
+    h+='<div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:14px;padding:1.25rem 1.5rem;line-height:1.7;color:#cbd5e1;font-size:.95rem">'+analyseHtml+'</div></div>';
+  }
+
   // FOOTER
-  h+='<div class="ft">Rapport genere le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Cote <span style="opacity:.4;font-size:.65rem">· v5 · debug tEcoDir='+tEcoDir.toFixed(2)+' CHF ('+getEcoDir().filter(function(x){return x.date>=start&&x.date<=end}).length+' entrées entre '+start+' et '+end+')</span></div>';
+  h+='<div class="ft">Rapport genere le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' — McDonald\'s La Cote</div>';
 
   // MODAL HTML
   h+='<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-hdr"><h3 id="modalTitle"></h3><button class="modal-x" onclick="closeModal()">&times;</button></div><div id="modalBody"></div></div></div>';
