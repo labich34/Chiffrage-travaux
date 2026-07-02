@@ -725,7 +725,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
       <div class="form-group"><label class="form-label">Heures contrat / semaine</label><input type="number" step="1" min="1" class="form-input" id="cfgHeuresContrat" value="42"></div>
-      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 L'objectif inclut : économies interventions + pièces + rush + heures supplémentaires offertes au-delà du contrat.<br>🎁 Les heures supp non payées sont valorisées à 100 CHF/h (coût externe évité, coût interne = 0 CHF).</p></div>
+      <div class="form-group full"><p style="font-size:.75rem;color:var(--text3)">🎯 L'objectif inclut : économies interventions + pièces + rush + heures supplémentaires offertes au-delà du contrat.<br>🎁 Les heures supp non payées sont valorisées à 32.40 CHF/h (taux interne standard).</p></div>
     </div>
   </div>
   <div class="card"><div class="card-title">Taux horaires internes (fixes)</div>
@@ -910,7 +910,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       <span style="color:var(--accent)">① Interventions chiffrables</span> — Électricité, plomberie, carrelage, panneaux solaires, peinture, interventions exceptionnelles, divers. Chaque heure d'intervention technique est valorisée à 32.40 CHF/h en coût interne. Un prestataire externe facturerait selon les tarifs du marché Suisse romande 2025/2026, qui varient par corps de métier (de 105 à 150 CHF/h, voir section 4) plus un forfait déplacement (60 ou 80 CHF). La différence = économie directe.<br><br>
       <span style="color:var(--cyan)">② Économies pièces</span> — Quand le technicien installe lui-même une pièce que le prestataire externe aurait facturée plus cher (marge prestataire), la différence est comptée comme économie.<br><br>
       <span style="color:var(--accent)">③ Heures rush</span> — Quand le technicien travaille pendant les rushes du restaurant (périodes de forte affluence), il assure la continuité de service sans surcoût. Ces heures sont valorisées à 32.40 CHF/h.<br><br>
-      <span style="color:var(--cyan)">④ Heures supplémentaires offertes</span> — Toute heure travaillée au-delà des 42h/semaine contractuelles n'est pas rémunérée. Le technicien choisit librement de les effectuer. Pour l'entreprise, ce sont des heures de travail productif dont le coût interne est de <strong>0 CHF</strong>. Si l'entreprise avait dû sous-traiter ces heures pour les interventions, elle aurait payé 100 CHF/h. L'économie est donc de <strong>100 CHF par heure supplémentaire offerte lors d'une intervention</strong>, sinon c'est le taux normal pour des temps de travail supplémentaires.
+      <span style="color:var(--cyan)">④ Heures supplémentaires offertes</span> — Toute heure travaillée au-delà des 42h/semaine contractuelles n'est pas rémunérée. Le technicien choisit librement de les effectuer. Ces heures de travail productif sont valorisées au taux interne standard de <strong>32.40 CHF/h</strong>, comme tout temps de travail supplémentaire. Elles représentent une contribution mesurable pour l'entreprise.
     </p>
   </div>
 
@@ -924,10 +924,10 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       <strong>B.</strong> Économie pièces = Σ (prix pièce externe − prix pièce interne)<br><br>
       <strong>C.</strong> Rush = heures rush × 32.40 CHF/h<br>
       <span style="color:var(--text3)">Valorisation du travail pendant les pics d'activité</span><br><br>
-      <strong>D.</strong> Heures supp offertes = max(0, heures réelles − heures contrat) × 100 CHF/h<br>
+      <strong>D.</strong> Heures supp offertes = max(0, heures réelles − heures contrat) × 32.40 CHF/h<br>
       <span style="color:var(--text3)">Heures contrat = 42h × nombre de semaines dans la période</span><br>
-      <span style="color:var(--text3)">Coût interne de ces heures = 0 CHF (non rémunérées)</span><br>
-      <span style="color:var(--text3)">Coût externe évité = 100 CHF/h (tarif prestataire)</span>
+      <span style="color:var(--text3)">Heures supp = heures réelles au-delà du contrat, non rémunérées</span><br>
+      <span style="color:var(--text3)">Valorisation = 32.40 CHF/h (taux interne standard)</span>
     </p>
   </div>
 
@@ -3273,7 +3273,7 @@ function exportInteractiveHTML(){
   if(tEcoPieces>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.15s"><div class="kl">Eco. pieces</div><div class="kv" style="color:#22D3EE">'+Math.round(tEcoPieces)+' CHF</div><div class="ks">Achat direct vs sous-traitant</div></div>';
   if(tEcoDir>0)h+='<div class="kp" style="border-color:#A78BFA;animation-delay:.17s" onclick="openModal(\'kpiEcoDir\')"><div class="kl">💎 Eco. directes</div><div class="kv" style="color:#A78BFA">'+Math.round(tEcoDir)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   if(ttRush>0)h+='<div class="kp" style="border-color:#FFC72C;animation-delay:.2s" onclick="openModal(\'kpiRush\')"><div class="kl">Rush chiffrable</div><div class="kv" style="color:#FFC72C">'+Math.round(ttRush)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
-  if(ttHSuppI>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.25s"><div class="kl">🎁 Heures supp offertes</div><div class="kv" style="color:#22D3EE">'+Math.round(ttHSuppI)+' CHF</div><div class="ks">'+fH(ttHSuppH)+' non payees · 100 CHF/h economises</div></div>';
+  if(ttHSuppI>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.25s"><div class="kl">🎁 Heures supp offertes</div><div class="kv" style="color:#22D3EE">'+Math.round(ttHSuppI)+' CHF</div><div class="ks">'+fH(ttHSuppH)+' non payees</div></div>';
   h+='<div class="kp" style="border-color:#FBBF24;animation-delay:.25s" onclick="openModal(\'kpiHeures\')"><div class="kl">Heures totales</div><div class="kv" style="color:#FBBF24">'+fH(tH)+'</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='<div class="kp" style="border-color:#60A5FA;animation-delay:.3s" onclick="openModal(\'kpiInterne\')"><div class="kl">Cout interne</div><div class="kv" style="color:#60A5FA">'+Math.round(tI)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='<div class="kp" style="border-color:#DA2C38;animation-delay:.35s" onclick="openModal(\'kpiExterne\')"><div class="kl">Cout si externe</div><div class="kv" style="color:#DA2C38">'+Math.round(tE)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
@@ -3654,7 +3654,7 @@ function buildTTSummary(startDate,endDate){
   var nbWeeks=diffDays/7;
   var heuresContrat=nbWeeks*(cfg2.heuresContrat||42);
   var heuresSupp=Math.max(0,rH(totalH2)-heuresContrat);
-  var heureSuppEco=Math.round(heuresSupp*cfg2.tauxExterne*100)/100; // cout externe evite, cout interne = 0
+  var heureSuppEco=Math.round(heuresSupp*32.40*100)/100; // valorisees au taux interne standard 32.40 CHF/h
 
   return{
     entries:filtered.length,totalH:rH(totalH2),rushH:rH(rushH),workH:rH(totalH2-rushH),
