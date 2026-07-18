@@ -595,6 +595,47 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 
 <!-- CONFIG -->
 <div class="page" id="page-config">
+  <div class="card" style="border-color:rgba(96,165,250,.3)">
+    <div class="card-title" style="color:var(--blue)">🔄 Sauvegarde automatique GitHub Gist</div>
+    <p style="font-size:.78rem;color:var(--text2);margin-bottom:.75rem">Sauvegarde automatique toutes les heures vers un Gist GitHub prive. Restauration possible depuis n'importe quel appareil.</p>
+    <div id="ghNotConfigured" style="display:none">
+      <div style="padding:1rem;border:1px dashed rgba(255,199,44,.3);border-radius:12px;background:rgba(255,199,44,.04);margin-bottom:.75rem">
+        <div style="font-size:.85rem;color:var(--accent);font-weight:600;margin-bottom:.4rem">Configuration requise</div>
+        <div style="font-size:.78rem;color:var(--text2);line-height:1.5">
+          1. Va sur <strong>github.com/settings/tokens?type=beta</strong><br>
+          2. Cree un token fine-grained avec permission <strong>Gists: Read and write</strong><br>
+          3. Copie le token et colle-le ci-dessous
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full"><label class="form-label">Token GitHub</label><input type="password" class="form-input" id="ghTokenInput" placeholder="github_pat_..."></div>
+        <div class="form-group full"><button class="btn btn-primary" onclick="ghConnect()">🔗 Connecter</button></div>
+      </div>
+      <div id="ghConnectMsg" style="font-size:.78rem;margin-top:.5rem"></div>
+    </div>
+    <div id="ghConfigured" style="display:none">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+        <span id="ghStatusDot" style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block"></span>
+        <span id="ghStatusText" style="font-size:.82rem;color:var(--green);font-weight:600">Connecte</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:.4rem">Derniere sauvegarde : <strong id="ghLastSync" style="color:var(--text)">—</strong></div>
+      <div style="font-size:.78rem;color:var(--text2);margin-bottom:.75rem">Gist ID : <span id="ghGistIdDisplay" style="font-size:.7rem;color:var(--text3);font-family:monospace">—</span></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="ghSyncNow()" style="background:var(--blue)">🔄 Sauvegarder maintenant</button>
+        <button class="btn btn-primary" onclick="ghShowRestore()" style="background:var(--purple)">📥 Restaurer</button>
+        <button class="btn btn-danger" onclick="ghDisconnect()">Deconnecter</button>
+      </div>
+    </div>
+  </div>
+  <div id="ghRestoreModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;padding:1rem;overflow-y:auto">
+    <div style="max-width:500px;margin:2rem auto;background:var(--bg);border:1px solid var(--glass-border);border-radius:var(--radius);padding:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div style="font-size:1rem;font-weight:600;color:var(--purple)">📥 Restaurer une sauvegarde</div>
+        <button class="btn btn-ghost" onclick="ghCloseRestore()" style="padding:.2rem .5rem">✕</button>
+      </div>
+      <div id="ghRestoreList" style="font-size:.82rem;color:var(--text2)">Chargement...</div>
+    </div>
+  </div>
   <div class="card"><div class="card-title">Objectif mensuel</div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Objectif d'économie mensuel (CHF)</label><input type="number" step="100" class="form-input" id="cfgObjectif" value="5000"></div>
@@ -877,6 +918,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+function esc(s){if(s===null||s===undefined)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(String(s)));return d.innerHTML}
 var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe',LS_LASTEND='maint_last_end_time';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
 
@@ -4150,8 +4192,222 @@ function toggleDeplExcPaid(id){
   renderKPIs();
 }
 
+// ========== GITHUB GIST BACKUP ==========
+var LS_GH_TOKEN='maint_gh_token';
+var LS_GH_GIST='maint_gh_gist_id';
+var LS_GH_SYNC='maint_last_sync';
+var LS_GH_HASH='maint_last_hash';
+var GIST_FILENAME='maintenance_lacote_backup.json';
+var ghSyncInterval=null;
+
+function ghObfuscate(t){var r='';for(var i=0;i<t.length;i++){r+=String.fromCharCode(t.charCodeAt(i)^42)}return btoa(r)}
+function ghDeobfuscate(t){try{var d=atob(t);var r='';for(var i=0;i<d.length;i++){r+=String.fromCharCode(d.charCodeAt(i)^42)}return r}catch(e){return''}}
+
+function ghGetToken(){var raw=localStorage.getItem(LS_GH_TOKEN);if(!raw)return null;return ghDeobfuscate(raw)}
+function ghSetToken(t){localStorage.setItem(LS_GH_TOKEN,ghObfuscate(t))}
+function ghGetGistId(){return localStorage.getItem(LS_GH_GIST)||null}
+function ghSetGistId(id){localStorage.setItem(LS_GH_GIST,id)}
+
+function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h.toString(36)}
+
+function ghBuildPayload(){return JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:JSON.parse(localStorage.getItem(LS_ECODIR)||'[]'),backup_date:new Date().toISOString()})}
+
+function ghTestToken(token,cb){
+  fetch('https://api.github.com/user',{
+    headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
+  }).then(function(r){
+    if(!r.ok){cb(false,'HTTP '+r.status);return}
+    return r.json();
+  }).then(function(d){if(d)cb(true,d.login||'OK')}).catch(function(e){cb(false,e.message)});
+}
+
+function ghCreateGist(token,payload,cb){
+  var body={description:'McDonald\'s La Cote - Maintenance backup (auto)',public:false,files:{}};
+  body.files[GIST_FILENAME]={content:payload};
+  fetch('https://api.github.com/gists',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(!r.ok){r.text().then(function(t){cb(false,'HTTP '+r.status)});return}
+    return r.json();
+  }).then(function(d){if(d)cb(true,d.id)}).catch(function(e){cb(false,e.message)});
+}
+
+function ghUpdateGist(token,gistId,payload,cb){
+  var body={files:{}};
+  body.files[GIST_FILENAME]={content:payload};
+  fetch('https://api.github.com/gists/'+gistId,{
+    method:'PATCH',
+    headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(!r.ok){cb(false,'HTTP '+r.status);return}
+    return r.json();
+  }).then(function(d){if(d)cb(true,d.id)}).catch(function(e){cb(false,e.message)});
+}
+
+function ghConnect(){
+  var token=document.getElementById('ghTokenInput').value.trim();
+  var msg=document.getElementById('ghConnectMsg');
+  if(!token){msg.innerHTML='<span style="color:var(--red)">Token requis</span>';return}
+  msg.innerHTML='<span style="color:var(--accent)">Test en cours...</span>';
+  ghTestToken(token,function(ok,info){
+    if(!ok){msg.innerHTML='<span style="color:var(--red)">Echec : '+esc(info)+'</span>';return}
+    msg.innerHTML='<span style="color:var(--green)">Connecte comme '+esc(info)+' ! Creation du Gist...</span>';
+    ghSetToken(token);
+    var payload=ghBuildPayload();
+    ghCreateGist(token,payload,function(ok2,gistId){
+      if(!ok2){msg.innerHTML='<span style="color:var(--red)">Erreur creation Gist : '+esc(gistId)+'</span>';return}
+      ghSetGistId(gistId);
+      localStorage.setItem(LS_GH_SYNC,new Date().toISOString());
+      localStorage.setItem(LS_GH_HASH,simpleHash(payload));
+      toast('Sauvegarde GitHub connectee');
+      ghInitUI();
+      ghStartAutoSync();
+    });
+  });
+}
+
+function ghDisconnect(){
+  if(!confirm('Deconnecter la sauvegarde GitHub ? Les donnees locales ne seront pas affectees.'))return;
+  localStorage.removeItem(LS_GH_TOKEN);
+  localStorage.removeItem(LS_GH_GIST);
+  localStorage.removeItem(LS_GH_SYNC);
+  localStorage.removeItem(LS_GH_HASH);
+  if(ghSyncInterval){clearInterval(ghSyncInterval);ghSyncInterval=null}
+  toast('Sauvegarde deconnectee');
+  ghInitUI();
+}
+
+function ghSyncNow(){
+  var token=ghGetToken();var gistId=ghGetGistId();
+  if(!token||!gistId){toast('Pas configure');return}
+  var payload=ghBuildPayload();
+  ghSetStatus('syncing');
+  ghUpdateGist(token,gistId,payload,function(ok,info){
+    if(!ok){ghSetStatus('error');toast('Erreur sync : '+info);return}
+    localStorage.setItem(LS_GH_SYNC,new Date().toISOString());
+    localStorage.setItem(LS_GH_HASH,simpleHash(payload));
+    ghSetStatus('ok');
+    ghUpdateLastSync();
+    toast('Sauvegarde OK');
+  });
+}
+
+function ghAutoSync(){
+  var token=ghGetToken();var gistId=ghGetGistId();
+  if(!token||!gistId)return;
+  var payload=ghBuildPayload();
+  var hash=simpleHash(payload);
+  var lastHash=localStorage.getItem(LS_GH_HASH)||'';
+  if(hash===lastHash)return;
+  ghSetStatus('syncing');
+  ghUpdateGist(token,gistId,payload,function(ok,info){
+    if(!ok){ghSetStatus('error');return}
+    localStorage.setItem(LS_GH_SYNC,new Date().toISOString());
+    localStorage.setItem(LS_GH_HASH,hash);
+    ghSetStatus('ok');
+    ghUpdateLastSync();
+  });
+}
+
+function ghStartAutoSync(){
+  if(ghSyncInterval)clearInterval(ghSyncInterval);
+  ghSyncInterval=setInterval(ghAutoSync,3600000);
+}
+
+function ghSetStatus(s){
+  var dot=document.getElementById('ghStatusDot');
+  var txt=document.getElementById('ghStatusText');
+  if(!dot||!txt)return;
+  if(s==='ok'){dot.style.background='var(--green)';txt.style.color='var(--green)';txt.textContent='Connecte';}
+  else if(s==='syncing'){dot.style.background='var(--accent)';txt.style.color='var(--accent)';txt.textContent='Synchronisation...';}
+  else if(s==='error'){dot.style.background='var(--red)';txt.style.color='var(--red)';txt.textContent='Erreur sync';}
+}
+
+function ghUpdateLastSync(){
+  var el=document.getElementById('ghLastSync');
+  if(!el)return;
+  var d=localStorage.getItem(LS_GH_SYNC);
+  if(!d){el.textContent='—';return}
+  var dt=new Date(d);
+  el.textContent=dt.toLocaleDateString('fr-CH')+' '+dt.toLocaleTimeString('fr-CH',{hour:'2-digit',minute:'2-digit'});
+}
+
+function ghInitUI(){
+  var token=ghGetToken();
+  var gistId=ghGetGistId();
+  var notCfg=document.getElementById('ghNotConfigured');
+  var cfgd=document.getElementById('ghConfigured');
+  if(!notCfg||!cfgd)return;
+  if(token&&gistId){
+    notCfg.style.display='none';
+    cfgd.style.display='block';
+    var gid=document.getElementById('ghGistIdDisplay');
+    if(gid)gid.textContent=gistId;
+    ghUpdateLastSync();
+    ghSetStatus('ok');
+    ghStartAutoSync();
+  }else{
+    notCfg.style.display='block';
+    cfgd.style.display='none';
+  }
+}
+
+function ghShowRestore(){
+  var token=ghGetToken();var gistId=ghGetGistId();
+  if(!token||!gistId)return;
+  document.getElementById('ghRestoreModal').style.display='block';
+  var list=document.getElementById('ghRestoreList');
+  list.innerHTML='<span style="color:var(--accent)">Chargement des versions...</span>';
+  fetch('https://api.github.com/gists/'+gistId,{
+    headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
+  }).then(function(r){return r.json()}).then(function(d){
+    if(!d||!d.history){list.innerHTML='<span style="color:var(--red)">Erreur</span>';return}
+    var html='';
+    d.history.forEach(function(v,i){
+      var dt=new Date(v.committed_at);
+      var label=dt.toLocaleDateString('fr-CH')+' '+dt.toLocaleTimeString('fr-CH',{hour:'2-digit',minute:'2-digit'});
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;border-bottom:1px solid var(--glass-border)">';
+      html+='<span>'+label+(i===0?' <span style="color:var(--green);font-size:.7rem;font-weight:600">DERNIERE</span>':'')+'</span>';
+      html+='<button class="btn btn-primary" style="padding:.25rem .6rem;font-size:.75rem;background:var(--purple)" onclick="ghRestoreVersion(\''+v.version+'\')">Restaurer</button>';
+      html+='</div>';
+    });
+    if(!html)html='<span style="color:var(--text3)">Aucune version trouvee</span>';
+    list.innerHTML=html;
+  }).catch(function(e){list.innerHTML='<span style="color:var(--red)">Erreur : '+esc(e.message)+'</span>'});
+}
+
+function ghCloseRestore(){document.getElementById('ghRestoreModal').style.display='none'}
+
+function ghRestoreVersion(versionId){
+  if(!confirm('Restaurer cette version ? Les donnees actuelles seront ecrasees.'))return;
+  var token=ghGetToken();var gistId=ghGetGistId();
+  fetch('https://api.github.com/gists/'+gistId+'/'+versionId,{
+    headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
+  }).then(function(r){return r.json()}).then(function(d){
+    if(!d||!d.files||!d.files[GIST_FILENAME]){toast('Fichier introuvable');return}
+    var content=d.files[GIST_FILENAME].content;
+    try{
+      var j=JSON.parse(content);
+      if(j.interventions)setData(j.interventions);
+      if(j.config)saveConfigData(j.config);
+      if(j.contrats)setContrats(j.contrats);
+      if(j.tt_entries){localStorage.setItem('tt_entries',JSON.stringify(j.tt_entries))}
+      if(j.tt_exc_trips){localStorage.setItem('tt_exc_trips',JSON.stringify(j.tt_exc_trips))}
+      if(j.tt_settings){localStorage.setItem('tt_settings',JSON.stringify(j.tt_settings))}
+      if(j.depl_exc){localStorage.setItem(LS_DEXC,JSON.stringify(j.depl_exc))}
+      if(j.eco_directe){localStorage.setItem(LS_ECODIR,JSON.stringify(j.eco_directe))}
+      toast('Restauration OK');
+      ghCloseRestore();
+      refresh();
+    }catch(e){toast('Erreur parsing : '+e.message)}
+  }).catch(function(e){toast('Erreur : '+e.message)});
+}
+
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();ghInitUI();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(function(r){console.log('SW ok')}).catch(function(e){console.log('SW err',e)})}
 </script>
