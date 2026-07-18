@@ -1,0 +1,22 @@
+{
+  "name": "McDonald's La Côte — Suivi Maintenance",
+  "short_name": "Maintenance",
+  "description": "Suivi maintenance McDonald's La Côte",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0f1e",
+  "theme_color": "#0a0f1e",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
