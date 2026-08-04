@@ -1949,6 +1949,10 @@ function genRapport(){
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
+  // Delegation
+  var nDeleg=all.filter(function(i){return isDelegue(i)}).length;
+  var hDeleg=heuresDeleguees(all);
+  var ecoDeleg=ecoDelegation(all);
 
   // Monthly data
   var months={};all.forEach(function(i){
@@ -1998,6 +2002,7 @@ function genRapport(){
     (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
     (tEcoDir>0?'<div class="rpt-big-sub" style="color:var(--purple)">dont '+fmt(tEcoDir)+' économies directes (garanties, négociations)</div>':'')+
     (ttRushRpt1>0?'<div class="rpt-big-sub" style="color:var(--accent)">dont '+fmt(ttRushRpt1)+' rush chiffrable ('+fH(ttRpt1.rushH)+' x 32.40 CHF/h)</div>':'')+
+    (nDeleg>0?'<div class="rpt-big-sub" style="color:var(--purple)">dont '+nDeleg+' intervention'+(nDeleg>1?'s':'')+' déléguée'+(nDeleg>1?'s':'')+' — '+fH(hDeleg)+' de temps libéré</div>':'')+
     '</div>';
 
   // 3. KPIs DETAILLES
@@ -2014,6 +2019,7 @@ function genRapport(){
     '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">tarifs marché Suisse romande</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+combinedKm.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(combinedFuel)+' carburant</div></div>'+
+    (nDeleg>0?'<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">👥 Délégation</div><div class="rpt-kpi-val" style="color:var(--purple)">'+fH(hDeleg)+'</div><div class="rpt-kpi-sub">'+nDeleg+' interv. · +'+fmt(ecoDeleg)+' d\'éco. suppl.</div></div>':'')+
     '</div></div>';
 
   // 4. GRAPHIQUES
@@ -2243,6 +2249,9 @@ function genRapportInto(start,end,targetId){
   var tMat=all.reduce(function(s,i){return s+(i.materiel||0)},0);
   var nSpec=all.filter(function(i){return i.type==='specialisee'}).length;
   var nStd=all.length-nSpec;
+  var nDeleg2=all.filter(function(i){return isDelegue(i)}).length;
+  var hDeleg2=heuresDeleguees(all);
+  var ecoDeleg2=ecoDelegation(all);
   var uid=targetId+'_'+Date.now();
 
   // Site data
@@ -2286,6 +2295,7 @@ function genRapportInto(start,end,targetId){
     (tEcoPieces>0?'<div class="rpt-big-sub" style="color:var(--cyan)">dont '+fmt(tEcoPieces)+' économisés sur l\'achat de pièces</div>':'')+
     (tEcoDir>0?'<div class="rpt-big-sub" style="color:var(--purple)">dont '+fmt(tEcoDir)+' économies directes (garanties, négociations)</div>':'')+
     (ttRushRpt2>0?'<div class="rpt-big-sub" style="color:var(--accent)">dont '+fmt(ttRushRpt2)+' rush chiffrable ('+fH(ttRpt2.rushH)+' x 32.40 CHF/h)</div>':'')+
+    (nDeleg2>0?'<div class="rpt-big-sub" style="color:var(--purple)">dont '+nDeleg2+' intervention'+(nDeleg2>1?'s':'')+' déléguée'+(nDeleg2>1?'s':'')+' — '+fH(hDeleg2)+' de temps libéré</div>':'')+
     '</div>';
 
   // KPIs
@@ -2302,6 +2312,7 @@ function genRapportInto(start,end,targetId){
     '<div class="rpt-kpi-card" style="border-color:var(--red)"><div class="rpt-kpi-label">Coût si externe</div><div class="rpt-kpi-val" style="color:var(--red)">'+fmt(tE)+'</div><div class="rpt-kpi-sub">tarifs marché Suisse romande</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">Interventions</div><div class="rpt-kpi-val" style="color:var(--purple)">'+all.length+'</div><div class="rpt-kpi-sub">'+nStd+' standard · '+nSpec+' spécialisées</div></div>'+
     '<div class="rpt-kpi-card" style="border-color:var(--orange)"><div class="rpt-kpi-label">Déplacements</div><div class="rpt-kpi-val" style="color:var(--orange)">'+combinedKm2.toFixed(0)+' km</div><div class="rpt-kpi-sub">'+fmt2(combinedFuel2)+' carburant</div></div>'+
+    (nDeleg2>0?'<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">👥 Délégation</div><div class="rpt-kpi-val" style="color:var(--purple)">'+fH(hDeleg2)+'</div><div class="rpt-kpi-sub">'+nDeleg2+' interv. · +'+fmt(ecoDeleg2)+' d\'éco. suppl.</div></div>':'')+
     '</div></div>';
 
   // CHARTS
@@ -2707,6 +2718,9 @@ function exportTrimestrielHTML(){
       ecoTotale:Math.round(ecoTotale),pct:Math.round(pct*10)/10,
       nbInt:nbInt,hChiffr:hc,tH:tH2,ttH:rH(ttTotalH),
       ci:Math.round(tI),ce:Math.round(tE),
+      nDeleg:d.filter(function(i){return isDelegue(i)}).length,
+      hDeleg:heuresDeleguees(d),
+      ecoDeleg:ecoDelegation(d),
       atteint:pct>=100
     };
   }
@@ -2846,6 +2860,7 @@ function exportTrimestrielHTML(){
     if(dm.rushEco>0)details.push(dm.rushEco.toLocaleString('fr-CH')+' CHF de rush ('+fH(dm.rushH)+')');
     if(dm.hSuppEco>0)details.push(dm.hSuppEco.toLocaleString('fr-CH')+' CHF de '+fH(dm.hSupp)+' heures supplémentaires offertes');
     if(details.length)h+='<p style="color:#94a3b8;font-size:.82rem;margin-left:1rem">Composé de : '+details.join(' + ')+'.</p>';
+    if(dm.nDeleg>0)h+='<p style="color:#A78BFA;font-size:.82rem;margin-left:1rem">👥 Délégation : '+dm.nDeleg+' intervention'+(dm.nDeleg>1?'s':'')+' confiée'+(dm.nDeleg>1?'s':'')+' à un tiers, libérant '+fH(dm.hDeleg)+' de temps technicien et générant '+Math.round(dm.ecoDeleg).toLocaleString('fr-CH')+' CHF d\'économie supplémentaire.</p>';
     h+='<br>';
   });
 
@@ -2857,6 +2872,18 @@ function exportTrimestrielHTML(){
   else if(trendLabel==='creux puis remontée')h+='<span class="good">Après un creux en '+d2.label+', les économies sont reparties à la hausse en '+d3.label+'. La dynamique est positive.</span>';
   else h+='<span class="neutral">Les économies sont restées globalement stables sur la période.</span>';
   h+='</p><br>';
+
+  // Synthese delegation
+  var totDeleg=months3.reduce(function(s,m){return s+m.nDeleg},0);
+  if(totDeleg>0){
+    var totHDeleg=rH(months3.reduce(function(s,m){return s+m.hDeleg},0));
+    var totEcoDeleg=Math.round(months3.reduce(function(s,m){return s+m.ecoDeleg},0));
+    h+='<p><strong>👥 Délégation et capacité :</strong> ';
+    h+='<span class="good">Sur le trimestre, <strong>'+totDeleg+' intervention'+(totDeleg>1?'s ont':' a')+' été déléguée'+(totDeleg>1?'s':'')+'</strong> à des intervenants tiers, libérant <strong>'+fH(totHDeleg)+'</strong> de temps technicien ';
+    h+='et générant <strong>'+totEcoDeleg.toLocaleString('fr-CH')+' CHF d\'économie supplémentaire</strong> (taux délégué inférieur au taux interne). ';
+    h+='Ce temps libéré a été réinvesti sur d\'autres interventions chiffrables : la délégation augmente le volume de travaux traités sans augmenter le coût, tout en maintenant la maîtrise technique en interne.</span>';
+    h+='</p><br>';
+  }
 
   // Verdict prime
   h+='<p style="font-size:1rem;padding:1rem;border-radius:12px;'+(allAtteint?'background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2)':'background:rgba(218,44,56,.06);border:1px solid rgba(218,44,56,.15)')+'">';
