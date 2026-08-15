@@ -1,8 +1,9 @@
-var CACHE_NAME = 'maint-v1';
+var CACHE_NAME = 'maint-v2';
 var ASSETS = [
   './',
   './index.html',
   'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap',
+  'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
@@ -30,13 +31,17 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  // Skip non-GET and GitHub API calls (Gist sync must go live)
   if (e.request.method !== 'GET') return;
   if (e.request.url.indexOf('api.github.com') !== -1) return;
 
+  var url = e.request.url;
+  var isNav = e.request.mode === 'navigate' ||
+              url.indexOf('index.html') !== -1 ||
+              url.charAt(url.length - 1) === '/';
+  var req = isNav ? new Request(url, { cache: 'no-store' }) : e.request;
+
   e.respondWith(
-    fetch(e.request).then(function(response) {
-      // Cache successful responses
+    fetch(req).then(function(response) {
       if (response && response.status === 200) {
         var clone = response.clone();
         caches.open(CACHE_NAME).then(function(cache) {
@@ -45,7 +50,6 @@ self.addEventListener('fetch', function(e) {
       }
       return response;
     }).catch(function() {
-      // Offline: serve from cache
       return caches.match(e.request);
     })
   );
