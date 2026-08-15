@@ -558,6 +558,18 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     </div>
     <div id="tempsContent"></div>
   </div>
+
+  <div class="card" style="border-color:var(--purple)">
+    <div class="card-title" style="color:var(--purple)">🏖 Absences / Congés</div>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Déclarez vos périodes d'absence (congés, maladie…). Les jours ouvrés (lundi→vendredi) sont déduits de l'objectif d'heures contrat sur les rapports. Les week-ends ne sont jamais comptés.</p>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Du</label><input type="date" class="form-input" id="absFrom"></div>
+      <div class="form-group"><label class="form-label">Au</label><input type="date" class="form-input" id="absTo"></div>
+      <div class="form-group full"><label class="form-label">Motif (optionnel)</label><input type="text" class="form-input" id="absMotif" placeholder="Congés, maladie, formation…"></div>
+      <div class="form-group full"><button class="btn btn-primary" onclick="addAbsence()" style="background:var(--purple);color:#fff">+ Ajouter l'absence</button></div>
+    </div>
+    <div id="absList" style="margin-top:.75rem"></div>
+  </div>
 </div>
 
 <!-- RAPPORT -->
@@ -836,7 +848,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
       <strong>C.</strong> Rush = heures rush × 32.40 CHF/h<br>
       <span style="color:var(--text3)">Valorisation du travail pendant les pics d'activité</span><br><br>
       <strong>D.</strong> Heures supp offertes = max(0, heures réelles − heures contrat) × 100 CHF/h<br>
-      <span style="color:var(--text3)">Heures contrat = 42h × nombre de semaines dans la période</span><br>
+      <span style="color:var(--text3)">Heures contrat = 42h × nombre de semaines de la période (calendaire, jours ÷ 7) − heures d'absence (jours ouvrés lun-ven × 8.4h)</span><br>
       <span style="color:var(--text3)">Coût interne de ces heures = 0 CHF (non rémunérées)</span><br>
       <span style="color:var(--text3)">Coût externe évité = 100 CHF/h (tarif prestataire)</span>
     </p>
@@ -3106,6 +3118,7 @@ function exportInteractiveHTML(){
   if(tEcoDir>0)h+='<div class="kp" style="border-color:#A78BFA;animation-delay:.18s" onclick="openModal(\'kpiEcoDir\')"><div class="kl">💎 Economies directes</div><div class="kv" style="color:#A78BFA">'+Math.round(tEcoDir)+' CHF</div><div class="ks">Garanties, negociations — cliquez</div></div>';
   if(ttRush>0)h+='<div class="kp" style="border-color:#FFC72C;animation-delay:.2s" onclick="openModal(\'kpiRush\')"><div class="kl">Rush chiffrable</div><div class="kv" style="color:#FFC72C">'+Math.round(ttRush)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   if(ttHSuppI>0)h+='<div class="kp" style="border-color:#22D3EE;animation-delay:.25s"><div class="kl">🎁 Heures supp offertes</div><div class="kv" style="color:#22D3EE">'+Math.round(ttHSuppI)+' CHF</div><div class="ks">'+fH(ttHSuppH)+' non payees · 100 CHF/h economises</div></div>';
+  if(ttRpt&&ttRpt.joursAbsence>0)h+='<div class="kp" style="border-color:#A78BFA;animation-delay:.25s"><div class="kl">🏖 Absences / Conges</div><div class="kv" style="color:#A78BFA">'+ttRpt.joursAbsence+' j</div><div class="ks">'+fH(ttRpt.heuresAbsence)+' deduites · objectif ajuste a '+fH(ttRpt.heuresContrat)+'</div></div>';
   h+='<div class="kp" style="border-color:#FBBF24;animation-delay:.25s" onclick="openModal(\'kpiHeures\')"><div class="kl">Heures totales</div><div class="kv" style="color:#FBBF24">'+fH(tH)+'</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='<div class="kp" style="border-color:#60A5FA;animation-delay:.3s" onclick="openModal(\'kpiInterne\')"><div class="kl">Cout interne</div><div class="kv" style="color:#60A5FA">'+Math.round(tI)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
   h+='<div class="kp" style="border-color:#DA2C38;animation-delay:.35s" onclick="openModal(\'kpiExterne\')"><div class="kl">Cout si externe</div><div class="kv" style="color:#DA2C38">'+Math.round(tE)+' CHF</div><div class="ks">Cliquez pour le detail</div></div>';
@@ -3428,6 +3441,29 @@ function getTTEntries(){try{return JSON.parse(localStorage.getItem('tt_entries')
 function getTTExcTrips(){try{return JSON.parse(localStorage.getItem('tt_exc_trips')||'[]')}catch(e){return[]}}
 function getTTSettings(){try{var s=JSON.parse(localStorage.getItem('tt_settings')||'{}');return{fuelPrice:s.fuelPrice||1.90,fuelConso:s.fuelConso||8}}catch(e){return{fuelPrice:1.90,fuelConso:8}}}
 
+// ===== ABSENCES / CONGES =====
+function getAbsences(){try{var a=JSON.parse(localStorage.getItem('maint_absences')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function setAbsences(a){localStorage.setItem('maint_absences',JSON.stringify(a))}
+// Compte les jours ouvres (lundi->vendredi) entre deux dates AAAA-MM-JJ incluses
+function countWeekdays(from,to){
+  if(!from||!to)return 0;
+  var d1=new Date(from+'T00:00:00');var d2=new Date(to+'T00:00:00');
+  if(isNaN(d1)||isNaN(d2)||d2<d1)return 0;
+  var n=0;var cur=new Date(d1.getTime());
+  while(cur<=d2){var wd=cur.getDay();if(wd!==0&&wd!==6)n++;cur.setDate(cur.getDate()+1)}
+  return n;
+}
+// Jours ouvres d'absence intersectes avec la periode [start,end]
+function absenceWeekdaysInPeriod(start,end){
+  var abs=getAbsences();var total=0;
+  for(var i=0;i<abs.length;i++){
+    var a=abs[i];if(!a.from||!a.to)continue;
+    var from=a.from>start?a.from:start;var to=a.to<end?a.to:end;
+    if(from<=to)total+=countWeekdays(from,to);
+  }
+  return total;
+}
+
 function calcTTTransports(entries,ttSettings){
   var totalKm=0,totalCost=0,trips=0;
   var byDate={};
@@ -3475,11 +3511,16 @@ function buildTTSummary(startDate,endDate){
 
   // Heures supplementaires offertes (au-dela du contrat)
   var cfg2=getConfig();
-  // Nombre de semaines dans la periode (arrondi au plus juste)
+  // Reference calendaire : (nombre de jours de la periode / 7) x 42h
   var d1=new Date(startDate);var d2=new Date(endDate);
   var diffDays=Math.round((d2-d1)/(1000*60*60*24))+1;
   var nbWeeks=diffDays/7;
-  var heuresContrat=nbWeeks*(cfg2.heuresContrat||42);
+  var heuresContratBrut=nbWeeks*(cfg2.heuresContrat||42);
+  // Deduction des absences / conges (jours ouvres lun-ven, weekends non comptes)
+  var joursAbsence=absenceWeekdaysInPeriod(startDate,endDate);
+  var heuresParJour=(cfg2.heuresContrat||42)/5;
+  var heuresAbsence=rH(joursAbsence*heuresParJour);
+  var heuresContrat=Math.max(0,rH(heuresContratBrut-heuresAbsence));
   var heuresSupp=Math.max(0,rH(totalH2)-heuresContrat);
   var heureSuppEco=Math.round(heuresSupp*cfg2.tauxExterne*100)/100; // cout externe evite, cout interne = 0
 
@@ -3488,6 +3529,7 @@ function buildTTSummary(startDate,endDate){
     rushCostInt:Math.round(rH(rushH)*32.40*100)/100,
     rushTaux:32.40,
     heuresSupp:rH(heuresSupp),heureSuppEco:heureSuppEco,heuresContrat:rH(heuresContrat),
+    joursAbsence:joursAbsence,heuresAbsence:heuresAbsence,heuresContratBrut:rH(heuresContratBrut),
     siteH:siteH,siteCount:siteCount,
     interSiteKm:transport.km,interSiteCost:transport.cost,interSiteTrips:transport.trips,
     excKm:Math.round(excKm*10)/10,excCost:Math.round(excCost*100)/100,excTrips:excF.length,
@@ -3502,6 +3544,9 @@ function renderTTKpiHtml(tt){
 
   var html='<div class="rpt-kpi-grid" style="margin-top:.75rem">';
   html+='<div class="rpt-kpi-card" style="border-color:var(--accent)"><div class="rpt-kpi-label">Heures travaillées</div><div class="rpt-kpi-val" style="color:var(--accent)">'+fH(tt.totalH)+'</div><div class="rpt-kpi-sub">'+fH(tt.workH)+' travail · '+fH(tt.rushH)+' rush</div></div>';
+  if(tt.joursAbsence>0){
+    html+='<div class="rpt-kpi-card" style="border-color:var(--purple)"><div class="rpt-kpi-label">🏖 Absences / Congés</div><div class="rpt-kpi-val" style="color:var(--purple)">'+tt.joursAbsence+' j</div><div class="rpt-kpi-sub">'+fH(tt.heuresAbsence)+' déduites · objectif ajusté à '+fH(tt.heuresContrat)+' (base '+fH(tt.heuresContratBrut)+')</div></div>';
+  }
   if(tt.rushH>0){
     html+='<div class="rpt-kpi-card" style="border-color:var(--green)"><div class="rpt-kpi-label">⚡ Rush (chiffrable)</div><div class="rpt-kpi-val" style="color:var(--green)">'+fmt(tt.rushCostInt)+'</div><div class="rpt-kpi-sub">'+fH(tt.rushH)+' x '+tt.rushTaux+' CHF/h — coût interne uniquement</div></div>';
   }
@@ -3609,6 +3654,51 @@ function renderTemps(){
   else{var p=fm.split('-');start=fm+'-01';end=new Date(parseInt(p[0]),parseInt(p[1]),0).toISOString().slice(0,10)}
   var tt=buildTTSummary(start,end);
   document.getElementById('tempsContent').innerHTML=renderTTKpiHtml(tt);
+  renderAbsences();
+}
+
+function addAbsence(){
+  var from=document.getElementById('absFrom').value;
+  var to=document.getElementById('absTo').value;
+  var motif=document.getElementById('absMotif').value.trim();
+  if(!from||!to){toast('Renseignez les deux dates');return}
+  if(to<from){toast('La date de fin précède le début');return}
+  var jo=countWeekdays(from,to);
+  if(jo===0){toast('Aucun jour ouvré sur cette période');return}
+  var abs=getAbsences();
+  abs.push({id:Date.now(),from:from,to:to,motif:motif||'Absence'});
+  abs.sort(function(a,b){return a.from<b.from?-1:a.from>b.from?1:0});
+  setAbsences(abs);
+  document.getElementById('absFrom').value='';document.getElementById('absTo').value='';document.getElementById('absMotif').value='';
+  toast(jo+' jour(s) ouvré(s) enregistré(s)');
+  refresh();
+}
+function delAbsence(id){
+  if(!confirm('Supprimer cette absence ?'))return;
+  setAbsences(getAbsences().filter(function(a){return a.id!==id}));
+  toast('Absence supprimée');
+  refresh();
+}
+function renderAbsences(){
+  var el=document.getElementById('absList');if(!el)return;
+  var abs=getAbsences();
+  if(!abs.length){el.innerHTML='<div style="padding:.75rem;color:var(--text3);text-align:center;font-size:.82rem">Aucune absence déclarée.</div>';return}
+  var hpj=(getConfig().heuresContrat||42)/5;
+  var html='';var totJ=0;
+  abs.forEach(function(a){
+    var jo=countWeekdays(a.from,a.to);totJ+=jo;
+    html+='<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-xs);margin-bottom:.4rem">'+
+      '<span style="width:8px;height:8px;border-radius:50%;background:var(--purple);flex:none"></span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:.84rem;font-weight:600;color:var(--text)">'+esc(a.motif)+'</div>'+
+        '<div style="font-size:.72rem;color:var(--text3)">'+fD(a.from)+' → '+fD(a.to)+' · '+jo+' j ouvrés · '+fH(rH(jo*hpj))+' déduites</div>'+
+      '</div>'+
+      '<button class="btn btn-ghost" style="padding:.2rem .5rem;font-size:.75rem;color:var(--red);flex:none" onclick="delAbsence('+a.id+')">🗑</button>'+
+      '</div>';
+  });
+  html+='<div style="display:flex;justify-content:flex-end;gap:.5rem;padding:.4rem .7rem;border-top:1px solid var(--bg4);margin-top:.2rem">'+
+    '<span style="font-size:.78rem;font-weight:700;color:var(--purple)">Total : '+totJ+' j ouvrés · '+fH(rH(totJ*hpj))+'</span></div>';
+  el.innerHTML=html;
 }
 
 function importTTJSON(event){
@@ -3985,13 +4075,14 @@ function renderHistorique(){
 }
 
 // ========== EXPORT/IMPORT ==========
-function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),absences:getAbsences()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
 function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);var total=0;
 if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));total+=nw.length;if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc));total+=nc.length}}
 var ttNew=j.tt_entries||j.entries||[];if(Array.isArray(ttNew)&&ttNew.length){var ttEx=getTTEntries();var ttIds={};ttEx.forEach(function(x){ttIds[x.id]=true});var ttAdd=ttNew.filter(function(x){return x.id&&!ttIds[x.id]&&x.date&&x.site});if(ttAdd.length){ttEx=ttEx.concat(ttAdd);ttEx.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});localStorage.setItem('tt_entries',JSON.stringify(ttEx));total+=ttAdd.length}}
 var excNew=j.tt_exc_trips||j.excTrips||[];if(Array.isArray(excNew)&&excNew.length){var excEx=getTTExcTrips();var excIds={};excEx.forEach(function(x){excIds[x.id]=true});var excAdd=excNew.filter(function(x){return x.id&&!excIds[x.id]});if(excAdd.length){excEx=excEx.concat(excAdd);localStorage.setItem('tt_exc_trips',JSON.stringify(excEx));total+=excAdd.length}}
 if(j.tt_settings)localStorage.setItem('tt_settings',JSON.stringify(j.tt_settings));
+var absNew=j.absences||[];if(Array.isArray(absNew)&&absNew.length){var absEx=getAbsences();var absIds={};absEx.forEach(function(x){absIds[x.id]=true});var absAdd=absNew.filter(function(x){return x.id&&!absIds[x.id]&&x.from&&x.to});if(absAdd.length){absEx=absEx.concat(absAdd);absEx.sort(function(a,b){return a.from<b.from?-1:1});setAbsences(absEx);total+=absAdd.length}}
 var deNew=j.depl_exc||[];if(Array.isArray(deNew)&&deNew.length){var deEx=getDeplExc();var deIds={};deEx.forEach(function(x){deIds[x.id]=true});var deAdd=deNew.filter(function(x){return x.id&&!deIds[x.id]});if(deAdd.length){deEx=deEx.concat(deAdd);deEx.sort(function(a,b){return a.date>b.date?-1:1});setDeplExc(deEx);total+=deAdd.length}}
 toast(total+' elements importes');refresh()}catch(err){toast('Fichier invalide')}};r.readAsText(f);e.target.value=''}
 
@@ -4295,7 +4386,7 @@ function ghSetGistId(id){localStorage.setItem(LS_GH_GIST,id)}
 
 function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h.toString(36)}
 
-function ghBuildPayload(){return JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:JSON.parse(localStorage.getItem(LS_ECODIR)||'[]'),backup_date:new Date().toISOString()})}
+function ghBuildPayload(){return JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:JSON.parse(localStorage.getItem(LS_ECODIR)||'[]'),absences:getAbsences(),backup_date:new Date().toISOString()})}
 
 function ghTestToken(token,cb){
   fetch('https://api.github.com/user',{
@@ -4484,6 +4575,7 @@ function ghRestoreVersion(versionId){
       if(j.tt_settings){localStorage.setItem('tt_settings',JSON.stringify(j.tt_settings))}
       if(j.depl_exc){localStorage.setItem(LS_DEXC,JSON.stringify(j.depl_exc))}
       if(j.eco_directe){localStorage.setItem(LS_ECODIR,JSON.stringify(j.eco_directe))}
+      if(j.absences){setAbsences(j.absences)}
       toast('Restauration OK');
       ghCloseRestore();
       refresh();
