@@ -45,7 +45,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .nav-tab{padding:.5rem 1rem;border-radius:var(--radius-sm);font-size:.85rem;font-weight:500;color:var(--text2);background:transparent;transition:all .3s var(--ease-glass);position:relative}
 .nav-tab:hover{color:var(--text);background:var(--glass-hover)}
 .nav-tab.active{color:var(--accent);background:rgba(255,199,44,.08);box-shadow:0 0 16px rgba(255,199,44,.06),inset 0 0 0 1px rgba(255,199,44,.12);border:1px solid rgba(255,199,44,.1)}
-.container{max-width:1200px;margin:0 auto;padding:1.5rem}
+.container{max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom))}
 .page{display:none}.page.active{display:block;animation:fadeIn .35s ease}
 .card{position:relative;background:var(--bg2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:1.4rem;margin-bottom:1rem;animation:fadeIn .35s ease;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 4px 32px rgba(0,0,0,.28),0 1px 0 var(--glass-shine) inset;overflow:hidden}
 .card::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,transparent 100%);pointer-events:none;border-radius:var(--radius) var(--radius) 0 0}
@@ -248,28 +248,56 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .rpt-top-val{font-size:.78rem;font-weight:600;min-width:45px;text-align:right}
 @media(max-width:768px){.rpt-chart-row{grid-template-columns:1fr}.rpt-site-grid{grid-template-columns:1fr}}
 
-@media print{.nav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000;background-image:none}.card{border:1px solid #ddd;background:#fff;backdrop-filter:none}.card::after{display:none}.kpi{border:1px solid #ddd;background:#f9f9f9;backdrop-filter:none}.kpi::after{display:none}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
+@media print{.nav,.bubblenav,.no-print{display:none!important}.container{padding:0}.page{display:block!important}body{background:#fff;color:#000;background-image:none}.card{border:1px solid #ddd;background:#fff;backdrop-filter:none}.card::after{display:none}.kpi{border:1px solid #ddd;background:#f9f9f9;backdrop-filter:none}.kpi::after{display:none}.kpi-label,.card-title{color:#666}.kpi-value{color:#000!important}.desc-tag{background:#eee;color:#333}}
 @media(max-width:768px){.nav{flex-wrap:wrap;padding:.5rem .75rem}.nav-tabs{width:100%;overflow-x:auto;margin-left:0;gap:.2rem;padding-bottom:.25rem}.nav-tab{padding:.4rem .7rem;font-size:.78rem;white-space:nowrap}.form-grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.kpi-value{font-size:1.2rem}.obj-remaining{font-size:1.5rem}.tt-site-grid{grid-template-columns:repeat(2,1fr)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
 @keyframes glassShine{0%{background-position:200% 50%}100%{background-position:-200% 50%}}
 @keyframes ambientGlow{0%,100%{filter:hue-rotate(0deg) brightness(1)}50%{filter:hue-rotate(15deg) brightness(1.05)}}
+/* ===== HERO (dashboard) ===== */
+.obj-card{position:relative;overflow:hidden;background:radial-gradient(130% 120% at 100% 0%,rgba(255,199,44,.10),transparent 55%),linear-gradient(160deg,var(--bg3),var(--bg2));padding:1.6rem 1.4rem;border:1px solid rgba(255,255,255,.12)}
+.obj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,199,44,.55),transparent);z-index:3}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.hero-eyebrow{font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
+.hero-num{font-family:var(--font-num);font-weight:700;letter-spacing:-.02em;font-size:2.9rem;line-height:1;margin:.35rem 0 .3rem;font-variant-numeric:tabular-nums;text-shadow:0 0 30px rgba(255,199,44,.18)}
+.hero-subline{font-size:.82rem;color:var(--text2);font-weight:500}
+.hero-ring{position:relative;width:82px;height:82px;flex:none}
+.hero-ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hero-ring-val b{font-family:var(--font-num);font-size:1.1rem;font-weight:700;color:var(--text);line-height:1}
+.hero-ring-val span{font-size:.54rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.hero-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.hero-chip{font-size:.76rem;font-weight:600;color:var(--text2);background:rgba(255,255,255,.05);border:1px solid var(--glass-border);padding:7px 12px;border-radius:11px;font-variant-numeric:tabular-nums}
+.hero-chip b{font-family:var(--font-num)}
+.hero-objline{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+/* ===== KPI icon ===== */
+.kpi-ico{font-size:1.3rem;line-height:1;margin-bottom:.15rem}
+/* ===== BOTTOM BUBBLE NAV ===== */
+.bubblenav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 12px);width:min(680px,calc(100% - 24px));z-index:200;background:rgba(18,21,29,.74);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:6px;backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.bubblenav .nav-tabs{display:flex;gap:2px;margin:0;overflow-x:auto;scrollbar-width:none}
+.bubblenav .nav-tabs::-webkit-scrollbar{display:none}
+.bubblenav .nav-tab{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;padding:8px 4px;border-radius:15px;background:transparent;border:0;color:var(--text3);font-weight:600;white-space:nowrap}
+.bubblenav .nav-tab .nt-i{font-size:1.2rem;line-height:1}
+.bubblenav .nav-tab .nt-l{font-size:.6rem;letter-spacing:.01em}
+.bubblenav .nav-tab.active{background:var(--accent-dim);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(255,199,44,.2)}
+.bubblenav .nav-tab.active .nt-i{transform:translateY(-1px) scale(1.05)}
 </style>
 </head>
 <body>
 <nav class="nav">
   <div class="nav-logo"><span style="font-size:1.3rem;line-height:1">🟡</span> Maintenance <span>La Côte</span></div>
+</nav>
+<nav class="bubblenav">
   <div class="nav-tabs">
-    <button class="nav-tab active" data-page="dashboard">Dashboard</button>
-    <button class="nav-tab" data-page="saisie">+ Saisie</button>
-    <button class="nav-tab" data-page="interventions">Interventions</button>
-    <button class="nav-tab" data-page="contrats">Contrats</button>
-    <button class="nav-tab" data-page="temps">⏱ Temps</button>
-    <button class="nav-tab" data-page="rapport">Rapport</button>
-    <button class="nav-tab" data-page="config">Config</button>
-    <button class="nav-tab" data-page="historique">📋 Historique</button>
-    <button class="nav-tab" data-page="doc">📖 Guide</button>
+    <button class="nav-tab active" data-page="dashboard"><span class="nt-i">📊</span><span class="nt-l">Dashboard</span></button>
+    <button class="nav-tab" data-page="saisie"><span class="nt-i">➕</span><span class="nt-l">Saisie</span></button>
+    <button class="nav-tab" data-page="interventions"><span class="nt-i">📋</span><span class="nt-l">Interv.</span></button>
+    <button class="nav-tab" data-page="contrats"><span class="nt-i">📄</span><span class="nt-l">Contrats</span></button>
+    <button class="nav-tab" data-page="temps"><span class="nt-i">⏱</span><span class="nt-l">Temps</span></button>
+    <button class="nav-tab" data-page="rapport"><span class="nt-i">📈</span><span class="nt-l">Rapport</span></button>
+    <button class="nav-tab" data-page="config"><span class="nt-i">⚙️</span><span class="nt-l">Config</span></button>
+    <button class="nav-tab" data-page="historique"><span class="nt-i">🗂</span><span class="nt-l">Histo.</span></button>
+    <button class="nav-tab" data-page="doc"><span class="nt-i">📖</span><span class="nt-l">Guide</span></button>
   </div>
 </nav>
 <div class="container">
@@ -1799,11 +1827,33 @@ function renderObjective(){
   var marker200='<div style="position:absolute;top:-2px;bottom:-2px;left:50%;width:2px;background:rgba(255,255,255,.45);box-shadow:0 0 0 1px rgba(0,0,0,.3);pointer-events:none" title="Objectif 100%"></div>';
   var label200='<div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text3);margin-top:.2rem;padding:0 2px"><span>0%</span><span>100% objectif</span><span>200%</span></div>';
 
+  var dI=d.reduce(function(s,i){return s+coutInt(i)},0);
+  var dE=d.reduce(function(s,i){return s+coutExt(i)},0);
+  var taux=dE>0?((dE-dI)/dE*100):0;
+  var Cring=2*Math.PI*34;
+  var ringOff=(Cring*(1-Math.min(100,Math.max(0,taux))/100)).toFixed(2);
   document.getElementById('objGauge').innerHTML=
-    '<div style="position:relative;'+cardBorder+';border-radius:var(--radius);padding:'+(atteint?'1.25rem':'0')+'">'+
+    '<div style="position:relative">'+
     confettiHtml+
-    '<div class="obj-header"><div class="card-title">🎯 Objectif mensuel</div><div class="obj-month">'+fML(curMonth)+'</div></div>'+
-    '<div class="obj-values"><div><div class="obj-remaining" style="color:'+barColor+'">'+fmt(ecoMois)+'</div><div class="obj-target">sur '+fmt(obj)+' objectif'+(rushEco>0?' · '+fmt(rushEco)+' rush':'')+(hSuppEco>0?' · 🎁 '+fmt(hSuppEco)+' ('+fH(hSupp)+' offertes)':'')+'</div></div><div style="text-align:right;font-size:1.8rem;font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</div></div>'+
+    '<div class="hero-top">'+
+      '<div style="min-width:0">'+
+        '<div class="hero-eyebrow">Économies · '+fML(curMonth)+'</div>'+
+        '<div class="hero-num" style="color:'+barColor+'">'+fmt(ecoMois)+'</div>'+
+        '<div class="hero-subline">sur '+fmt(obj)+' objectif'+(rushEco>0?' · '+fmt(rushEco)+' rush':'')+(hSuppEco>0?' · 🎁 '+fmt(hSuppEco)+' ('+fH(hSupp)+' offertes)':'')+'</div>'+
+      '</div>'+
+      '<div class="hero-ring">'+
+        '<svg width="82" height="82" viewBox="0 0 82 82">'+
+          '<circle cx="41" cy="41" r="34" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"></circle>'+
+          '<circle cx="41" cy="41" r="34" fill="none" stroke="var(--blue)" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+Cring.toFixed(2)+'" stroke-dashoffset="'+ringOff+'" transform="rotate(-90 41 41)"></circle>'+
+        '</svg>'+
+        '<div class="hero-ring-val"><b>'+taux.toFixed(0)+'%</b><span>taux éco</span></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="hero-chips">'+
+      '<div class="hero-chip">Coût si externe <b style="color:var(--red)">'+fmt(dE)+'</b></div>'+
+      '<div class="hero-chip">Coût interne <b style="color:var(--green)">'+fmt(dI)+'</b></div>'+
+    '</div>'+
+    '<div class="hero-objline"><span class="hero-eyebrow">Objectif '+fmt(obj)+'</span><span style="font-family:var(--font-num);font-weight:700;color:'+barColor+'">'+pct.toFixed(0)+'%</span></div>'+
     '<div class="obj-bar-bg" style="position:relative"><div class="obj-bar-fill" style="'+barFillStyle+'"></div>'+marker200+'</div>'+
     label200+
     '<div class="obj-status" style="color:'+statusColor+'">'+statusText+'</div>'+
@@ -1851,10 +1901,10 @@ function renderKPIs(){
   if(ttHSupp>0)subHeures+=' · '+fH(ttHSupp)+' supp offertes';
   subHeures+=' · '+fH(ttTotalH)+' TT total';
   var html=
-    '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-label">Economies totales 🔍</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEco+'</span></div>'+
-    '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+fH(tH)+'</span><span class="kpi-sub">'+subHeures+'</span></div>'+
-    '<div class="kpi blue" onclick="openKpiModal(\'interne\')" title="Voir le detail"><span class="kpi-label">Cout interne 🔍</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
-    '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">tarifs marche Suisse romande</span></div>';
+    '<div class="kpi green" onclick="openKpiModal(\'eco\')" title="Voir le detail"><span class="kpi-ico">💰</span><span class="kpi-label">Economies totales 🔍</span><span class="kpi-value">'+fmt(ecoTotale)+'</span><span class="kpi-sub">'+subEco+'</span></div>'+
+    '<div class="kpi accent" onclick="openKpiModal(\'heures\')" title="Voir le detail"><span class="kpi-ico">⏱️</span><span class="kpi-label">Heures totales 🔍</span><span class="kpi-value">'+fH(tH)+'</span><span class="kpi-sub">'+subHeures+'</span></div>'+
+    '<div class="kpi blue" onclick="openKpiModal(\'interne\')" title="Voir le detail"><span class="kpi-ico">🏠</span><span class="kpi-label">Cout interne 🔍</span><span class="kpi-value">'+fmt(tI)+'</span><span class="kpi-sub">dont '+fmt2(tDepl)+' carburant</span></div>'+
+    '<div class="kpi red" onclick="openKpiModal(\'externe\')" title="Voir le detail"><span class="kpi-ico">🏢</span><span class="kpi-label">Cout si externe 🔍</span><span class="kpi-value">'+fmt(tE)+'</span><span class="kpi-sub">tarifs marche Suisse romande</span></div>';
   if(dexcMonth.length){
     var dexcSub=dexcMonth.length+' non remboursé'+(dexcMonth.length>1?'s':'')+' · '+dexcKm.toFixed(1)+' km AR';
     if(dexcPaidCount>0)dexcSub+=' · '+dexcPaidCount+' remboursé'+(dexcPaidCount>1?'s':'');
