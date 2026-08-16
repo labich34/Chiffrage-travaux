@@ -282,6 +282,31 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .bubblenav .nav-tab .nt-l{font-size:.6rem;letter-spacing:.01em}
 .bubblenav .nav-tab.active{background:var(--accent-dim);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(255,199,44,.2)}
 .bubblenav .nav-tab.active .nt-i{transform:translateY(-1px) scale(1.05)}
+/* ===== NAV RADIALE (molette) — remplace la nav bulle (masquée mais conservée pour la logique) ===== */
+.bubblenav{display:none!important}
+.an-handle{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);width:min(300px,calc(100% - 40px));height:56px;z-index:150;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(18,21,29,.72);border:1px solid rgba(255,255,255,.16);border-radius:20px;backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);box-shadow:0 14px 40px rgba(0,0,0,.5);cursor:pointer;transition:opacity .25s,transform .25s}
+.an-handle .an-grip{width:36px;height:5px;border-radius:99px;background:rgba(255,255,255,.16);position:absolute;top:8px;left:50%;transform:translateX(-50%)}
+.an-handle .an-h-ico{font-size:1.2rem;margin-top:4px}
+.an-handle .an-h-name{font-family:var(--font-num);font-weight:600;font-size:1rem;margin-top:4px}
+.an-handle .an-h-sub{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.an-handle.an-hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(20px)}
+.an-overlay{position:fixed;inset:0;z-index:210;opacity:0;pointer-events:none;transition:opacity .28s;background:radial-gradient(120% 90% at 50% 120%,rgba(0,0,0,.78),rgba(0,0,0,.4) 60%,transparent)}
+.an-overlay.an-show{opacity:1;pointer-events:auto}
+.an-tick{position:fixed;left:0;top:0;width:2px;background:var(--text3);border-radius:2px;z-index:211;opacity:0;transform-origin:center center;pointer-events:none;will-change:transform,opacity}
+.an-tick.an-major{background:rgba(255,255,255,.5)}
+.an-item{position:fixed;left:0;top:0;z-index:212;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:rgba(28,32,42,.94);border:1px solid var(--glass-border);will-change:transform,opacity}
+.an-item.an-sel{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 3px rgba(255,199,44,.18),0 8px 24px rgba(0,0,0,.4)}
+.an-item.an-sel.an-blue{border-color:var(--blue);background:var(--blue-dim);box-shadow:0 0 0 3px rgba(96,165,250,.18),0 8px 24px rgba(0,0,0,.4)}
+.an-item.an-detent{animation:anDet .22s ease}
+@keyframes anDet{40%{box-shadow:0 0 0 6px rgba(255,199,44,.28),0 8px 24px rgba(0,0,0,.4)}}
+.an-pointer{position:fixed;z-index:213;pointer-events:none;opacity:0;transition:opacity .3s}
+.an-overlay.an-show ~ .an-pointer{opacity:1}
+.an-pointer .an-tri{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid var(--accent);filter:drop-shadow(0 0 6px rgba(255,199,44,.55))}
+.an-center{position:fixed;z-index:213;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .3s}
+.an-overlay.an-show ~ .an-center{opacity:1}
+.an-center .an-cl-name{font-family:var(--font-num);font-weight:700;font-size:1.3rem;color:var(--accent)}
+.an-center .an-cl-hint{font-size:.62rem;color:var(--text3);margin-top:2px;letter-spacing:.06em}
+@media print{.an-handle,.an-overlay,.an-pointer,.an-center,.an-tick,.an-item{display:none!important}}
 </style>
 </head>
 <body>
@@ -301,6 +326,10 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <button class="nav-tab" data-page="doc"><span class="nt-i">📖</span><span class="nt-l">Guide</span></button>
   </div>
 </nav>
+<div class="an-handle" id="anHandle"><span class="an-grip"></span><span class="an-h-ico" id="anHIco">📊</span><span class="an-h-name" id="anHName">Dashboard</span><span class="an-h-sub">toucher pour naviguer</span></div>
+<div class="an-overlay" id="anOverlay"></div>
+<div class="an-pointer" id="anPointer"><div class="an-tri"></div></div>
+<div class="an-center" id="anCenter"><div class="an-cl-name" id="anClName">Dashboard</div><div class="an-cl-hint">tourne pour choisir</div></div>
 <div class="container">
 
 <!-- DASHBOARD -->
@@ -1252,6 +1281,7 @@ function goToPage(pageName,direction){
   // Scroll active tab into view (mobile)
   var activeTab=document.querySelector('.nav-tab.active');
   if(activeTab)activeTab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  if(typeof updateArcHandle==='function')updateArcHandle();
   refresh();
 }
 
@@ -1269,6 +1299,97 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
     goToPage(tab.dataset.page,dir);
   });
 });
+
+// ========== NAV RADIALE (molette) ==========
+var AN_TABS=[
+  {id:'dashboard',ic:'📊',name:'Dashboard'},
+  {id:'saisie',ic:'+',name:'Saisie',blue:true},
+  {id:'interventions',ic:'📋',name:'Interventions'},
+  {id:'contrats',ic:'📄',name:'Contrats'},
+  {id:'temps',ic:'⏱',name:'Temps'},
+  {id:'rapport',ic:'📈',name:'Rapport'},
+  {id:'config',ic:'⚙️',name:'Config'},
+  {id:'historique',ic:'🗂',name:'Historique'},
+  {id:'doc',ic:'📖',name:'Guide'}
+];
+var AN_STEP=20;
+var anPos=0,anOpen=false,anDrag=false,anMoved=false,anStartAng=0,anStartPos=0,anDownP=null,anLastSel=0,anLastT=0,anLastP=0,anVel=0,anMom=null,anR,anRt,anCx,anCy;
+var anOverlay=document.getElementById('anOverlay');
+var anPointer=document.getElementById('anPointer');
+var anCenterEl=document.getElementById('anCenter');
+var anClName=document.getElementById('anClName');
+var anHandle=document.getElementById('anHandle');
+var anItems=[],anTicks=[],anTvals=[];
+(function(){
+  var i,el;
+  for(i=0;i<AN_TABS.length;i++){
+    el=document.createElement('div');
+    el.className='an-item'+(AN_TABS[i].blue?' an-blue':'');
+    el.innerHTML=AN_TABS[i].blue?'<span style="color:var(--blue);font-weight:800">+</span>':AN_TABS[i].ic;
+    document.body.appendChild(el);anItems.push(el);
+  }
+  var tv;
+  for(tv=-4;tv<=AN_TABS.length+3;tv+=0.5){
+    var td=document.createElement('div');
+    var maj=(Math.round(tv)===tv);
+    td.className='an-tick'+(maj?' an-major':'');
+    td.style.height=(maj?14:8)+'px';
+    document.body.appendChild(td);anTicks.push(td);anTvals.push(tv);
+  }
+})();
+function anClamp(v,a,b){return v<a?a:v>b?b:v;}
+function anCurIdx(){var pg=document.querySelector('.page.active');if(!pg)return 0;var id=pg.id.replace('page-','');for(var i=0;i<AN_TABS.length;i++){if(AN_TABS[i].id===id)return i;}return 0;}
+function anCalc(){anCx=window.innerWidth/2;anCy=window.innerHeight-58;anR=Math.min(160,Math.max(122,window.innerWidth*0.40));anRt=anR-4;anPointer.style.left=(anCx-8)+'px';anPointer.style.top=(anCy-anR-24)+'px';anCenterEl.style.top=(anCy-anR*0.52)+'px';}
+function anAngle(p){return Math.atan2(anCy-p.y,p.x-anCx)*180/Math.PI;}
+function anRender(anim){
+  var sel=anClamp(Math.round(anPos),0,AN_TABS.length-1),j,i;
+  for(j=0;j<anTicks.length;j++){
+    var ta=90-(anTvals[j]-anPos)*AN_STEP;var vis=(ta<8||ta>172)?0:1;var trr=ta*Math.PI/180;
+    var tx=anCx+anRt*Math.cos(trr),ty=anCy-anRt*Math.sin(trr);var td=anTicks[j];
+    td.style.transition=anim?'opacity .25s':'none';
+    td.style.transform='translate('+tx+'px,'+ty+'px) translate(-50%,-50%) rotate('+(90-ta)+'deg)';
+    td.style.opacity=anOpen?(vis?(Math.round(anTvals[j])===anTvals[j]?0.7:0.35):0):0;
+  }
+  for(i=0;i<anItems.length;i++){
+    var ang=90-(i-anPos)*AN_STEP;var d=Math.abs(i-anPos);var rad=ang*Math.PI/180;
+    var x=anCx+anR*Math.cos(rad),y=anCy-anR*Math.sin(rad);
+    var sc=Math.max(.55,1-d*0.11);var op=(ang<10||ang>170)?0:Math.max(.22,1-d*0.20);
+    var e=anItems[i];
+    e.style.transition=anim?'transform .34s cubic-bezier(.22,1,.36,1),opacity .25s,box-shadow .2s':'none';
+    e.style.transform='translate('+x+'px,'+y+'px) translate(-50%,-50%) scale('+sc+')';
+    e.style.opacity=anOpen?op:0;
+    e.style.pointerEvents=(anOpen&&op>0.15)?'auto':'none';
+    if(e.className.indexOf('an-detent')<0)e.className='an-item'+(AN_TABS[i].blue?' an-blue':'')+(i===sel?' an-sel':'');
+  }
+  anClName.textContent=AN_TABS[sel].name;
+  if(sel!==anLastSel){anDetent(sel);anLastSel=sel;}
+}
+function anDetent(sel){
+  if(navigator.vibrate){try{navigator.vibrate(8)}catch(e){}}
+  var e=anItems[sel];var base='an-item'+(AN_TABS[sel].blue?' an-blue':'')+' an-sel';
+  e.className=base+' an-detent';
+  setTimeout(function(){if(e.className.indexOf('an-detent')>=0)e.className=base;},230);
+}
+function updateArcHandle(){var i=anCurIdx();var t=AN_TABS[i];var ic=document.getElementById('anHIco'),nm=document.getElementById('anHName');if(ic)ic.innerHTML=t.blue?'<span style="color:var(--blue);font-weight:800">+</span>':t.ic;if(nm)nm.textContent=t.name;}
+function anOpenDial(){anCalc();anOpen=true;anPos=anCurIdx();anLastSel=anClamp(Math.round(anPos),0,AN_TABS.length-1);anOverlay.classList.add('an-show');anPointer.style.opacity='1';anCenterEl.style.opacity='1';anHandle.classList.add('an-hidden');anRender(true);}
+function anCloseDial(){anOpen=false;anOverlay.classList.remove('an-show');anPointer.style.opacity='0';anCenterEl.style.opacity='0';anHandle.classList.remove('an-hidden');anRender(true);}
+function anNavigate(i){i=anClamp(i,0,AN_TABS.length-1);anCloseDial();goToPage(AN_TABS[i].id);}
+function anPt(e){var t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e;return {x:t.clientX,y:t.clientY};}
+function anNearest(p){var best=-1,bd=42,i;for(i=0;i<anItems.length;i++){if(anItems[i].style.pointerEvents==='none')continue;var ang=90-(i-anPos)*AN_STEP,rad=ang*Math.PI/180;var x=anCx+anR*Math.cos(rad),y=anCy-anR*Math.sin(rad);var dd=Math.sqrt((p.x-x)*(p.x-x)+(p.y-y)*(p.y-y));if(dd<bd){bd=dd;best=i;}}return best;}
+function anNorm(a){while(a>180)a-=360;while(a<-180)a+=360;return a;}
+function anDown(e){if(!anOpen)return;if(anMom){clearInterval(anMom);anMom=null;}anDrag=true;anMoved=false;anDownP=anPt(e);anStartAng=anAngle(anDownP);anStartPos=anPos;anLastT=Date.now();anLastP=anPos;anVel=0;}
+function anMove(e){if(!anDrag)return;var p=anPt(e);var dA=anNorm(anAngle(p)-anStartAng);if(Math.abs(dA)>1.2)anMoved=true;anPos=anClamp(anStartPos+dA/AN_STEP,0,AN_TABS.length-1);var now=Date.now(),dt=now-anLastT;if(dt>0){anVel=(anPos-anLastP)/dt;anLastT=now;anLastP=anPos;}anRender(false);if(e.cancelable)e.preventDefault();}
+function anSettle(){var sel=anClamp(Math.round(anPos),0,AN_TABS.length-1);anPos=sel;anRender(true);setTimeout(function(){anNavigate(sel);},170);}
+function anUp(e){if(!anDrag)return;anDrag=false;if(!anMoved){var hit=anNearest(anDownP);if(hit>=0)anNavigate(hit);else anCloseDial();return;}if(Math.abs(anVel)>0.004){anMom=setInterval(function(){anPos=anClamp(anPos+anVel*16,0,AN_TABS.length-1);anVel*=0.9;anRender(false);if(anPos<=0||anPos>=AN_TABS.length-1||Math.abs(anVel)<0.01){clearInterval(anMom);anMom=null;anSettle();}},16);}else{anSettle();}}
+anHandle.addEventListener('click',function(){anOpenDial();});
+anOverlay.addEventListener('touchstart',anDown,{passive:false});
+anOverlay.addEventListener('touchmove',anMove,{passive:false});
+anOverlay.addEventListener('touchend',anUp,{passive:false});
+anOverlay.addEventListener('mousedown',anDown);
+window.addEventListener('mousemove',function(e){if(anDrag)anMove(e);});
+window.addEventListener('mouseup',function(e){if(anDrag)anUp(e);});
+window.addEventListener('resize',function(){anCalc();if(anOpen)anRender(false);});
+anCalc();updateArcHandle();anRender(false);
 
 // ========== SWIPE NAVIGATION (désactivée — navigation uniquement par la nav) ==========
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
