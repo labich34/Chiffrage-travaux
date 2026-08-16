@@ -294,7 +294,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .an-overlay.an-show{opacity:1;pointer-events:auto}
 .an-tick{position:fixed;left:0;top:0;width:2px;background:var(--text3);border-radius:2px;z-index:211;opacity:0;transform-origin:center center;pointer-events:none;will-change:transform,opacity}
 .an-tick.an-major{background:rgba(255,255,255,.5)}
-.an-item{position:fixed;left:0;top:0;z-index:212;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:rgba(28,32,42,.94);border:1px solid var(--glass-border);will-change:transform,opacity}
+.an-item{position:fixed;left:0;top:0;z-index:212;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.65rem;background:rgba(28,32,42,.94);border:1px solid var(--glass-border);will-change:transform,opacity}
 .an-item.an-sel{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 3px rgba(255,199,44,.18),0 8px 24px rgba(0,0,0,.4)}
 .an-item.an-sel.an-blue{border-color:var(--blue);background:var(--blue-dim);box-shadow:0 0 0 3px rgba(96,165,250,.18),0 8px 24px rgba(0,0,0,.4)}
 .an-item.an-detent{animation:anDet .22s ease}
@@ -304,7 +304,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .an-pointer .an-tri{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:11px solid var(--accent);filter:drop-shadow(0 0 6px rgba(255,199,44,.55))}
 .an-center{position:fixed;z-index:213;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .3s}
 .an-overlay.an-show ~ .an-center{opacity:1}
-.an-center .an-cl-name{font-family:var(--font-num);font-weight:700;font-size:1.3rem;color:var(--accent)}
+.an-center .an-cl-name{font-family:var(--font-num);font-weight:700;font-size:2.1rem;letter-spacing:-.01em;color:var(--accent);text-shadow:0 0 24px rgba(255,199,44,.25)}
 .an-center .an-cl-hint{font-size:.62rem;color:var(--text3);margin-top:2px;letter-spacing:.06em}
 @media print{.an-handle,.an-overlay,.an-pointer,.an-center,.an-tick,.an-item{display:none!important}}
 </style>
@@ -326,7 +326,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <button class="nav-tab" data-page="doc"><span class="nt-i">📖</span><span class="nt-l">Guide</span></button>
   </div>
 </nav>
-<div class="an-handle" id="anHandle"><span class="an-grip"></span><span class="an-h-ico" id="anHIco">📊</span><span class="an-h-name" id="anHName">Dashboard</span><span class="an-h-sub">toucher pour naviguer</span></div>
+<div class="an-handle" id="anHandle"><span class="an-grip"></span><span class="an-h-ico" id="anHIco">📊</span><span class="an-h-name" id="anHName">Dashboard</span></div>
 <div class="an-overlay" id="anOverlay"></div>
 <div class="an-pointer" id="anPointer"><div class="an-tri"></div></div>
 <div class="an-center" id="anCenter"><div class="an-cl-name" id="anClName">Dashboard</div><div class="an-cl-hint">tourne pour choisir</div></div>
@@ -1312,7 +1312,7 @@ var AN_TABS=[
   {id:'historique',ic:'🗂',name:'Historique'},
   {id:'doc',ic:'📖',name:'Guide'}
 ];
-var AN_STEP=20;
+var AN_STEP=26;
 var anPos=0,anOpen=false,anDrag=false,anMoved=false,anStartAng=0,anStartPos=0,anDownP=null,anLastSel=0,anLastT=0,anLastP=0,anVel=0,anMom=null,anR,anRt,anCx,anCy;
 var anOverlay=document.getElementById('anOverlay');
 var anPointer=document.getElementById('anPointer');
@@ -1339,7 +1339,7 @@ var anItems=[],anTicks=[],anTvals=[];
 })();
 function anClamp(v,a,b){return v<a?a:v>b?b:v;}
 function anCurIdx(){var pg=document.querySelector('.page.active');if(!pg)return 0;var id=pg.id.replace('page-','');for(var i=0;i<AN_TABS.length;i++){if(AN_TABS[i].id===id)return i;}return 0;}
-function anCalc(){anCx=window.innerWidth/2;anCy=window.innerHeight-58;anR=Math.min(160,Math.max(122,window.innerWidth*0.40));anRt=anR-4;anPointer.style.left=(anCx-8)+'px';anPointer.style.top=(anCy-anR-24)+'px';anCenterEl.style.top=(anCy-anR*0.52)+'px';}
+function anCalc(){anCx=window.innerWidth/2;anCy=window.innerHeight-58;anR=Math.min(170,Math.max(130,window.innerWidth*0.42));anRt=anR-8;anPointer.style.left=(anCx-8)+'px';anPointer.style.top=(anCy-anR-26)+'px';anCenterEl.style.top=Math.max(38,(anCy-anR-88))+'px';}
 function anAngle(p){return Math.atan2(anCy-p.y,p.x-anCx)*180/Math.PI;}
 function anRender(anim){
   var sel=anClamp(Math.round(anPos),0,AN_TABS.length-1),j,i;
@@ -1375,7 +1375,7 @@ function anOpenDial(){anCalc();anOpen=true;anPos=anCurIdx();anLastSel=anClamp(Ma
 function anCloseDial(){anOpen=false;anOverlay.classList.remove('an-show');anPointer.style.opacity='0';anCenterEl.style.opacity='0';anHandle.classList.remove('an-hidden');anRender(true);}
 function anNavigate(i){i=anClamp(i,0,AN_TABS.length-1);anCloseDial();goToPage(AN_TABS[i].id);}
 function anPt(e){var t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e;return {x:t.clientX,y:t.clientY};}
-function anNearest(p){var best=-1,bd=42,i;for(i=0;i<anItems.length;i++){if(anItems[i].style.pointerEvents==='none')continue;var ang=90-(i-anPos)*AN_STEP,rad=ang*Math.PI/180;var x=anCx+anR*Math.cos(rad),y=anCy-anR*Math.sin(rad);var dd=Math.sqrt((p.x-x)*(p.x-x)+(p.y-y)*(p.y-y));if(dd<bd){bd=dd;best=i;}}return best;}
+function anNearest(p){var best=-1,bd=48,i;for(i=0;i<anItems.length;i++){if(anItems[i].style.pointerEvents==='none')continue;var ang=90-(i-anPos)*AN_STEP,rad=ang*Math.PI/180;var x=anCx+anR*Math.cos(rad),y=anCy-anR*Math.sin(rad);var dd=Math.sqrt((p.x-x)*(p.x-x)+(p.y-y)*(p.y-y));if(dd<bd){bd=dd;best=i;}}return best;}
 function anNorm(a){while(a>180)a-=360;while(a<-180)a+=360;return a;}
 function anDown(e){if(!anOpen)return;if(anMom){clearInterval(anMom);anMom=null;}anDrag=true;anMoved=false;anDownP=anPt(e);anStartAng=anAngle(anDownP);anStartPos=anPos;anLastT=Date.now();anLastP=anPos;anVel=0;}
 function anMove(e){if(!anDrag)return;var p=anPt(e);var dA=anNorm(anAngle(p)-anStartAng);if(Math.abs(dA)>1.2)anMoved=true;anPos=anClamp(anStartPos+dA/AN_STEP,0,AN_TABS.length-1);var now=Date.now(),dt=now-anLastT;if(dt>0){anVel=(anPos-anLastP)/dt;anLastT=now;anLastP=anPos;}anRender(false);if(e.cancelable)e.preventDefault();}
