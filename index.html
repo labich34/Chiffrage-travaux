@@ -406,6 +406,11 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
         <div class="form-group full">
           <label class="form-label">Travaux réalisés (optionnel)</label>
           <div class="tags-grid" id="fTagsTT"></div>
+          <div style="display:flex;gap:.4rem;margin-top:.6rem">
+            <input type="text" class="form-input" id="fCustomTravailTT" placeholder="Travail personnalisé…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTravailTT()}">
+            <button type="button" class="btn-add-piece" onclick="addCustomTravailTT()" style="white-space:nowrap">+ Ajouter</button>
+          </div>
+          <div class="tags-grid" id="fCustomTagsTT" style="margin-top:.5rem"></div>
         </div>
       </div>
       <!-- CHAMPS INTERVENTION (visibles seulement en mode intervention) -->
@@ -1182,6 +1187,29 @@ function setTags(cid,tv){
 }
 buildTags('fTags');buildTags('eTags');buildTagsTT('fTagsTT');
 
+// ========== TRAVAUX PERSONNALISES (mode Temps) ==========
+var uCustomTravauxTT=[];
+function addCustomTravailTT(){
+  var inp=document.getElementById('fCustomTravailTT');
+  var val=inp.value.trim();
+  if(!val){toast('Nom du travail requis');return}
+  uCustomTravauxTT.push(val);
+  inp.value='';
+  renderCustomTagsTT();
+}
+function removeCustomTravailTT(idx){
+  uCustomTravauxTT.splice(idx,1);
+  renderCustomTagsTT();
+}
+function renderCustomTagsTT(){
+  var el=document.getElementById('fCustomTagsTT');
+  if(!el)return;
+  el.innerHTML=uCustomTravauxTT.map(function(v,i){
+    return '<span class="desc-tag" style="display:inline-flex;align-items:center;gap:5px">'+esc(v)+
+      '<button type="button" onclick="removeCustomTravailTT('+i+')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.9rem;line-height:1;padding:0">&times;</button></span>';
+  }).join('');
+}
+
 // ========== DEPART INFO ==========
 function showDeplInfo(selectId,siteId,infoId){
   var dep=document.getElementById(selectId).value;
@@ -1602,6 +1630,8 @@ function resetUnifiedForm(){
   document.getElementById('fDeplInfo').innerHTML='';
   var ttDI=document.getElementById('ttDeplInfo');if(ttDI)ttDI.innerHTML='';
   setTags('fTags',[]);setTags('fTagsTT',[]);setPieces('fPieces',[]);
+  uCustomTravauxTT=[];renderCustomTagsTT();
+  var fctInp=document.getElementById('fCustomTravailTT');if(fctInp)fctInp.value='';
   uRush=false;document.getElementById('uRushBtn').classList.remove('on');
   uDeleg=false;
   var delNomEl=document.getElementById('fDelegNom');if(delNomEl)delNomEl.value='';
@@ -1764,9 +1794,12 @@ function saveUnified(){
     var ttSite2=getUSiteForTT();
     var ttTravaux=getTags('fTagsTT',hoursFromTime);
     var ttTvLbl=ttTravaux.map(function(t){var def=TMAP[t.id];return def?(def.icon+' '+def.label):t.id}).join(', ');
+    if(uCustomTravauxTT.length){
+      ttTvLbl=(ttTvLbl?ttTvLbl+', ':'')+uCustomTravauxTT.join(', ');
+    }
     var ttNote=ttTvLbl?(ttTvLbl+(note?' — '+note:'')):(note||'Temps de travail');
     var entries2=getTTEntries();
-    entries2.push({id:Date.now(),date:date,site:ttSite2,start:startVal,end:endVal,hours:hoursFromTime,note:ttNote,rush:uRush,travaux:ttTravaux});
+    entries2.push({id:Date.now(),date:date,site:ttSite2,start:startVal,end:endVal,hours:hoursFromTime,note:ttNote,rush:uRush,travaux:ttTravaux,customTravaux:uCustomTravauxTT.slice()});
     entries2.sort(function(a,b){return a.date===b.date?(a.start||'').localeCompare(b.start||''):a.date.localeCompare(b.date)});
     localStorage.setItem('tt_entries',JSON.stringify(entries2));
     toast('Temps enregistre');
