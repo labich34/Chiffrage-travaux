@@ -997,6 +997,19 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+/* ===== Contrôle de licence (expiration) ===== */
+(function licenceGuard(){
+  var SECRET="mcdo-lacote-2026-change-moi"; // identique au générateur gen-cle.js ; ne pas diffuser
+  function sign(p){var s=p+"|"+SECRET,h=5381,h2=2166136261,i;for(i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0}for(i=s.length-1;i>=0;i--){h2=((h2^s.charCodeAt(i))*16777619)>>>0}return (h.toString(36)+h2.toString(36)).toUpperCase()}
+  function valide(cle){if(!cle)return false;var parts=(""+cle).trim().toUpperCase().split("-");if(parts.length!==2)return false;var p=parts[0];if(!/^\d{8}$/.test(p))return false;if(sign(p)!==parts[1])return false;var exp=new Date(+p.slice(0,4),+p.slice(4,6)-1,+p.slice(6,8),23,59,59);return new Date()<=exp}
+  var cle=localStorage.getItem("app_licence");
+  if(!valide(cle)){
+    cle=prompt("Clé d'activation requise :");
+    if(valide(cle)){localStorage.setItem("app_licence",cle.trim().toUpperCase())}
+    else{document.documentElement.innerHTML="<div style='font:16px -apple-system,sans-serif;padding:48px 24px;text-align:center;color:#334155'>Accès expiré ou clé invalide.<br><br>Merci de contacter le fournisseur.</div>";throw new Error("licence");}
+  }
+})();
+/* ===== fin contrôle de licence ===== */
 function esc(s){if(s===null||s===undefined)return'';var d=document.createElement('div');d.appendChild(document.createTextNode(String(s)));return d.innerHTML}
 var LS_KEY='maint_interventions',LS_CFG='maint_config',LS_CTR='maint_contrats',LS_DEXC='maint_depl_exc',LS_ECODIR='maint_eco_directe',LS_LASTEND='maint_last_end_time';
 var SITES={GD:{name:'Gland (GD)',color:'#F472B6'},NC:{name:'Nyon Centre (NC)',color:'#34D399'},ND:{name:'Nyon Drive (ND)',color:'#FBBF24'},DIVERS:{name:'Divers',color:'#F97316'},SIEGE:{name:'Siège',color:'#60A5FA'}};
