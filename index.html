@@ -317,12 +317,12 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="nav-tabs">
     <button class="nav-tab active" data-page="dashboard"><span class="nt-i">📊</span><span class="nt-l">Dashboard</span></button>
     <button class="nav-tab" data-page="saisie"><span class="nt-i" style="color:var(--blue);font-weight:800">+</span><span class="nt-l">Saisie</span></button>
+    <button class="nav-tab" data-page="historique"><span class="nt-i">🗂</span><span class="nt-l">Histo.</span></button>
     <button class="nav-tab" data-page="interventions"><span class="nt-i">📋</span><span class="nt-l">Interv.</span></button>
     <button class="nav-tab" data-page="contrats"><span class="nt-i">📄</span><span class="nt-l">Contrats</span></button>
     <button class="nav-tab" data-page="temps"><span class="nt-i">⏱</span><span class="nt-l">Temps</span></button>
     <button class="nav-tab" data-page="rapport"><span class="nt-i">📈</span><span class="nt-l">Rapport</span></button>
     <button class="nav-tab" data-page="config"><span class="nt-i">⚙️</span><span class="nt-l">Config</span></button>
-    <button class="nav-tab" data-page="historique"><span class="nt-i">🗂</span><span class="nt-l">Histo.</span></button>
     <button class="nav-tab" data-page="doc"><span class="nt-i">📖</span><span class="nt-l">Guide</span></button>
   </div>
 </nav>
@@ -1313,7 +1313,7 @@ function ecoPieces(i){
 }
 
 // ========== NAV ==========
-var TAB_ORDER=['dashboard','saisie','interventions','contrats','temps','rapport','config','historique','doc'];
+var TAB_ORDER=['dashboard','saisie','historique','interventions','contrats','temps','rapport','config','doc'];
 
 function goToPage(pageName,direction){
   var tabs=document.querySelectorAll('.nav-tab');
@@ -1365,12 +1365,12 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
 var AN_TABS=[
   {id:'dashboard',ic:'📊',name:'Dashboard'},
   {id:'saisie',ic:'+',name:'Saisie',blue:true},
+  {id:'historique',ic:'🗂',name:'Historique'},
   {id:'interventions',ic:'📋',name:'Interventions'},
   {id:'contrats',ic:'📄',name:'Contrats'},
   {id:'temps',ic:'⏱',name:'Temps'},
   {id:'rapport',ic:'📈',name:'Rapport'},
   {id:'config',ic:'⚙️',name:'Config'},
-  {id:'historique',ic:'🗂',name:'Historique'},
   {id:'doc',ic:'📖',name:'Guide'}
 ];
 var AN_STEP=26;
