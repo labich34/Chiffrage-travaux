@@ -307,6 +307,42 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .an-center .an-cl-name{font-family:var(--font-num);font-weight:700;font-size:2.1rem;letter-spacing:-.01em;color:var(--accent);text-shadow:0 0 24px rgba(255,199,44,.25)}
 .an-center .an-cl-hint{font-size:.62rem;color:var(--text3);margin-top:2px;letter-spacing:.06em}
 @media print{.an-handle,.an-overlay,.an-pointer,.an-center,.an-tick,.an-item{display:none!important}}
+/* ===== PERIODIQUES VENTILATION ===== */
+.vt-sec{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin:1.1rem 0 .55rem}
+.vt-sec:first-child{margin-top:0}
+.vt-card{background:var(--glass);border:1px solid var(--glass-border);border-left:4px solid var(--text3);border-radius:var(--radius-sm);padding:.8rem .95rem;margin-bottom:.55rem}
+.vt-card.r{border-left-color:var(--red)}
+.vt-card.o{border-left-color:var(--orange)}
+.vt-card.v{border-left-color:var(--green)}
+.vt-card.c{border-left-color:var(--blue)}
+.vt-head{display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start;flex-wrap:wrap}
+.vt-name{font-weight:600;font-size:.94rem;line-height:1.25}
+.vt-meta{font-size:.73rem;color:var(--text3);margin-top:.2rem;line-height:1.5}
+.vt-meta b{color:var(--text2);font-weight:600}
+.vt-pill{font-size:.66rem;font-weight:700;padding:.2rem .55rem;border-radius:10px;white-space:nowrap}
+.vt-pill.r{background:var(--red-dim);color:var(--red)}
+.vt-pill.o{background:rgba(249,115,22,.14);color:var(--orange)}
+.vt-pill.v{background:var(--green-dim);color:var(--green)}
+.vt-pill.c{background:var(--blue-dim);color:var(--blue)}
+.vt-ref{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;background:var(--bg3);padding:.08rem .4rem;border-radius:6px;color:var(--text2)}
+.vt-acts{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.65rem}
+.vt-mail{background:var(--bg3);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:.75rem .85rem;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.71rem;line-height:1.55;color:var(--text2);overflow-x:auto;margin:.55rem 0}
+.vt-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:.35rem;vertical-align:middle}
+.vt-cnt{display:inline-block;min-width:15px;padding:0 4px;margin-left:3px;border-radius:8px;background:var(--red);color:#fff;font-size:.58rem;font-weight:700;line-height:15px;text-align:center;vertical-align:middle}
+.vt-cnt.zero{display:none}
+.vt-jrn{font-size:.7rem;color:var(--text3);margin-top:.45rem;line-height:1.55;padding-top:.45rem;border-top:1px solid var(--glass-border)}
+.vt-line{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--glass-border)}
+.vt-line:last-of-type{border-bottom:0}
+.vt-line.on{background:rgba(255,199,44,.05);margin:0 -.4rem;padding-left:.4rem;padding-right:.4rem;border-radius:var(--radius-xs)}
+.vt-line input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:0 0 auto;margin:0}
+.vt-qte{width:62px!important;flex:0 0 auto;padding:.3rem .4rem!important;font-size:.82rem!important;text-align:center}
+.vt-tot{display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--glass-border);font-size:.8rem;color:var(--text2)}
+.vt-tot b{font-family:var(--font-num);font-size:1rem;color:var(--accent)}
+.vt-livr{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;font-size:.75rem;color:var(--text3)}
+.vt-sub{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:.8rem 0 .2rem;padding-top:.6rem;border-top:1px solid var(--glass-border)}
+.vt-sub:first-of-type{margin-top:.2rem;padding-top:0;border-top:0}
+.vt-sub span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
+.vt-sub button{padding:.2rem .55rem;font-size:.68rem;border-radius:8px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text3)}
 </style>
 </head>
 <body>
@@ -322,6 +358,9 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <button class="nav-tab" data-page="contrats"><span class="nt-i">📄</span><span class="nt-l">Contrats</span></button>
     <button class="nav-tab" data-page="temps"><span class="nt-i">⏱</span><span class="nt-l">Temps</span></button>
     <button class="nav-tab" data-page="rapport"><span class="nt-i">📈</span><span class="nt-l">Rapport</span></button>
+    <button class="nav-tab" data-page="periodiques"><span class="nt-i">🌬</span><span class="nt-l">Périod.<span class="vt-cnt zero" id="vtCntP">0</span></span></button>
+    <button class="nav-tab" data-page="commandes"><span class="nt-i">🛒</span><span class="nt-l">Cmd.<span class="vt-cnt zero" id="vtCntC">0</span></span></button>
+    <button class="nav-tab" data-page="fournisseurs"><span class="nt-i">🤝</span><span class="nt-l">Fourn.</span></button>
     <button class="nav-tab" data-page="config"><span class="nt-i">⚙️</span><span class="nt-l">Config</span></button>
     <button class="nav-tab" data-page="doc"><span class="nt-i">📖</span><span class="nt-l">Guide</span></button>
   </div>
@@ -796,6 +835,67 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 </div>
 
 <!-- EDIT MODAL -->
+<!-- ===== PERIODIQUES VENTILATION ===== -->
+<div class="page" id="page-periodiques">
+  <div class="card">
+    <div class="card-title">🌬 Périodiques ventilation</div>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Nettoyages, remplacements de filtres et contrôles — Gland, Nyon Centre, Nyon Drive.</p>
+    <div class="filter-bar">
+      <select class="form-input" id="vtFilterSite" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="vtRenderPeriodiques()"><option value="all">Tous sites</option><option value="GD">Gland</option><option value="NC">Nyon Centre</option><option value="ND">Nyon Drive</option></select>
+      <span style="margin-left:auto"></span>
+      <button class="btn btn-primary btn-sm" onclick="vtOpenEq('')">+ Équipement</button>
+    </div>
+    <div id="vtList"></div>
+  </div>
+</div>
+
+<!-- ===== COMMANDES FILTRES ===== -->
+<div class="page" id="page-commandes">
+  <div class="card">
+    <div class="card-title">🛒 Commandes filtres</div>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.75rem">Panier groupé par fournisseur. Mail rédigé, prêt à copier.</p>
+    <div id="vtCmdList"></div>
+  </div>
+</div>
+
+<!-- ===== FOURNISSEURS VENTILATION ===== -->
+<div class="page" id="page-fournisseurs">
+  <div class="card">
+    <div class="card-title">🤝 Fournisseurs ventilation</div>
+    <div class="filter-bar"><span style="margin-left:auto"></span><button class="btn btn-primary btn-sm" onclick="vtOpenFo('')">+ Fournisseur</button></div>
+    <div id="vtFoList"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🧾 Catalogue — consommables récurrents</div>
+    <p style="font-size:.76rem;color:var(--text3);margin-bottom:.6rem">Articles commandés régulièrement (filtres à eau, pièces). Ils apparaissent dans l'onglet Commandes avec case à cocher et quantité.</p>
+    <div class="filter-bar"><span style="margin-left:auto"></span><button class="btn btn-primary btn-sm" onclick="vtOpenArt('')">+ Article</button></div>
+    <div id="vtCatList"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">✍️ Signature des mails</div>
+    <textarea class="form-input" id="vtSig" style="min-height:90px"></textarea>
+    <div style="margin-top:.6rem"><button class="btn btn-primary btn-sm" onclick="vtSaveSig()">💾 Enregistrer</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📦 Registre — export / import</div>
+    <p style="font-size:.76rem;color:var(--text3);margin-bottom:.6rem">Sauvegarde ou import du registre ventilation (équipements + fournisseurs). L'import <b>remplace</b> tout le registre.</p>
+    <textarea class="form-input" id="vtIO" style="min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:.68rem"></textarea>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">
+      <button class="btn btn-ghost btn-sm" onclick="vtFillIO()">⬇️ Charger</button>
+      <button class="btn btn-ghost btn-sm" onclick="vtCopyIO()">📋 Copier</button>
+      <button class="btn btn-primary btn-sm" onclick="vtImportIO()">⬆️ Importer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALE VENTILATION ===== -->
+<div class="modal-overlay" id="vtModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="vtModalTitle">Équipement</h3><button class="modal-close" onclick="vtCloseModal()">&times;</button></div>
+    <div id="vtModalBody"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-header"><h3>Modifier</h3><button class="modal-close" onclick="closeEditModal()">&times;</button></div>
@@ -1326,7 +1426,7 @@ function ecoPieces(i){
 }
 
 // ========== NAV ==========
-var TAB_ORDER=['dashboard','saisie','historique','interventions','contrats','temps','rapport','config','doc'];
+var TAB_ORDER=['dashboard','saisie','historique','interventions','contrats','temps','rapport','periodiques','commandes','fournisseurs','config','doc'];
 
 function goToPage(pageName,direction){
   var tabs=document.querySelectorAll('.nav-tab');
@@ -1383,6 +1483,9 @@ var AN_TABS=[
   {id:'contrats',ic:'📄',name:'Contrats'},
   {id:'temps',ic:'⏱',name:'Temps'},
   {id:'rapport',ic:'📈',name:'Rapport'},
+  {id:'periodiques',ic:'🌬',name:'Périodiques'},
+  {id:'commandes',ic:'🛒',name:'Commandes'},
+  {id:'fournisseurs',ic:'🤝',name:'Fournisseurs'},
   {id:'config',ic:'⚙️',name:'Config'},
   {id:'doc',ic:'📖',name:'Guide'}
 ];
@@ -4262,7 +4365,7 @@ function renderHistorique(){
 }
 
 // ========== EXPORT/IMPORT ==========
-function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),absences:getAbsences(),custom_travaux:getCustomTravaux()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),absences:getAbsences(),custom_travaux:getCustomTravaux(),vent_eq:vtGetEq(),vent_fo:vtGetFo(),vent_cat:vtGetCat(),vent_sig:vtGetSig()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
 function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);var total=0;
 if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));total+=nw.length;if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc));total+=nc.length}}
@@ -4574,7 +4677,7 @@ function ghSetGistId(id){localStorage.setItem(LS_GH_GIST,id)}
 
 function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h.toString(36)}
 
-function ghBuildPayload(){return JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:JSON.parse(localStorage.getItem(LS_ECODIR)||'[]'),absences:getAbsences(),custom_travaux:getCustomTravaux(),backup_date:new Date().toISOString()})}
+function ghBuildPayload(){return JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),eco_directe:JSON.parse(localStorage.getItem(LS_ECODIR)||'[]'),absences:getAbsences(),custom_travaux:getCustomTravaux(),vent_eq:vtGetEq(),vent_fo:vtGetFo(),vent_cat:vtGetCat(),vent_sig:vtGetSig(),backup_date:new Date().toISOString()})}
 
 function ghTestToken(token,cb){
   fetch('https://api.github.com/user',{
@@ -4765,6 +4868,10 @@ function ghRestoreVersion(versionId){
       if(j.eco_directe){localStorage.setItem(LS_ECODIR,JSON.stringify(j.eco_directe))}
       if(j.absences){setAbsences(j.absences)}
       if(j.custom_travaux){saveCustomTravaux(j.custom_travaux);rebuildTravaux();rebuildAllTags()}
+      if(j.vent_eq){vtSetEq(j.vent_eq)}
+      if(j.vent_fo){vtSetFo(j.vent_fo)}
+      if(j.vent_cat){vtSetCat(j.vent_cat)}
+      if(j.vent_sig){localStorage.setItem(LS_VT_SIG,j.vent_sig)}
       toast('Restauration OK');
       ghCloseRestore();
       refresh();
@@ -4772,8 +4879,595 @@ function ghRestoreVersion(versionId){
   }).catch(function(e){toast('Erreur : '+e.message)});
 }
 
+
+// ========== PERIODIQUES VENTILATION ==========
+var LS_VT_EQ='maint_vent_eq',LS_VT_FO='maint_vent_fo',LS_VT_PAN='maint_vent_panier',LS_VT_SIG='maint_vent_signature';
+var LS_VT_CAT='maint_vent_catalogue',LS_VT_SEL='maint_vent_cat_sel',LS_VT_CSITE='maint_vent_cat_site';
+var VT_SITES=[['GD','Gland'],['NC','Nyon Centre'],['ND','Nyon Drive']];
+var VT_CATS=[['filtre','Filtre a remplacer'],['nettoyage','Nettoyage'],['controle','Controle / revision']];
+var VT_SIG_DEF="Fabien\nTechnicien de maintenance\nMcDonald's La Cote";
+
+function vtGetEq(){try{var a=JSON.parse(localStorage.getItem(LS_VT_EQ)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function vtSetEq(a){localStorage.setItem(LS_VT_EQ,JSON.stringify(a))}
+function vtGetFo(){try{var a=JSON.parse(localStorage.getItem(LS_VT_FO)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function vtSetFo(a){localStorage.setItem(LS_VT_FO,JSON.stringify(a))}
+function vtGetPan(){try{var o=JSON.parse(localStorage.getItem(LS_VT_PAN)||'{}');return(o&&typeof o==='object')?o:{}}catch(e){return{}}}
+function vtSetPan(o){localStorage.setItem(LS_VT_PAN,JSON.stringify(o))}
+function vtGetSig(){var s=localStorage.getItem(LS_VT_SIG);return(s===null||s==='')?VT_SIG_DEF:s}
+function vtGetCat(){try{var a=JSON.parse(localStorage.getItem(LS_VT_CAT)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function vtSetCat(a){localStorage.setItem(LS_VT_CAT,JSON.stringify(a))}
+function vtGetSel(){try{var o=JSON.parse(localStorage.getItem(LS_VT_SEL)||'{}');return(o&&typeof o==='object')?o:{}}catch(e){return{}}}
+function vtSetSel(o){localStorage.setItem(LS_VT_SEL,JSON.stringify(o))}
+function vtGetCSite(){return localStorage.getItem(LS_VT_CSITE)||''}
+function vtSetCSite(v){localStorage.setItem(LS_VT_CSITE,v);vtRenderCommandes()}
+
+function vtP2(n){return(n<10?'0':'')+n}
+function vtToday(){var d=new Date();return d.getFullYear()+'-'+vtP2(d.getMonth()+1)+'-'+vtP2(d.getDate())}
+function vtFmtD(iso){if(!iso)return'—';var a=String(iso).split('-');return a.length===3?a[2]+'.'+a[1]+'.'+a[0]:String(iso)}
+function vtAddDays(iso,n){var a=String(iso).split('-');var d=new Date(+a[0],+a[1]-1,+a[2]);d.setDate(d.getDate()+(parseInt(n,10)||0));return d.getFullYear()+'-'+vtP2(d.getMonth()+1)+'-'+vtP2(d.getDate())}
+function vtDays(a,b){var x=String(a).split('-'),y=String(b).split('-');return Math.round((Date.UTC(+y[0],+y[1]-1,+y[2])-Date.UTC(+x[0],+x[1]-1,+x[2]))/86400000)}
+function vtPreavis(e){var p=parseInt(e.preavisJours,10);return(isNaN(p)||p<0)?7:p}
+function vtEtat(e){
+  if(!e.derniereDate||!e.frequenceJours)return{k:'o',j:null,txt:'A initialiser',ech:null};
+  var ech=vtAddDays(e.derniereDate,e.frequenceJours),j=vtDays(vtToday(),ech),p=vtPreavis(e);
+  if(j<0)return{k:'r',j:j,txt:'En retard de '+(-j)+' j',ech:ech};
+  if(j===0)return{k:'r',j:0,txt:"A faire aujourd'hui",ech:ech};
+  if(j<=7)return{k:'o',j:j,txt:'Dans '+j+' j',ech:ech};
+  if(j<=p)return{k:'c',j:j,txt:'A commander \u2014 dans '+j+' j',ech:ech};
+  return{k:'v',j:j,txt:'Dans '+j+' j',ech:ech};
+}
+function vtSiteName(c){for(var i=0;i<VT_SITES.length;i++){if(VT_SITES[i][0]===c)return VT_SITES[i][1]}return c||'—'}
+function vtSiteColor(c){return SITES[c]?SITES[c].color:'#888'}
+var VT_SITES_MAIL={GD:"McDonald's Gland Drive (226)",NC:"McDonald's Nyon Centre (110)",ND:"McDonald's Nyon Drive (054)"};
+function vtSiteMail(c){return VT_SITES_MAIL[c]||vtSiteName(c)}
+function vtCatName(c){for(var i=0;i<VT_CATS.length;i++){if(VT_CATS[i][0]===c)return VT_CATS[i][1]}return VT_CATS[1][1]}
+function vtById(l,id){for(var i=0;i<l.length;i++){if(l[i].id===id)return l[i]}return null}
+function vtFoNom(id){var f=vtById(vtGetFo(),id);return f?f.nom:''}
+function vtNewId(){return 'v'+Date.now()+Math.floor(Math.random()*1000)}
+function vtEscAttr(s){return String(s===null||s===undefined?'':s).replace(/'/g,'')}
+function vtCopy(t,m){
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast(m||'Copie')},function(){vtCopyFb(t,m)});return}}catch(e){}
+  vtCopyFb(t,m);
+}
+function vtCopyFb(t,m){
+  var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.left='-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast(m||'Copie')}catch(e){toast('Copie impossible')}
+  document.body.removeChild(ta);
+}
+
+// ---------- rendu : periodiques ----------
+function vtRenderPeriodiques(){
+  var box=document.getElementById('vtList');if(!box)return;
+  var fsEl=document.getElementById('vtFilterSite'),fs=fsEl?fsEl.value:'all';
+  var pan=vtGetPan();
+  var eq=vtGetEq().filter(function(e){return fs==='all'||e.site===fs});
+  eq.sort(function(a,b){var ja=vtEtat(a).j,jb=vtEtat(b).j;return(ja===null?-9999:ja)-(jb===null?-9999:jb)});
+  vtUpdateBadges();
+  if(!eq.length){box.innerHTML='<div class="empty-state"><div class="icon">🌬</div><p>Aucun equipement — ajoute une hotte, un caisson ou une CTA.</p></div>';return}
+  var due=[],cmd=[],ok=[],i,k;
+  for(i=0;i<eq.length;i++){k=vtEtat(eq[i]).k;if(k==='r'||k==='o')due.push(eq[i]);else if(k==='c')cmd.push(eq[i]);else ok.push(eq[i])}
+  var h='<div class="vt-sec">A traiter \u2014 '+due.length+'</div>';
+  h+=due.length?due.map(function(e){return vtCarte(e,pan)}).join(''):'<div class="vt-card v"><div class="vt-meta">Rien a faire cette semaine.</div></div>';
+  if(cmd.length)h+='<div class="vt-sec">\ud83d\uded2 A commander maintenant (delai fabrication) \u2014 '+cmd.length+'</div>'+cmd.map(function(e){return vtCarte(e,pan)}).join('');
+  if(ok.length)h+='<div class="vt-sec">A jour \u2014 '+ok.length+'</div>'+ok.map(function(e){return vtCarte(e,pan)}).join('');
+  box.innerHTML=h;
+}
+function vtCarte(e,pan){
+  var s=vtEtat(e),inp=!!pan[e.id];
+  var h='<div class="vt-card '+s.k+'">';
+  h+='<div class="vt-head"><div style="min-width:0"><div class="vt-name">'+esc(e.nom||'Sans nom')+'</div>';
+  h+='<div class="vt-meta"><span class="vt-dot" style="background:'+vtSiteColor(e.site)+'"></span>'+esc(vtSiteName(e.site))+(e.zone?' · '+esc(e.zone):'')+' · '+esc(vtCatName(e.categorie))+'</div></div>';
+  h+='<span class="vt-pill '+s.k+'">'+esc(s.txt)+'</span></div>';
+  h+='<div class="vt-meta">Dernier passage : <b>'+vtFmtD(e.derniereDate)+'</b> · tous les <b>'+(e.frequenceJours||'—')+' j</b> · echeance : <b>'+vtFmtD(s.ech)+'</b></div>';
+  if(vtPreavis(e)>7)h+='<div class="vt-meta">Preavis commande : <b>'+vtPreavis(e)+' j</b> avant l\'echeance</div>';
+  if(e.reference)h+='<div class="vt-meta">Ref. <span class="vt-ref">'+esc(e.reference)+'</span> ×'+(e.qte||1)+(vtFoNom(e.fournisseurId)?' · '+esc(vtFoNom(e.fournisseurId)):'')+(e.prixUnitaire?' · '+fmt(e.prixUnitaire)+'/u':'')+'</div>';
+  if(e.derniereCommande)h+='<div class="vt-meta">Derniere commande : '+vtFmtD(e.derniereCommande)+'</div>';
+  if(e.notes)h+='<div class="vt-meta">📝 '+esc(e.notes)+'</div>';
+  h+='<div class="vt-acts"><button class="btn btn-primary btn-sm" onclick="vtFait(\''+vtEscAttr(e.id)+'\')">✅ Fait aujourd\'hui</button>';
+  if(e.reference)h+='<button class="btn '+(inp?'btn-primary':'btn-ghost')+' btn-sm" onclick="vtTogglePanier(\''+vtEscAttr(e.id)+'\')">'+(inp?'Dans la commande ✓':'🛒 A commander')+'</button>';
+  if(e.cmdFo)h+='<button class="btn '+(s.k==='c'||s.k==='r'?'btn-primary':'btn-ghost')+' btn-sm" onclick="vtPrepCmd(\''+vtEscAttr(e.id)+'\')">\ud83d\uded2 Preparer la commande</button>';
+  h+='<button class="btn btn-ghost btn-sm" onclick="vtOpenEq(\''+vtEscAttr(e.id)+'\')">✏️ Modifier</button></div>';
+  var j=e.journal||[];
+  if(j.length)h+='<div class="vt-jrn"><b>Journal</b> : '+j.slice(0,4).map(function(x){return vtFmtD(x.d)}).join(' · ')+(j.length>4?' …':'')+'</div>';
+  return h+'</div>';
+}
+
+// ---------- actions periodiques ----------
+function vtFait(id){
+  var a=vtGetEq(),i,j;
+  for(i=0;i<a.length;i++){
+    if(a[i].id!==id)continue;
+    j=(a[i].journal||[]).slice(0,11);
+    j.unshift({d:vtToday(),t:a[i].categorie||'nettoyage'});
+    a[i].journal=j;a[i].derniereDate=vtToday();
+    vtSetEq(a);toast('Fait le '+vtFmtD(vtToday()));vtRender();return;
+  }
+}
+function vtPrepCmd(id){
+  var e=vtById(vtGetEq(),id);if(!e||!e.cmdFo)return;
+  var sel=vtGetSel(),n=0;
+  vtGetCat().forEach(function(a){
+    if((a.fournisseurId||'')!==e.cmdFo)return;
+    if(e.cmdSite&&(a.site||'')!==e.cmdSite)return;
+    sel[a.id]=a.qteDefaut||1;n++;
+  });
+  vtSetSel(sel);vtRender();
+  toast(n+' article(s) ajoute(s) a la commande');
+  if(typeof goToPage==='function')goToPage('commandes');
+}
+function vtTogglePanier(id){
+  var p=vtGetPan();
+  if(p[id])delete p[id];else p[id]=1;
+  vtSetPan(p);vtRender();
+}
+
+// ---------- rendu : commandes ----------
+function vtRenderCommandes(){
+  var box=document.getElementById('vtCmdList');if(!box)return;
+  var h=vtCatalogueHTML()+vtMailsHTML();
+  box.innerHTML=h||'<div class="empty-state"><div class="icon">\ud83d\uded2</div><p>Rien \u00e0 commander \u2014 coche un article du catalogue ou utilise \u00ab A commander \u00bb sur les periodiques.</p></div>';
+  vtUpdateBadges();
+}
+
+// bloc catalogue : cases a cocher + quantites, groupe par fournisseur puis par site
+function vtCatalogueHTML(){
+  var cat=vtGetCat();if(!cat.length)return '';
+  var sel=vtGetSel(),fos=vtGetFo(),cs=vtGetCSite();
+  var groups={},order=[];
+  cat.forEach(function(a){var k=a.fournisseurId||'_';if(!groups[k]){groups[k]=[];order.push(k)}groups[k].push(a)});
+  var h='';
+  order.forEach(function(k){
+    var f=vtById(fos,k),l=groups[k],tot=0,nb=0,sansSite=false;
+    var bySite={},sOrder=[];
+    l.forEach(function(a){
+      var s=a.site||'';
+      if(!s)sansSite=true;
+      if(!bySite[s]){bySite[s]=[];sOrder.push(s)}
+      bySite[s].push(a);
+    });
+    sOrder.sort(function(x,y){return x===''?1:(y===''?-1:(x<y?-1:1))});
+    h+='<div class="vt-sec">Catalogue \u2014 '+esc(f?f.nom:'Sans fournisseur')+'</div><div class="vt-card">';
+    if(sansSite)h+='<div class="vt-livr">Livraison (articles sans site) :<select class="form-input" style="width:auto;display:inline-block;padding:.25rem .5rem;font-size:.75rem" onchange="vtSetCSite(this.value)">'
+      +vtOpt([['','\u2014 non precise \u2014']].concat(VT_SITES),cs)+'</select></div>';
+    sOrder.forEach(function(s){
+      var ll=bySite[s],allOn=true;
+      ll.forEach(function(a){if(!Object.prototype.hasOwnProperty.call(sel,a.id))allOn=false});
+      if(sOrder.length>1||s)h+='<div class="vt-sub"><span>'+esc(s?vtSiteName(s):'Sans site')+'</span>'
+        +'<button onclick="vtCatAll(\''+vtEscAttr(k)+'\',\''+vtEscAttr(s)+'\','+(allOn?'false':'true')+')">'
+        +(allOn?'Tout decocher':'Tout cocher')+'</button></div>';
+      ll.forEach(function(a){
+        var on=Object.prototype.hasOwnProperty.call(sel,a.id);
+        var q=on?sel[a.id]:(a.qteDefaut||1);
+        if(on){tot+=q*(a.prixUnitaire||0);nb++}
+        h+='<div class="vt-line'+(on?' on':'')+'">'
+          +'<input type="checkbox"'+(on?' checked':'')+' onchange="vtCatToggle(\''+vtEscAttr(a.id)+'\',this.checked)">'
+          +'<div style="flex:1;min-width:0"><div class="vt-name" style="font-size:.87rem">'+esc(a.nom)+'</div>'
+          +'<div class="vt-meta">'+(a.reference?'<span class="vt-ref">'+esc(a.reference)+'</span>':'<span style="opacity:.75">reconnu a la taille et a la couleur</span>')
+          +(a.prixUnitaire?' \u00b7 '+fmt(a.prixUnitaire)+'/u':'')
+          +(a.derniereCommande?' \u00b7 cmd. '+vtFmtD(a.derniereCommande):'')+'</div></div>'
+          +'<input type="number" min="1" class="form-input vt-qte" value="'+q+'" onfocus="this.select()" onchange="vtCatQte(\''+vtEscAttr(a.id)+'\',this.value)">'
+          +'</div>';
+      });
+    });
+    h+='<div class="vt-tot"><span>'+nb+' article(s) coche(s)</span>'+(tot?'<b>'+fmt(tot)+'</b>':'<span style="color:var(--text3)">prix variables</span>')+'</div>';
+    h+='</div>';
+  });
+  return h;
+}
+function vtCatAll(k,site,on){
+  var sel=vtGetSel();
+  vtGetCat().forEach(function(a){
+    if((a.fournisseurId||'_')!==k)return;
+    if((a.site||'')!==site)return;
+    if(on)sel[a.id]=a.qteDefaut||1;else delete sel[a.id];
+  });
+  vtSetSel(sel);vtRenderCommandes();
+}
+function vtCatToggle(id,on){
+  var sel=vtGetSel(),a=vtById(vtGetCat(),id);
+  if(on)sel[id]=(a&&a.qteDefaut)||1;else delete sel[id];
+  vtSetSel(sel);vtRenderCommandes();
+}
+function vtCatQte(id,v){
+  var sel=vtGetSel(),q=parseInt(v,10)||1;
+  if(q<1)q=1;
+  sel[id]=q;vtSetSel(sel);vtRenderCommandes();
+}
+
+// lignes a commander, fusionnees par fournisseur (periodiques + catalogue)
+function vtLignes(){
+  var pan=vtGetPan(),sel=vtGetSel(),cs=vtGetCSite(),out={},order=[];
+  function push(k,o){if(!out[k]){out[k]=[];order.push(k)}out[k].push(o)}
+  vtGetEq().forEach(function(e){
+    if(!pan[e.id])return;
+    push(e.fournisseurId||'_',{src:'eq',id:e.id,site:e.site||'',reference:e.reference,
+      designation:e.designation||e.nom||'',qte:e.qte||1,prix:e.prixUnitaire||0});
+  });
+  vtGetCat().forEach(function(a){
+    if(!Object.prototype.hasOwnProperty.call(sel,a.id))return;
+    push(a.fournisseurId||'_',{src:'cat',id:a.id,site:a.site||cs,reference:a.reference,
+      designation:a.designation||a.nom||'',qte:sel[a.id]||1,prix:a.prixUnitaire||0});
+  });
+  return {map:out,order:order};
+}
+function vtMailsHTML(){
+  var L=vtLignes(),fos=vtGetFo(),h='';
+  if(!L.order.length)return '';
+  L.order.forEach(function(k){
+    var f=vtById(fos,k),l=L.map[k],mail=vtMailText(f,l),tot=0;
+    l.forEach(function(x){tot+=x.qte*(x.prix||0)});
+    h+='<div class="vt-sec">\u2709\ufe0f Mail \u2014 '+esc(f?f.nom:'Fournisseur non renseigne')+'</div>';
+    h+='<div class="vt-card">';
+    h+='<div class="vt-meta">A : <span class="vt-ref">'+esc(f&&f.email?f.email:'adresse manquante')+'</span>'
+      +(f&&f.delaiJours?' \u00b7 delai '+f.delaiJours+' j':'')+'</div>';
+    h+='<div class="vt-mail" id="vtMail-'+esc(k)+'">'+esc(mail)+'</div>';
+    if(tot)h+='<div class="vt-tot"><span>Total indicatif ('+l.length+' ligne(s)) \u2014 non inclus dans le mail</span><b>'+fmt(tot)+'</b></div>';
+    h+='<div class="vt-acts"><button class="btn btn-primary btn-sm" onclick="vtCopyMail(\''+vtEscAttr(k)+'\')">\ud83d\udccb Copier le mail</button>';
+    if(f&&f.email)h+='<button class="btn btn-ghost btn-sm" onclick="vtCopyAdr(\''+vtEscAttr(k)+'\')">\u2709\ufe0f Copier l\'adresse</button>';
+    h+='<button class="btn btn-ghost btn-sm" onclick="vtMarquerCommande(\''+vtEscAttr(k)+'\')">\u2705 Marquer comme commande</button></div></div>';
+  });
+  return h;
+}
+function vtMailText(f,l){
+  var de=(f&&f.langue==='de'),sites={},order=[],t;
+  l.forEach(function(e){
+    var s=e.site?vtSiteMail(e.site):(de?'Lieferung wie üblich':'Livraison habituelle');
+    if(!sites[s]){sites[s]=[];order.push(s)}
+    sites[s].push(e);
+  });
+  var objet=(f&&f.objet)||(de?"Bestellung — McDonald's La Côte":"Commande filtres — McDonald's La Côte");
+  var appel=(f&&f.appel)||(f&&f.contact?(de?f.contact:String(f.contact).split(' ')[0]):'');
+  t=(de?'Betreff : ':'Objet : ')+objet+'\n\n';
+  t+=(de?'Guten Tag':'Bonjour')+(appel?' '+appel:'')+',\n\n';
+  t+=(de?'bitte senden Sie uns folgende Bestellung:\n':'Merci de nous faire parvenir la commande suivante :\n');
+  order.forEach(function(s){
+    t+='\n'+s+'\n';
+    sites[s].forEach(function(e){
+      var d=e.designation||e.nom||'';
+      t+='  • '+(e.reference?e.reference+' — '+d:d)+' — '+(de?'Menge ':'quantite ')+(e.qte||1)+'\n';
+    });
+  });
+  t+=de
+    ? '\nBitte bestätigen Sie Preis und Lieferfrist und legen Sie die Rechnung der Lieferung bei.\nLieferung an die üblichen Adressen der betreffenden Restaurants.\n\nFreundliche Grüsse,\n'
+    : '\nMerci de confirmer le prix, le delai de livraison et de joindre la facture a la livraison.\nLivraison aux adresses habituelles des restaurants concernes.\n\nCordialement,\n';
+  return t+vtGetSig();
+}
+function vtCopyMail(k){var el=document.getElementById('vtMail-'+k);if(el)vtCopy(el.textContent||el.innerText,'Mail copie')}
+function vtCopyAdr(k){var f=vtById(vtGetFo(),k);if(f&&f.email)vtCopy(f.email,'Adresse copiee');else toast('Pas d\'adresse')}
+function vtMarquerCommande(k){
+  var pan=vtGetPan(),a=vtGetEq(),sel=vtGetSel(),cat=vtGetCat(),n=0,i,hist;
+  for(i=0;i<a.length;i++){
+    if(!pan[a[i].id])continue;
+    if((a[i].fournisseurId||'_')!==k)continue;
+    a[i].derniereCommande=vtToday();
+    hist=a[i].commandes||[];
+    hist.unshift({d:vtToday(),q:a[i].qte||1,p:a[i].prixUnitaire||0});
+    a[i].commandes=hist.slice(0,12);
+    delete pan[a[i].id];n++;
+  }
+  for(i=0;i<cat.length;i++){
+    if(!Object.prototype.hasOwnProperty.call(sel,cat[i].id))continue;
+    if((cat[i].fournisseurId||'_')!==k)continue;
+    cat[i].derniereCommande=vtToday();
+    hist=cat[i].commandes||[];
+    hist.unshift({d:vtToday(),q:sel[cat[i].id]||1,p:cat[i].prixUnitaire||0});
+    cat[i].commandes=hist.slice(0,12);
+    delete sel[cat[i].id];n++;
+  }
+  vtSetEq(a);vtSetPan(pan);vtSetCat(cat);vtSetSel(sel);
+  toast(n+' ligne(s) notee(s) le '+vtFmtD(vtToday()));vtRender();
+}
+
+// ---------- rendu : fournisseurs ----------
+function vtRenderFournisseurs(){
+  var box=document.getElementById('vtFoList');if(!box)return;
+  var sg=document.getElementById('vtSig');
+  if(sg&&document.activeElement!==sg)sg.value=vtGetSig();
+  var fos=vtGetFo(),eq=vtGetEq();
+  if(!fos.length){box.innerHTML='<div class="empty-state"><div class="icon">🤝</div><p>Aucun fournisseur — ajoute les societes qui livrent les filtres.</p></div>';return}
+  box.innerHTML=fos.map(function(f){
+    var lies=eq.filter(function(e){return e.fournisseurId===f.id}),prix=[];
+    var liesCat=vtGetCat().filter(function(a){return a.fournisseurId===f.id});
+    lies.forEach(function(e){(e.commandes||[]).forEach(function(c){if(c&&c.p)prix.push({n:e.reference||e.nom,d:c.d,p:c.p,q:c.q})})});
+    liesCat.forEach(function(e){(e.commandes||[]).forEach(function(c){if(c&&c.p)prix.push({n:e.reference||e.nom,d:c.d,p:c.p,q:c.q})})});
+    prix.sort(function(x,y){return x.d<y.d?1:(x.d>y.d?-1:0)});
+    prix=prix.slice(0,6);
+    var h='<div class="vt-card">';
+    h+='<div class="vt-head"><div style="min-width:0"><div class="vt-name">'+esc(f.nom)+'</div>';
+    h+='<div class="vt-meta">'+esc(f.contact||'—')+(f.tel?' · '+esc(f.tel):'')+'</div></div>';
+    h+='<span class="vt-pill v">'+lies.length+' equip. \u00b7 '+liesCat.length+' art.</span></div>';
+    h+='<div class="vt-meta">Mail : <span class="vt-ref">'+esc(f.email||'—')+'</span>'+(f.delaiJours?' · delai '+f.delaiJours+' j':'')+(f.langue==='de'?' · mail en allemand':'')+'</div>';
+    if(f.notes)h+='<div class="vt-meta">📝 '+esc(f.notes)+'</div>';
+    if(prix.length)h+='<div class="vt-jrn"><b>Historique prix</b><br>'+prix.map(function(p){return vtFmtD(p.d)+' — '+esc(p.n)+' — '+fmt(p.p)+' × '+p.q}).join('<br>')+'</div>';
+    h+='<div class="vt-acts"><button class="btn btn-ghost btn-sm" onclick="vtCopyAdr(\''+vtEscAttr(f.id)+'\')">✉️ Copier l\'adresse</button>';
+    h+='<button class="btn btn-ghost btn-sm" onclick="vtOpenFo(\''+vtEscAttr(f.id)+'\')">✏️ Modifier</button></div></div>';
+    return h;
+  }).join('');
+}
+function vtSaveSig(){
+  var sg=document.getElementById('vtSig');if(!sg)return;
+  localStorage.setItem(LS_VT_SIG,sg.value);toast('Signature enregistree');vtRenderCommandes();
+}
+
+// ---------- badges ----------
+function vtUpdateBadges(){
+  var eq=vtGetEq(),due=0,i,k;
+  for(i=0;i<eq.length;i++){k=vtEtat(eq[i]).k;if(k==='r'||k==='o'||k==='c')due++}
+  var pan=vtGetPan(),sel=vtGetSel(),np=0,p;
+  for(p in pan){if(Object.prototype.hasOwnProperty.call(pan,p))np++}
+  for(p in sel){if(Object.prototype.hasOwnProperty.call(sel,p))np++}
+  var a=document.getElementById('vtCntP'),b=document.getElementById('vtCntC');
+  if(a){a.textContent=due;a.className='vt-cnt'+(due?'':' zero')}
+  if(b){b.textContent=np;b.className='vt-cnt'+(np?'':' zero')}
+}
+
+// ---------- modale equipement ----------
+function vtCloseModal(){var m=document.getElementById('vtModal');if(m)m.classList.remove('open')}
+function vtOpt(list,sel){return list.map(function(o){return '<option value="'+esc(o[0])+'"'+(String(sel)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>'}).join('')}
+function vtOpenEq(id){
+  var e=(id?vtById(vtGetEq(),id):null)||{};
+  var fos=vtGetFo().map(function(f){return[f.id,f.nom]});
+  document.getElementById('vtModalTitle').textContent=id?'Modifier l\'equipement':'Nouvel equipement';
+  var h='<div class="form-grid">';
+  h+='<div class="form-group full"><label class="form-label">Nom</label><input type="text" class="form-input" id="vtfNom" value="'+esc(e.nom||'')+'" placeholder="Hotte grill — caisson extraction"></div>';
+  h+='<div class="form-group"><label class="form-label">Site</label><select class="form-input" id="vtfSite">'+vtOpt(VT_SITES,e.site||'GD')+'</select></div>';
+  h+='<div class="form-group"><label class="form-label">Zone</label><input type="text" class="form-input" id="vtfZone" value="'+esc(e.zone||'')+'" placeholder="Cuisine / Toit"></div>';
+  h+='<div class="form-group"><label class="form-label">Type</label><select class="form-input" id="vtfCat">'+vtOpt(VT_CATS,e.categorie||'filtre')+'</select></div>';
+  h+='<div class="form-group"><label class="form-label">Frequence (jours)</label><input type="number" min="1" class="form-input" id="vtfFreq" value="'+esc(e.frequenceJours||90)+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Derniere intervention</label><input type="date" class="form-input" id="vtfDate" value="'+esc(e.derniereDate||vtToday())+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Preavis commande (jours)</label><input type="number" min="0" class="form-input" id="vtfPre" value="'+esc(e.preavisJours===undefined?7:e.preavisJours)+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Commander chez</label><select class="form-input" id="vtfCFo">'+vtOpt([['','\u2014 aucun \u2014']].concat(fos),e.cmdFo||'')+'</select></div>';
+  h+='<div class="form-group"><label class="form-label">Articles du site</label><select class="form-input" id="vtfCSite">'+vtOpt([['','\u2014 tous \u2014']].concat(VT_SITES),e.cmdSite||'')+'</select></div>';
+  h+='<div class="form-group"><label class="form-label">Reference filtre</label><input type="text" class="form-input" id="vtfRef" value="'+esc(e.reference||'')+'" placeholder="FG-490x490x45"></div>';
+  h+='<div class="form-group"><label class="form-label">Designation</label><input type="text" class="form-input" id="vtfDes" value="'+esc(e.designation||'')+'" placeholder="Filtre a choc G3"></div>';
+  h+='<div class="form-group"><label class="form-label">Quantite</label><input type="number" min="1" class="form-input" id="vtfQte" value="'+esc(e.qte||1)+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Prix unitaire (CHF)</label><input type="number" step="0.01" min="0" class="form-input" id="vtfPrix" value="'+esc(e.prixUnitaire||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Fournisseur</label><select class="form-input" id="vtfFo">'+vtOpt([['','— aucun —']].concat(fos),e.fournisseurId||'')+'</select></div>';
+  h+='<div class="form-group full"><label class="form-label">Notes</label><input type="text" class="form-input" id="vtfNotes" value="'+esc(e.notes||'')+'" placeholder="Acces par echelle toit, cle n4"></div>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem"><button class="btn btn-primary" onclick="vtSaveEq(\''+vtEscAttr(id)+'\')">💾 Enregistrer</button><button class="btn btn-ghost" onclick="vtCloseModal()">Annuler</button>';
+  if(id)h+='<button class="btn btn-ghost" style="margin-left:auto;color:var(--red)" onclick="vtDelEq(\''+vtEscAttr(id)+'\')">🗑 Supprimer</button>';
+  h+='</div>';
+  document.getElementById('vtModalBody').innerHTML=h;
+  document.getElementById('vtModal').classList.add('open');
+}
+function vtV(id){var el=document.getElementById(id);return el?String(el.value).trim():''}
+function vtSaveEq(id){
+  var a=vtGetEq(),cur=id?vtById(a,id):null;
+  var nom=vtV('vtfNom');
+  if(!nom){toast('Donne un nom a l\'equipement');return}
+  var d=cur||{id:vtNewId(),journal:[]};
+  d.nom=nom;d.site=vtV('vtfSite');d.zone=vtV('vtfZone');d.categorie=vtV('vtfCat');
+  d.frequenceJours=parseInt(vtV('vtfFreq'),10)||0;d.derniereDate=vtV('vtfDate');
+  d.preavisJours=parseInt(vtV('vtfPre'),10);if(isNaN(d.preavisJours)||d.preavisJours<0)d.preavisJours=7;
+  d.cmdFo=vtV('vtfCFo');d.cmdSite=vtV('vtfCSite');
+  d.reference=vtV('vtfRef');d.designation=vtV('vtfDes');
+  d.qte=parseInt(vtV('vtfQte'),10)||1;d.prixUnitaire=parseFloat(vtV('vtfPrix'))||0;
+  d.fournisseurId=vtV('vtfFo');d.notes=vtV('vtfNotes');
+  if(!cur)a.push(d);
+  vtSetEq(a);vtCloseModal();toast('Enregistre');vtRender();
+}
+function vtDelEq(id){
+  if(!confirm('Supprimer cet equipement ?'))return;
+  var a=vtGetEq().filter(function(e){return e.id!==id});
+  var p=vtGetPan();delete p[id];
+  vtSetEq(a);vtSetPan(p);vtCloseModal();toast('Supprime');vtRender();
+}
+
+// ---------- modale fournisseur ----------
+function vtOpenFo(id){
+  var f=(id?vtById(vtGetFo(),id):null)||{};
+  document.getElementById('vtModalTitle').textContent=id?'Modifier le fournisseur':'Nouveau fournisseur';
+  var h='<div class="form-grid">';
+  h+='<div class="form-group full"><label class="form-label">Societe</label><input type="text" class="form-input" id="vtgNom" value="'+esc(f.nom||'')+'"></div>';
+  h+='<div class="form-group full"><label class="form-label">Mail de commande</label><input type="email" class="form-input" id="vtgMail" value="'+esc(f.email||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Contact</label><input type="text" class="form-input" id="vtgContact" value="'+esc(f.contact||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Telephone</label><input type="text" class="form-input" id="vtgTel" value="'+esc(f.tel||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Delai (jours)</label><input type="number" min="0" class="form-input" id="vtgDelai" value="'+esc(f.delaiJours||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Langue du mail</label><select class="form-input" id="vtgLang">'+vtOpt([['fr','Francais'],['de','Allemand']],f.langue||'fr')+'</select></div>';
+  h+='<div class="form-group full"><label class="form-label">Objet du mail</label><input type="text" class="form-input" id="vtgObjet" value="'+esc(f.objet||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Formule d appel</label><input type="text" class="form-input" id="vtgAppel" value="'+esc(f.appel||'')+'" placeholder="Herr Fitzke"></div>';
+  h+='<div class="form-group"><label class="form-label">Notes / n client</label><input type="text" class="form-input" id="vtgNotes" value="'+esc(f.notes||'')+'"></div>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem"><button class="btn btn-primary" onclick="vtSaveFo(\''+vtEscAttr(id)+'\')">💾 Enregistrer</button><button class="btn btn-ghost" onclick="vtCloseModal()">Annuler</button>';
+  if(id)h+='<button class="btn btn-ghost" style="margin-left:auto;color:var(--red)" onclick="vtDelFo(\''+vtEscAttr(id)+'\')">🗑 Supprimer</button>';
+  h+='</div>';
+  document.getElementById('vtModalBody').innerHTML=h;
+  document.getElementById('vtModal').classList.add('open');
+}
+function vtSaveFo(id){
+  var a=vtGetFo(),cur=id?vtById(a,id):null;
+  var nom=vtV('vtgNom');
+  if(!nom){toast('Donne un nom a la societe');return}
+  var d=cur||{id:vtNewId()};
+  d.nom=nom;d.email=vtV('vtgMail');d.contact=vtV('vtgContact');d.tel=vtV('vtgTel');
+  d.delaiJours=parseInt(vtV('vtgDelai'),10)||0;d.notes=vtV('vtgNotes');
+  d.langue=vtV('vtgLang')||'fr';d.objet=vtV('vtgObjet');d.appel=vtV('vtgAppel');
+  if(!cur)a.push(d);
+  vtSetFo(a);vtCloseModal();toast('Enregistre');vtRender();
+}
+function vtDelFo(id){
+  if(!confirm('Supprimer ce fournisseur ?'))return;
+  var a=vtGetFo().filter(function(f){return f.id!==id});
+  var eq=vtGetEq(),i;
+  for(i=0;i<eq.length;i++){if(eq[i].fournisseurId===id)eq[i].fournisseurId=''}
+  vtSetFo(a);vtSetEq(eq);vtCloseModal();toast('Supprime');vtRender();
+}
+
+// ---------- catalogue : gestion des articles ----------
+function vtRenderCatalogue(){
+  var box=document.getElementById('vtCatList');if(!box)return;
+  var cat=vtGetCat(),fos=vtGetFo();
+  if(!cat.length){box.innerHTML='<div class="empty-state" style="padding:1.5rem"><p>Aucun article \u2014 ajoute les consommables commandes regulierement.</p></div>';return}
+  box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Article</th><th>Reference</th><th>Site</th><th>Qte hab.</th><th>Prix/u</th><th>Fournisseur</th><th></th></tr></thead><tbody>'
+   +cat.map(function(a){
+     var f=vtById(fos,a.fournisseurId);
+     return '<tr><td style="font-weight:500">'+esc(a.nom)+'</td><td><span class="vt-ref">'+esc(a.reference||'\u2014')+'</span></td>'
+      +'<td style="font-size:.78rem">'+esc(a.site?vtSiteName(a.site):'\u2014')+'</td>'
+      +'<td>'+(a.qteDefaut||1)+'</td><td>'+(a.prixUnitaire?fmt(a.prixUnitaire):'\u2014')+'</td>'
+      +'<td style="font-size:.78rem;color:var(--text3)">'+esc(f?f.nom:'\u2014')+'</td>'
+      +'<td><button class="btn btn-ghost btn-sm" onclick="vtOpenArt(\''+vtEscAttr(a.id)+'\')">\u270f\ufe0f</button></td></tr>';
+   }).join('')+'</tbody></table></div>';
+}
+function vtOpenArt(id){
+  var a=(id?vtById(vtGetCat(),id):null)||{};
+  var fos=vtGetFo().map(function(f){return[f.id,f.nom]});
+  document.getElementById('vtModalTitle').textContent=id?'Modifier l\'article':'Nouvel article catalogue';
+  var h='<div class="form-grid">';
+  h+='<div class="form-group full"><label class="form-label">Designation</label><input type="text" class="form-input" id="vtaNom" value="'+esc(a.nom||'')+'" placeholder="Filtre a eau Everpure MC7"></div>';
+  h+='<div class="form-group"><label class="form-label">Reference / n article</label><input type="text" class="form-input" id="vtaRef" value="'+esc(a.reference||'')+'" placeholder="vide si reconnu a la taille/couleur"></div>';
+  h+='<div class="form-group"><label class="form-label">Site</label><select class="form-input" id="vtaSite">'+vtOpt([['','\u2014 aucun \u2014']].concat(VT_SITES),a.site||'')+'</select></div>';
+  h+='<div class="form-group"><label class="form-label">Quantite habituelle</label><input type="number" min="1" class="form-input" id="vtaQte" value="'+esc(a.qteDefaut||1)+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Prix unitaire (CHF)</label><input type="number" step="0.01" min="0" class="form-input" id="vtaPrix" value="'+esc(a.prixUnitaire||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Fournisseur</label><select class="form-input" id="vtaFo">'+vtOpt([['','\u2014 aucun \u2014']].concat(fos),a.fournisseurId||'')+'</select></div>';
+  h+='<div class="form-group full"><label class="form-label">Notes</label><input type="text" class="form-input" id="vtaNotes" value="'+esc(a.notes||'')+'"></div>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem"><button class="btn btn-primary" onclick="vtSaveArt(\''+vtEscAttr(id)+'\')">\ud83d\udcbe Enregistrer</button><button class="btn btn-ghost" onclick="vtCloseModal()">Annuler</button>';
+  if(id)h+='<button class="btn btn-ghost" style="margin-left:auto;color:var(--red)" onclick="vtDelArt(\''+vtEscAttr(id)+'\')">\ud83d\uddd1 Supprimer</button>';
+  h+='</div>';
+  document.getElementById('vtModalBody').innerHTML=h;
+  document.getElementById('vtModal').classList.add('open');
+}
+function vtSaveArt(id){
+  var c=vtGetCat(),cur=id?vtById(c,id):null,nom=vtV('vtaNom');
+  if(!nom){toast('Donne une designation');return}
+  var d=cur||{id:vtNewId()};
+  d.nom=nom;d.reference=vtV('vtaRef');d.designation=nom;
+  d.site=vtV('vtaSite');d.qteDefaut=parseInt(vtV('vtaQte'),10)||1;d.prixUnitaire=parseFloat(vtV('vtaPrix'))||0;
+  d.fournisseurId=vtV('vtaFo');d.notes=vtV('vtaNotes');
+  if(!cur)c.push(d);
+  vtSetCat(c);vtCloseModal();toast('Enregistre');vtRender();
+}
+function vtDelArt(id){
+  if(!confirm('Supprimer cet article ?'))return;
+  var c=vtGetCat().filter(function(a){return a.id!==id});
+  var sel=vtGetSel();delete sel[id];
+  vtSetCat(c);vtSetSel(sel);vtCloseModal();toast('Supprime');vtRender();
+}
+
+// ---------- export / import registre ----------
+function vtFillIO(){
+  var io=document.getElementById('vtIO');if(!io)return;
+  io.value=JSON.stringify({equipements:vtGetEq(),fournisseurs:vtGetFo(),catalogue:vtGetCat()},null,1);
+  toast('Registre charge');
+}
+function vtCopyIO(){var io=document.getElementById('vtIO');if(io&&io.value)vtCopy(io.value,'JSON copie');else toast('Charge d\'abord le registre')}
+function vtImportIO(){
+  var io=document.getElementById('vtIO');if(!io)return;
+  var d;
+  try{d=JSON.parse(io.value)}catch(err){toast('JSON invalide');return}
+  if(!d||!Array.isArray(d.equipements)){toast('Il faut { equipements: [...] }');return}
+  if(!confirm('Remplacer tout le registre ventilation ?'))return;
+  var eq=d.equipements.map(function(e){if(!e.id)e.id=vtNewId();return e});
+  var fo=(d.fournisseurs||[]).map(function(f){if(!f.id)f.id=vtNewId();return f});
+  var ca=(d.catalogue||[]).map(function(a){if(!a.id)a.id=vtNewId();return a});
+  vtSetEq(eq);vtSetFo(fo);vtSetCat(ca);vtSetPan({});vtSetSel({});
+  toast('Import termine — '+eq.length+' equip. / '+ca.length+' article(s)');vtRender();
+}
+
+// ---------- amorce : fournisseurs + catalogue (versionnee, additive) ----------
+function vtSeedAdd(fo,arts){
+  var F=vtGetFo(),C=vtGetCat(),i;
+  if(!vtById(F,fo.id)){F.push(fo);vtSetFo(F)}
+  for(i=0;i<arts.length;i++){if(!vtById(C,arts[i].id))C.push(arts[i])}
+  vtSetCat(C);
+}
+function vtSeed(){
+  var v=parseInt(localStorage.getItem('maint_vent_seed'),10)||0;
+  if(v>=2)return;
+  if(v<1){
+    vtSeedAdd({id:'vcoca',nom:'Coca-Cola HBC Suisse',email:'coca.cola@cchellenic.com',contact:'Dimitri Mboyo',
+      tel:'0848 26 22 26',delaiJours:0,notes:'Customer Care \u2014 Thurgauerstrasse 134, 8152 Opfikon'},[
+      {id:'vcat1',nom:'Filtre Everpure 2SR-BW',designation:'Filtre Everpure 2SR-BW',reference:'8900009176',site:'',qteDefaut:2,prixUnitaire:46.80,fournisseurId:'vcoca'},
+      {id:'vcat2',nom:'Filtre a eau MC7',designation:'Wasserfilter MC7',reference:'8900000523',site:'',qteDefaut:15,prixUnitaire:50.45,fournisseurId:'vcoca'},
+      {id:'vcat3',nom:'Filtre a eau 7DM (steamer)',designation:'Wasserfilter 7DM (Steamer)',reference:'8900008670',site:'',qteDefaut:6,prixUnitaire:94.90,fournisseurId:'vcoca'},
+      {id:'vcat4',nom:'Filtre a eau IMF 400',designation:'Wasserfilter IMF 400',reference:'8900008668',site:'',qteDefaut:2,prixUnitaire:46.05,fournisseurId:'vcoca'},
+      {id:'vcat5',nom:'Element filtrant CFS8504-2M',designation:'Filterelement CFS8504-2M',reference:'8900012850',site:'',qteDefaut:2,prixUnitaire:27.25,fournisseurId:'vcoca'}
+    ]);
+  }
+  vtSeedAdd({id:'vltb',nom:'LTB SA',email:'ltb.info@ltbag.ch',contact:'D. Coradazzi',
+    tel:'076 542 62 69',delaiJours:0,
+    notes:'Client 037923 \u2014 Hammerstrasse 27, 4410 Liestal \u2014 tel. 061 927 42 20 \u2014 30 jours net \u2014 prix variables selon offre, majoration matiere premiere ~6%'},[
+    // --- Gland, offre 26-32314 ---
+    {id:'vltb_gd1',nom:'Pulsion air neuf \u2014 K-85-44/4V cassette Compact ePM1 60% / F7',designation:'K-85-44/4V, filtre a cassette Compact, ISO 16890 ePM1 60% / F7',reference:'037565',site:'GD',qteDefaut:6,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_gd2',nom:'Cuisine reprise \u2014 HIP 15-1045 capuchon 1/2',designation:'HIP 15-1045, filtre a capuchon 1/2',reference:'012642',site:'GD',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_gd3',nom:'Cuisine reprise \u2014 HIP 15-1045 capuchon 1/1',designation:'HIP 15-1045, filtre a capuchon 1/1',reference:'012644',site:'GD',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_gd4',nom:'Restaurant \u2014 K-65-44/4V cassette Compact ePM10 70% / M6',designation:'K-65-44/4V, filtre a cassette Compact M6, ISO 16890 ePM10 70% / M6',reference:'037496',site:'GD',qteDefaut:4,prixUnitaire:0,fournisseurId:'vltb'},
+    // --- Nyon Centre (Nyon Gare), offre 26-32313 ---
+    {id:'vltb_nc1',nom:'Cuisine air neuf \u2014 HZ85/8-44-2 poches Save W-Line ePM1 70% / F7',designation:'HZ85/8-44-2, filtre a poches Save W-Line, ISO 16890 ePM1 70% / F7',reference:'2005330',site:'NC',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nc2',nom:'Cuisine air repris \u2014 HIP 15-1045 capuchon 1/1',designation:'HIP 15-1045, filtre a capuchon 1/1',reference:'012644',site:'NC',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nc3',nom:'Restaurant air neuf \u2014 HZ85/4-24-2 poches Save W-Line ePM1 70% / F7',designation:'HZ85/4-24-2, filtre a poches Save W-Line, ISO 16890 ePM1 70% / F7',reference:'2005331',site:'NC',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nc4',nom:'Restaurant air repris \u2014 H65Z-24-25 poches Save W-Line ePM10 60% / M6',designation:'H65Z-24-25, filtres a poches Save W-Line, ISO 16890 ePM10 60% / M6',reference:'3001102',site:'NC',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    // --- Nyon Drive, offre 26-32312 ---
+    {id:'vltb_nd1',nom:'Principale air neuf \u2014 HLNG 44-14 poches coarse 50% / G4',designation:'HLNG 44-14, filtre a poches, ISO 16890 coarse 50% / G4',reference:'607005',site:'ND',qteDefaut:4,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nd2',nom:'Principale air neuf \u2014 HLNG 42-14 poches coarse 50% / G4',designation:'HLNG 42-14, filtre a poches, ISO 16890 coarse 50% / G4',reference:'607004',site:'ND',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nd3',nom:'Principale air neuf \u2014 HZ85-44-14 poches Save W-Line ePM1 70% / F7',designation:'HZ85-44-14, filtre a poches Save W-Line, ISO 16890 ePM1 70% / F7',reference:'2004005',site:'ND',qteDefaut:4,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nd4',nom:'Principale air neuf \u2014 HZ85-42-14 poches Save W-Line ePM1 70% / F7',designation:'HZ85-42-14, filtre a poches Save W-Line, ISO 16890 ePM1 70% / F7',reference:'2004004',site:'ND',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nd5',nom:'Principale air repris \u2014 HIP 15-1045 capuchon 1/1',designation:'HIP 15-1045, filtre a capuchon 1/1',reference:'012644',site:'ND',qteDefaut:2,prixUnitaire:0,fournisseurId:'vltb'},
+    {id:'vltb_nd6',nom:'Principale air repris \u2014 HIP 15-1045 capuchon 1/2',designation:'HIP 15-1045, filtre a capuchon 1/2',reference:'012642',site:'ND',qteDefaut:3,prixUnitaire:0,fournisseurId:'vltb'}
+  ]);
+  if(v<3)vtSeedPeriodiques();
+  if(v<4)vtSeedBanquettes();
+  localStorage.setItem('maint_vent_seed','4');
+}
+function vtSeedBanquettes(){
+  vtSeedAdd({id:'vrk',nom:'Reinhold Keller GmbH',email:'Bjoern.Fitzke@reinhold-keller.de',
+    contact:'Björn Fitzke',tel:'+49 9371 9790 2549',delaiJours:0,langue:'de',
+    appel:'Herr Fitzke',objet:"Bestellung Sitzbankbezüge — McDonald's La Côte",
+    notes:'Gutenbergstrasse 4, 63924 Kleinheubach (DE) — fax +49 9371 2584 — revetements de banquettes'},[
+    {id:'vrk_nd1',nom:'Assise 1400 mm — gris',designation:'Sitzfläche 1400 mm, grau',reference:'',site:'ND',qteDefaut:6,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nd2',nom:'Dossier 1400 mm — gris',designation:'Rückenlehne 1400 mm, grau',reference:'',site:'ND',qteDefaut:3,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nd3',nom:'Assise 1100 mm — gris',designation:'Sitzfläche 1100 mm, grau',reference:'',site:'ND',qteDefaut:7,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc1',nom:'Assise 1400 mm — marron clair (plan 1 et 2)',designation:'Sitzfläche 1400 mm, hellbraun (Nr. 1 und 2 im Plan)',reference:'',site:'NC',qteDefaut:2,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc2',nom:'Dossier 1400 mm — marron clair (plan 1 et 2)',designation:'Rückenlehne 1400 mm, hellbraun (Nr. 1 und 2 im Plan)',reference:'',site:'NC',qteDefaut:2,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc3',nom:'Dossier 1100 mm — marron clair (plan 5)',designation:'Rückenlehne 1100 mm, hellbraun (Nr. 5 im Plan)',reference:'',site:'NC',qteDefaut:1,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc4',nom:'Dossier 800 mm — marron clair (plan 6)',designation:'Rückenlehne 800 mm, hellbraun (Nr. 6 im Plan)',reference:'',site:'NC',qteDefaut:1,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc5',nom:'Assise 1400 mm — marron fonce (plan 3)',designation:'Sitzfläche 1400 mm, dunkelbraun (Nr. 3 im Plan)',reference:'',site:'NC',qteDefaut:1,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc6',nom:'Dossier 1400 mm — marron fonce (plan 3)',designation:'Rückenlehne 1400 mm, dunkelbraun (Nr. 3 im Plan)',reference:'',site:'NC',qteDefaut:1,prixUnitaire:0,fournisseurId:'vrk'},
+    {id:'vrk_nc7',nom:'Assise — marron tres fonce (hors plan, dimension a confirmer)',designation:'Sitzfläche, sehr dunkelbraun (nicht im Plan, Mass noch zu bestätigen)',reference:'',site:'NC',qteDefaut:1,prixUnitaire:0,fournisseurId:'vrk',notes:'Dimension a confirmer — voir photo, absent de l ancien plan de salle'},
+    {id:'vrk_nc8',nom:'Dossier — marron tres fonce (hors plan, dimension a confirmer)',designation:'Rückenlehne, sehr dunkelbraun (nicht im Plan, Mass noch zu bestätigen)',reference:'',site:'NC',qteDefaut:1,prixUnitaire:0,fournisseurId:'vrk',notes:'Dimension a confirmer — voir photo, absent de l ancien plan de salle'}
+  ]);
+}
+function vtSeedPeriodiques(){
+  var E=vtGetEq(),i,t;
+  // questionnaire taches periodiques (directeurs : Gland/Vlad, Nyon Drive/Kevin, Nyon Centre/Amandine)
+  var L=[
+    // --- 226 Gland Drive ---
+    ['pgd1','GD','Changement filtres a air monobloc','Monobloc',  'filtre',   182,'2026-10-21',75,'vltb','GD','Directeur Vlad'],
+    ['pgd2','GD','Changement filtres a graisse monobloc','Monobloc','filtre', 182,'2026-10-21',75,'vltb','GD','Directeur Vlad'],
+    ['pgd3','GD','Verification lumiere de securite','Batiment',  'controle', 365,'2026-01-06',14,'','',  'Directeur Vlad'],
+    ['pgd4','GD','Changement filtres coca','Comptoir',           'filtre',   182,'2026-09-17',30,'vcoca','','Directeur Vlad'],
+    ['pgd5','GD','Aseptisation ligne coca','Comptoir',           'nettoyage',182,'2026-06-08', 7,'','',  'Directeur Vlad'],
+    ['pgd6','GD','Nettoyage panneaux solaires','Toit',           'nettoyage', 91,'2026-09-22', 7,'','',  'Directeur Vlad'],
+    // --- 054 Nyon Drive ---
+    ['pnd1','ND','Changement filtres a graisse monobloc','Monobloc','filtre',182,'2026-07-12',75,'vltb','ND','Directeur Kevin'],
+    ['pnd2','ND','Changement filtres a air monobloc','Monobloc',  'filtre',  182,'2026-07-12',75,'vltb','ND','Directeur Kevin'],
+    ['pnd3','ND','Verification lumiere de securite','Batiment',  'controle', 365,'2026-02-06',14,'','',  'Directeur Kevin'],
+    ['pnd4','ND','Changement filtres coca','Comptoir',           'filtre',   182,'2026-08-28',30,'vcoca','','Directeur Kevin'],
+    ['pnd5','ND','Nettoyage lave-vaisselle','Cuisine',           'nettoyage',  0,'',           7,'','',  'Frequence et dernier passage a definir'],
+    ['pnd6','ND','Aseptisation ligne coca','Comptoir',           'nettoyage',182,'2026-09-18', 7,'','',  'Directeur Kevin'],
+    ['pnd7','ND','Nettoyage panneaux solaires','Toit',           'nettoyage', 91,'2026-09-02', 7,'','',  'Directeur Kevin'],
+    // --- 110 Nyon Centre ---
+    ['pnc1','NC','Changement filtres a air monobloc','Monobloc',  'filtre',  182,'2026-02-24',75,'vltb','NC','Directrice Amandine'],
+    ['pnc2','NC','Changement filtres a graisse monobloc','Monobloc','filtre',182,'2026-02-24',75,'vltb','NC','Directrice Amandine'],
+    ['pnc3','NC','Verification lumiere de securite','Batiment',  'controle', 365,'2026-01-06',14,'','',  'Directrice Amandine'],
+    ['pnc4','NC','Changement filtres coca','Comptoir',           'filtre',   182,'2026-10-20',30,'vcoca','','Directrice Amandine'],
+    ['pnc5','NC','Aseptisation ligne coca','Comptoir',           'nettoyage',182,'2026-10-23', 7,'','',  'Directrice Amandine']
+  ];
+  for(i=0;i<L.length;i++){
+    t=L[i];
+    if(vtById(E,t[0]))continue;
+    E.push({id:t[0],site:t[1],nom:t[2],zone:t[3],categorie:t[4],frequenceJours:t[5],derniereDate:t[6],
+      preavisJours:t[7],cmdFo:t[8],cmdSite:t[9],notes:t[10],reference:'',qte:1,fournisseurId:'',journal:[]});
+  }
+  vtSetEq(E);
+}
+
+function vtRender(){vtSeed();vtRenderPeriodiques();vtRenderCommandes();vtRenderFournisseurs();vtRenderCatalogue();vtUpdateBadges()}
+
 // ========== REFRESH ==========
-function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();ghInitUI();renderCustomTravauxList();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
+function refresh(){loadConfig();renderObjective();renderKPIs();renderLast();updateMonthSel();renderList();renderCharts();updateContratMonthFilter();renderContrats();renderContratsSynthese();renderGlobalCosts();initRapportDates();renderClasseur();renderTemps();renderTTLastEntries();renderDexcLastEntries();renderEcoDirecteLastEntries();renderHistorique();initTrimestreSelect();ghInitUI();renderCustomTravauxList();vtRender();document.getElementById('cDate').value=new Date().toISOString().slice(0,10)}
 refresh();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').then(function(r){console.log('SW ok')}).catch(function(e){console.log('SW err',e)})}
 </script>
