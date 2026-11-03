@@ -306,9 +306,18 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .an-overlay.an-show ~ .an-center{opacity:1}
 .an-center .an-cl-name{font-family:var(--font-num);font-weight:700;font-size:2.1rem;letter-spacing:-.01em;color:var(--accent);text-shadow:0 0 24px rgba(255,199,44,.25)}
 .an-center .an-cl-hint{font-size:.62rem;color:var(--text3);margin-top:2px;letter-spacing:.06em}
-@media print{.an-handle,.an-overlay,.an-pointer,.an-center,.an-tick,.an-item{display:none!important}}
+.an-go{position:fixed;z-index:214;width:84px;height:84px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;border:2px solid var(--accent);background:rgba(28,32,42,.96);box-shadow:0 0 0 6px rgba(255,199,44,.12),0 10px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .28s,transform .18s;cursor:pointer}
+.an-overlay.an-show ~ .an-go{opacity:1;pointer-events:auto}
+.an-go:active{transform:scale(.93)}
+.an-go .an-go-ico{font-size:1.7rem;line-height:1}
+.an-go .an-go-lbl{font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.an-go.an-go-blue{border-color:var(--blue);box-shadow:0 0 0 6px rgba(96,165,250,.12),0 10px 30px rgba(0,0,0,.5)}
+.an-go.an-go-blue .an-go-lbl{color:var(--blue)}
+@media print{.an-handle,.an-overlay,.an-pointer,.an-center,.an-tick,.an-item,.an-go{display:none!important}}
 /* ===== PERIODIQUES VENTILATION ===== */
-.vt-sec{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin:1.1rem 0 .55rem}
+.vt-sec{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin:1.3rem 0 .55rem;display:flex;align-items:center;gap:.45rem}
+.vt-sec::before{content:'';width:10px;height:10px;border-radius:3px;background:currentColor;flex:0 0 auto;box-shadow:0 0 10px currentColor}
+.vt-sec.s-r{color:var(--red)}.vt-sec.s-o{color:var(--orange)}.vt-sec.s-c{color:var(--blue)}.vt-sec.s-v{color:var(--green)}.vt-sec.s-a{color:var(--accent)}
 .vt-sec:first-child{margin-top:0}
 .vt-card{background:var(--glass);border:1px solid var(--glass-border);border-left:4px solid var(--text3);border-radius:var(--radius-sm);padding:.8rem .95rem;margin-bottom:.55rem}
 .vt-card.r{border-left-color:var(--red)}
@@ -328,6 +337,13 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .vt-acts{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.65rem}
 .vt-mail{background:var(--bg3);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:.75rem .85rem;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.71rem;line-height:1.55;color:var(--text2);overflow-x:auto;margin:.55rem 0}
 .vt-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:.35rem;vertical-align:middle}
+.vt-site{display:inline-block;font-size:.67rem;font-weight:700;letter-spacing:.02em;padding:.1rem .5rem;border-radius:8px;vertical-align:middle}
+.vt-card.r{background:linear-gradient(100deg,rgba(218,44,56,.13),var(--glass) 60%)}
+.vt-card.o{background:linear-gradient(100deg,rgba(249,115,22,.12),var(--glass) 60%)}
+.vt-card.c{background:linear-gradient(100deg,rgba(96,165,250,.12),var(--glass) 60%)}
+.vt-line.on{background:rgba(255,199,44,.09);box-shadow:inset 2px 0 0 var(--accent)}
+.vt-mail{border-left:3px solid var(--accent)}
+.vt-cnt.c{background:var(--blue)}
 .vt-cnt{display:inline-block;min-width:15px;padding:0 4px;margin-left:3px;border-radius:8px;background:var(--red);color:#fff;font-size:.58rem;font-weight:700;line-height:15px;text-align:center;vertical-align:middle}
 .vt-cnt.zero{display:none}
 .vt-jrn{font-size:.7rem;color:var(--text3);margin-top:.45rem;line-height:1.55;padding-top:.45rem;border-top:1px solid var(--glass-border)}
@@ -341,7 +357,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .vt-livr{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;font-size:.75rem;color:var(--text3)}
 .vt-sub{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:.8rem 0 .2rem;padding-top:.6rem;border-top:1px solid var(--glass-border)}
 .vt-sub:first-of-type{margin-top:.2rem;padding-top:0;border-top:0}
-.vt-sub span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
+.vt-sub span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.12rem .5rem;border-radius:8px}
 .vt-sub button{padding:.2rem .55rem;font-size:.68rem;border-radius:8px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text3)}
 </style>
 </head>
@@ -368,7 +384,8 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <div class="an-handle" id="anHandle"><span class="an-grip"></span><span class="an-h-ico" id="anHIco">📊</span><span class="an-h-name" id="anHName">Dashboard</span></div>
 <div class="an-overlay" id="anOverlay"></div>
 <div class="an-pointer" id="anPointer"><div class="an-tri"></div></div>
-<div class="an-center" id="anCenter"><div class="an-cl-name" id="anClName">Dashboard</div><div class="an-cl-hint">tourne pour choisir</div></div>
+<div class="an-center" id="anCenter"><div class="an-cl-name" id="anClName">Dashboard</div><div class="an-cl-hint">tourne, puis valide au centre</div></div>
+<button type="button" class="an-go" id="anGo"><span class="an-go-ico" id="anGoIco">&#128202;</span><span class="an-go-lbl">Ouvrir</span></button>
 <div class="container">
 
 <!-- DASHBOARD -->
@@ -1496,6 +1513,8 @@ var anPointer=document.getElementById('anPointer');
 var anCenterEl=document.getElementById('anCenter');
 var anClName=document.getElementById('anClName');
 var anHandle=document.getElementById('anHandle');
+var anGo=document.getElementById('anGo');
+var anGoIco=document.getElementById('anGoIco');
 var anItems=[],anTicks=[],anTvals=[];
 (function(){
   var i,el;
@@ -1516,7 +1535,7 @@ var anItems=[],anTicks=[],anTvals=[];
 })();
 function anClamp(v,a,b){return v<a?a:v>b?b:v;}
 function anCurIdx(){var pg=document.querySelector('.page.active');if(!pg)return 0;var id=pg.id.replace('page-','');for(var i=0;i<AN_TABS.length;i++){if(AN_TABS[i].id===id)return i;}return 0;}
-function anCalc(){anCx=window.innerWidth/2;anCy=window.innerHeight-58;anR=Math.min(170,Math.max(130,window.innerWidth*0.42));anRt=anR-8;anPointer.style.left=(anCx-8)+'px';anPointer.style.top=(anCy-anR-26)+'px';anCenterEl.style.top=Math.max(38,(anCy-anR-88))+'px';}
+function anCalc(){anCx=window.innerWidth/2;anCy=window.innerHeight-58;anR=Math.min(170,Math.max(130,window.innerWidth*0.42));anRt=anR-8;anPointer.style.left=(anCx-8)+'px';anPointer.style.top=(anCy-anR-26)+'px';anCenterEl.style.top=Math.max(38,(anCy-anR-88))+'px';anGo.style.left=(anCx-42)+'px';anGo.style.top=(anCy-46)+'px';}
 function anAngle(p){return Math.atan2(anCy-p.y,p.x-anCx)*180/Math.PI;}
 function anRender(anim){
   var sel=anClamp(Math.round(anPos),0,AN_TABS.length-1),j,i;
@@ -1539,6 +1558,8 @@ function anRender(anim){
     if(e.className.indexOf('an-detent')<0)e.className='an-item'+(AN_TABS[i].blue?' an-blue':'')+(i===sel?' an-sel':'');
   }
   anClName.textContent=AN_TABS[sel].name;
+  anGoIco.innerHTML=AN_TABS[sel].blue?'<span style="color:var(--blue);font-weight:800">+</span>':AN_TABS[sel].ic;
+  anGo.className='an-go'+(AN_TABS[sel].blue?' an-go-blue':'');
   if(sel!==anLastSel){anDetent(sel);anLastSel=sel;}
 }
 function anDetent(sel){
@@ -1556,9 +1577,10 @@ function anNearest(p){var best=-1,bd=48,i;for(i=0;i<anItems.length;i++){if(anIte
 function anNorm(a){while(a>180)a-=360;while(a<-180)a+=360;return a;}
 function anDown(e){if(!anOpen)return;if(anMom){clearInterval(anMom);anMom=null;}anDrag=true;anMoved=false;anDownP=anPt(e);anStartAng=anAngle(anDownP);anStartPos=anPos;anLastT=Date.now();anLastP=anPos;anVel=0;}
 function anMove(e){if(!anDrag)return;var p=anPt(e);var dA=anNorm(anAngle(p)-anStartAng);if(Math.abs(dA)>1.2)anMoved=true;anPos=anClamp(anStartPos+dA/AN_STEP,0,AN_TABS.length-1);var now=Date.now(),dt=now-anLastT;if(dt>0){anVel=(anPos-anLastP)/dt;anLastT=now;anLastP=anPos;}anRender(false);if(e.cancelable)e.preventDefault();}
-function anSettle(){var sel=anClamp(Math.round(anPos),0,AN_TABS.length-1);anPos=sel;anRender(true);setTimeout(function(){anNavigate(sel);},170);}
-function anUp(e){if(!anDrag)return;anDrag=false;if(!anMoved){var hit=anNearest(anDownP);if(hit>=0)anNavigate(hit);else anCloseDial();return;}if(Math.abs(anVel)>0.004){anMom=setInterval(function(){anPos=anClamp(anPos+anVel*16,0,AN_TABS.length-1);anVel*=0.9;anRender(false);if(anPos<=0||anPos>=AN_TABS.length-1||Math.abs(anVel)<0.01){clearInterval(anMom);anMom=null;anSettle();}},16);}else{anSettle();}}
+function anSettle(){var sel=anClamp(Math.round(anPos),0,AN_TABS.length-1);anPos=sel;anRender(true);}
+function anUp(e){if(!anDrag)return;anDrag=false;if(!anMoved){var hit=anNearest(anDownP);if(hit>=0){anPos=hit;anRender(true);}else anCloseDial();return;}if(Math.abs(anVel)>0.004){anMom=setInterval(function(){anPos=anClamp(anPos+anVel*16,0,AN_TABS.length-1);anVel*=0.9;anRender(false);if(anPos<=0||anPos>=AN_TABS.length-1||Math.abs(anVel)<0.01){clearInterval(anMom);anMom=null;anSettle();}},16);}else{anSettle();}}
 anHandle.addEventListener('click',function(){anOpenDial();});
+anGo.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(!anOpen)return;if(anMom){clearInterval(anMom);anMom=null;}anNavigate(anClamp(Math.round(anPos),0,AN_TABS.length-1));});
 anOverlay.addEventListener('touchstart',anDown,{passive:false});
 anOverlay.addEventListener('touchmove',anMove,{passive:false});
 anOverlay.addEventListener('touchend',anUp,{passive:false});
@@ -4918,6 +4940,9 @@ function vtEtat(e){
 }
 function vtSiteName(c){for(var i=0;i<VT_SITES.length;i++){if(VT_SITES[i][0]===c)return VT_SITES[i][1]}return c||'—'}
 function vtSiteColor(c){return SITES[c]?SITES[c].color:'#888'}
+function vtHexA(h,a){h=String(h||'#888888').replace('#','');if(h.length===3)h=h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);var n=parseInt(h,16);if(isNaN(n))return 'rgba(136,136,136,'+a+')';return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'}
+function vtSiteStyle(c){var k=vtSiteColor(c);return 'background:'+vtHexA(k,.15)+';color:'+k+';box-shadow:inset 0 0 0 1px '+vtHexA(k,.38)}
+function vtSiteBadge(c){return '<span class="vt-site" style="'+vtSiteStyle(c)+'">'+esc(vtSiteName(c))+'</span>'}
 var VT_SITES_MAIL={GD:"McDonald's Gland Drive (226)",NC:"McDonald's Nyon Centre (110)",ND:"McDonald's Nyon Drive (054)"};
 function vtSiteMail(c){return VT_SITES_MAIL[c]||vtSiteName(c)}
 function vtCatName(c){for(var i=0;i<VT_CATS.length;i++){if(VT_CATS[i][0]===c)return VT_CATS[i][1]}return VT_CATS[1][1]}
@@ -4947,17 +4972,17 @@ function vtRenderPeriodiques(){
   if(!eq.length){box.innerHTML='<div class="empty-state"><div class="icon">🌬</div><p>Aucun equipement — ajoute une hotte, un caisson ou une CTA.</p></div>';return}
   var due=[],cmd=[],ok=[],i,k;
   for(i=0;i<eq.length;i++){k=vtEtat(eq[i]).k;if(k==='r'||k==='o')due.push(eq[i]);else if(k==='c')cmd.push(eq[i]);else ok.push(eq[i])}
-  var h='<div class="vt-sec">A traiter \u2014 '+due.length+'</div>';
+  var h='<div class="vt-sec s-r">A traiter \u2014 '+due.length+'</div>';
   h+=due.length?due.map(function(e){return vtCarte(e,pan)}).join(''):'<div class="vt-card v"><div class="vt-meta">Rien a faire cette semaine.</div></div>';
-  if(cmd.length)h+='<div class="vt-sec">\ud83d\uded2 A commander maintenant (delai fabrication) \u2014 '+cmd.length+'</div>'+cmd.map(function(e){return vtCarte(e,pan)}).join('');
-  if(ok.length)h+='<div class="vt-sec">A jour \u2014 '+ok.length+'</div>'+ok.map(function(e){return vtCarte(e,pan)}).join('');
+  if(cmd.length)h+='<div class="vt-sec s-c">A commander maintenant \u2014 delai fabrication \u2014 '+cmd.length+'</div>'+cmd.map(function(e){return vtCarte(e,pan)}).join('');
+  if(ok.length)h+='<div class="vt-sec s-v">A jour \u2014 '+ok.length+'</div>'+ok.map(function(e){return vtCarte(e,pan)}).join('');
   box.innerHTML=h;
 }
 function vtCarte(e,pan){
   var s=vtEtat(e),inp=!!pan[e.id];
   var h='<div class="vt-card '+s.k+'">';
   h+='<div class="vt-head"><div style="min-width:0"><div class="vt-name">'+esc(e.nom||'Sans nom')+'</div>';
-  h+='<div class="vt-meta"><span class="vt-dot" style="background:'+vtSiteColor(e.site)+'"></span>'+esc(vtSiteName(e.site))+(e.zone?' · '+esc(e.zone):'')+' · '+esc(vtCatName(e.categorie))+'</div></div>';
+  h+='<div class="vt-meta">'+vtSiteBadge(e.site)+(e.zone?' · '+esc(e.zone):'')+' · '+esc(vtCatName(e.categorie))+'</div></div>';
   h+='<span class="vt-pill '+s.k+'">'+esc(s.txt)+'</span></div>';
   h+='<div class="vt-meta">Dernier passage : <b>'+vtFmtD(e.derniereDate)+'</b> · tous les <b>'+(e.frequenceJours||'—')+' j</b> · echeance : <b>'+vtFmtD(s.ech)+'</b></div>';
   if(vtPreavis(e)>7)h+='<div class="vt-meta">Preavis commande : <b>'+vtPreavis(e)+' j</b> avant l\'echeance</div>';
@@ -5027,13 +5052,13 @@ function vtCatalogueHTML(){
       bySite[s].push(a);
     });
     sOrder.sort(function(x,y){return x===''?1:(y===''?-1:(x<y?-1:1))});
-    h+='<div class="vt-sec">Catalogue \u2014 '+esc(f?f.nom:'Sans fournisseur')+'</div><div class="vt-card">';
+    h+='<div class="vt-sec s-a">Catalogue \u2014 '+esc(f?f.nom:'Sans fournisseur')+'</div><div class="vt-card">';
     if(sansSite)h+='<div class="vt-livr">Livraison (articles sans site) :<select class="form-input" style="width:auto;display:inline-block;padding:.25rem .5rem;font-size:.75rem" onchange="vtSetCSite(this.value)">'
       +vtOpt([['','\u2014 non precise \u2014']].concat(VT_SITES),cs)+'</select></div>';
     sOrder.forEach(function(s){
       var ll=bySite[s],allOn=true;
       ll.forEach(function(a){if(!Object.prototype.hasOwnProperty.call(sel,a.id))allOn=false});
-      if(sOrder.length>1||s)h+='<div class="vt-sub"><span>'+esc(s?vtSiteName(s):'Sans site')+'</span>'
+      if(sOrder.length>1||s)h+='<div class="vt-sub"><span style="'+(s?vtSiteStyle(s):'background:var(--glass);color:var(--text3)')+'">'+esc(s?vtSiteName(s):'Sans site')+'</span>'
         +'<button onclick="vtCatAll(\''+vtEscAttr(k)+'\',\''+vtEscAttr(s)+'\','+(allOn?'false':'true')+')">'
         +(allOn?'Tout decocher':'Tout cocher')+'</button></div>';
       ll.forEach(function(a){
@@ -5097,7 +5122,7 @@ function vtMailsHTML(){
   L.order.forEach(function(k){
     var f=vtById(fos,k),l=L.map[k],mail=vtMailText(f,l),tot=0;
     l.forEach(function(x){tot+=x.qte*(x.prix||0)});
-    h+='<div class="vt-sec">\u2709\ufe0f Mail \u2014 '+esc(f?f.nom:'Fournisseur non renseigne')+'</div>';
+    h+='<div class="vt-sec s-a">Mail \u2014 '+esc(f?f.nom:'Fournisseur non renseigne')+'</div>';
     h+='<div class="vt-card">';
     h+='<div class="vt-meta">A : <span class="vt-ref">'+esc(f&&f.email?f.email:'adresse manquante')+'</span>'
       +(f&&f.delaiJours?' \u00b7 delai '+f.delaiJours+' j':'')+'</div>';
@@ -5199,7 +5224,7 @@ function vtUpdateBadges(){
   for(p in sel){if(Object.prototype.hasOwnProperty.call(sel,p))np++}
   var a=document.getElementById('vtCntP'),b=document.getElementById('vtCntC');
   if(a){a.textContent=due;a.className='vt-cnt'+(due?'':' zero')}
-  if(b){b.textContent=np;b.className='vt-cnt'+(np?'':' zero')}
+  if(b){b.textContent=np;b.className='vt-cnt c'+(np?'':' zero')}
 }
 
 // ---------- modale equipement ----------
@@ -5304,7 +5329,7 @@ function vtRenderCatalogue(){
    +cat.map(function(a){
      var f=vtById(fos,a.fournisseurId);
      return '<tr><td style="font-weight:500">'+esc(a.nom)+'</td><td><span class="vt-ref">'+esc(a.reference||'\u2014')+'</span></td>'
-      +'<td style="font-size:.78rem">'+esc(a.site?vtSiteName(a.site):'\u2014')+'</td>'
+      +'<td>'+(a.site?vtSiteBadge(a.site):'<span style="color:var(--text3)">\u2014</span>')+'</td>'
       +'<td>'+(a.qteDefaut||1)+'</td><td>'+(a.prixUnitaire?fmt(a.prixUnitaire):'\u2014')+'</td>'
       +'<td style="font-size:.78rem;color:var(--text3)">'+esc(f?f.nom:'\u2014')+'</td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="vtOpenArt(\''+vtEscAttr(a.id)+'\')">\u270f\ufe0f</button></td></tr>';
