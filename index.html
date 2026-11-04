@@ -314,6 +314,46 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .an-go.an-go-blue{border-color:var(--blue);box-shadow:0 0 0 6px rgba(96,165,250,.12),0 10px 30px rgba(0,0,0,.5)}
 .an-go.an-go-blue .an-go-lbl{color:var(--blue)}
 @media print{.an-handle,.an-overlay,.an-pointer,.an-center,.an-tick,.an-item,.an-go{display:none!important}}
+/* ===== MODE ORDINATEUR (>=1024px) — n'affecte jamais le mobile ===== */
+@media(min-width:1024px){
+  /* la molette est faite pour le pouce : a la souris, on rend la barre d'onglets */
+  .an-handle,.an-overlay,.an-pointer,.an-center,.an-go,.an-tick,.an-item{display:none!important}
+  .bubblenav{display:block!important;width:min(1040px,calc(100% - 48px));bottom:18px;padding:7px;border-radius:18px}
+  .bubblenav .nav-tabs{justify-content:center;gap:3px}
+  .bubblenav .nav-tab{min-width:76px;padding:7px 6px;cursor:pointer;transition:background .15s,color .15s}
+  .bubblenav .nav-tab:hover{background:rgba(255,255,255,.07);color:var(--text)}
+  .bubblenav .nav-tab.active:hover{background:var(--accent-dim);color:var(--accent)}
+  .bubblenav .nav-tab .nt-l{font-size:.66rem}
+  .container{max-width:1340px;padding:1.5rem 2rem 0}
+  .page{padding-bottom:108px}
+  .nav{padding:.6rem 2rem}
+
+  /* plus de colonnes la ou le contenu s'y prete */
+  .kpi-row{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
+  .tt-site-grid{grid-template-columns:repeat(5,1fr)}
+  .modal{max-width:720px}
+  .kpi-modal{max-width:820px}
+
+  /* ventilation : cartes en grille, titres de section sur toute la largeur */
+  #vtList,#vtFoList{display:grid;grid-template-columns:repeat(2,1fr);gap:0 .75rem;align-items:start}
+  #vtList>.vt-sec,#vtFoList>.vt-sec{grid-column:1/-1}
+  #vtCmdList{max-width:1000px}
+  .vt-card{margin-bottom:.75rem}
+  .vt-mail{font-size:.78rem}
+
+  /* confort souris */
+  .vt-card{transition:transform .14s,box-shadow .14s}
+  .vt-card:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.28)}
+  .vt-line{padding:.42rem 0}
+  .vt-line:hover{background:rgba(255,255,255,.03)}
+  .vt-photo{height:32px;max-width:112px}
+}
+@media(min-width:1500px){
+  .container{max-width:1560px}
+  #vtList,#vtFoList{grid-template-columns:repeat(3,1fr)}
+  .chart-row{gap:1.5rem}
+}
+
 /* ===== PERIODIQUES VENTILATION ===== */
 .vt-sec{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin:1.3rem 0 .55rem;display:flex;align-items:center;gap:.45rem}
 .vt-sec::before{content:'';width:10px;height:10px;border-radius:3px;background:currentColor;flex:0 0 auto;box-shadow:0 0 10px currentColor}
