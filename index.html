@@ -397,6 +397,15 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .vt-tot{display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--glass-border);font-size:.8rem;color:var(--text2)}
 .vt-tot b{font-family:var(--font-num);font-size:1rem;color:var(--accent)}
 .vt-livr{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;font-size:.75rem;color:var(--text3)}
+.vt-acc{background:var(--bg3);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:.5rem .65rem;margin-top:.5rem}
+.vt-acc-t{font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:700;margin-bottom:.35rem}
+.vt-acc-l{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.76rem;margin-top:.22rem}
+.vt-acc-l b{color:var(--text3);font-weight:600;min-width:72px;font-size:.7rem}
+.vt-sec-val{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;color:var(--text2);background:var(--glass);padding:.1rem .45rem;border-radius:5px;word-break:break-all}
+.vt-mini{font-size:.66rem;padding:.16rem .45rem;border-radius:7px;border:1px solid var(--glass-border);background:var(--glass);color:var(--text3);cursor:pointer}
+.vt-mini:hover{color:var(--text);background:rgba(255,255,255,.07)}
+.vt-url{color:var(--accent);text-decoration:none;word-break:break-all}
+.vt-url:hover{text-decoration:underline}
 .vt-sub{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:.8rem 0 .2rem;padding-top:.6rem;border-top:1px solid var(--glass-border)}
 .vt-sub:first-of-type{margin-top:.2rem;padding-top:0;border-top:0}
 .vt-sub span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.12rem .5rem;border-radius:8px}
@@ -4430,7 +4439,7 @@ function renderHistorique(){
 }
 
 // ========== EXPORT/IMPORT ==========
-function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),absences:getAbsences(),custom_travaux:getCustomTravaux(),vent_eq:vtGetEq(),vent_fo:vtGetFo(),vent_cat:vtGetCat(),vent_sig:vtGetSig()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function exportJSON(){var b=new Blob([JSON.stringify({interventions:getData(),config:getConfig(),contrats:getContrats(),tt_entries:getTTEntries(),tt_exc_trips:getTTExcTrips(),tt_settings:getTTSettings(),depl_exc:getDeplExc(),absences:getAbsences(),custom_travaux:getCustomTravaux(),vent_eq:vtGetEq(),vent_fo:vtFoSansAcces(),vent_cat:vtGetCat(),vent_sig:vtGetSig()},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='maintenance_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
 function importJSON(){document.getElementById('importFile').click()}
 function handleImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var j=JSON.parse(ev.target.result);var total=0;
 if(j.interventions){var ex=getData();var ids={};ex.forEach(function(i){ids[i.id]=true});var nw=j.interventions.filter(function(i){return!ids[i.id]});setData(ex.concat(nw));total+=nw.length;if(j.config)saveConfigData(j.config);if(j.contrats){var ec=getContrats();var cids={};ec.forEach(function(c){cids[c.id]=true});var nc=j.contrats.filter(function(c){return!cids[c.id]});setContrats(ec.concat(nc));total+=nc.length}}
@@ -4994,6 +5003,21 @@ function vtSiteMail(c){return VT_SITES_MAIL[c]||vtSiteName(c)}
 function vtCatName(c){for(var i=0;i<VT_CATS.length;i++){if(VT_CATS[i][0]===c)return VT_CATS[i][1]}return VT_CATS[1][1]}
 function vtById(l,id){for(var i=0;i<l.length;i++){if(l[i].id===id)return l[i]}return null}
 function vtFoNom(id){var f=vtById(vtGetFo(),id);return f?f.nom:''}
+// les acces sont brouilles au repos, comme le jeton GitHub de l'app
+function vtEnc(s){try{return s?ghObfuscate(String(s)):''}catch(e){return ''}}
+function vtDec(s){try{return s?ghDeobfuscate(String(s)):''}catch(e){return ''}}
+function vtUrl(u){u=String(u||'').trim();if(!u)return '';if(!/^https?:\/\//i.test(u))u='https://'+u;return u}
+function vtUrlCourt(u){return String(u||'').replace(/^https?:\/\//i,'').replace(/\/$/,'')}
+function vtVoirMdp(ev,id){
+  ev.stopPropagation();
+  var f=vtById(vtGetFo(),id);if(!f)return;
+  var el=document.getElementById('vtmdp-'+id),bt=ev.currentTarget;
+  if(!el)return;
+  if(el.getAttribute('data-on')==='1'){el.textContent='\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';el.setAttribute('data-on','0');bt.textContent='Afficher'}
+  else{el.textContent=vtDec(f.mdp)||'\u2014';el.setAttribute('data-on','1');bt.textContent='Masquer'}
+}
+function vtCopieMdp(ev,id){ev.stopPropagation();var f=vtById(vtGetFo(),id);if(f&&f.mdp)vtCopy(vtDec(f.mdp),'Mot de passe copie');else toast('Aucun mot de passe')}
+function vtCopieLogin(ev,id){ev.stopPropagation();var f=vtById(vtGetFo(),id);if(f&&f.login)vtCopy(f.login,'Identifiant copie');else toast('Aucun identifiant')}
 function vtNewId(){return 'v'+Date.now()+Math.floor(Math.random()*1000)}
 function vtEscAttr(s){return String(s===null||s===undefined?'':s).replace(/'/g,'')}
 function vtCopy(t,m){
@@ -5249,7 +5273,17 @@ function vtRenderFournisseurs(){
     h+='<div class="vt-meta">'+esc(f.contact||'—')+(f.tel?' · '+esc(f.tel):'')+'</div></div>';
     h+='<span class="vt-pill v">'+lies.length+' equip. \u00b7 '+liesCat.length+' art.</span></div>';
     h+='<div class="vt-meta">Mail : <span class="vt-ref">'+esc(f.email||'—')+'</span>'+(f.delaiJours?' · delai '+f.delaiJours+' j':'')+(f.langue==='de'?' · mail en allemand':'')+'</div>';
+    if(f.site)h+='<div class="vt-meta">Site : <a class="vt-url" href="'+esc(vtUrl(f.site))+'" target="_blank" rel="noopener noreferrer">'+esc(vtUrlCourt(f.site))+'</a></div>';
     if(f.notes)h+='<div class="vt-meta">📝 '+esc(f.notes)+'</div>';
+    if(f.login||f.mdp){
+      h+='<div class="vt-acc"><div class="vt-acc-t">Acces au site</div>';
+      if(f.login)h+='<div class="vt-acc-l"><b>Identifiant</b><span class="vt-sec-val">'+esc(f.login)+'</span>'
+        +'<button class="vt-mini" onclick="vtCopieLogin(event,\''+vtEscAttr(f.id)+'\')">Copier</button></div>';
+      if(f.mdp)h+='<div class="vt-acc-l"><b>Mot de passe</b><span class="vt-sec-val" id="vtmdp-'+esc(f.id)+'" data-on="0">\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022</span>'
+        +'<button class="vt-mini" onclick="vtVoirMdp(event,\''+vtEscAttr(f.id)+'\')">Afficher</button>'
+        +'<button class="vt-mini" onclick="vtCopieMdp(event,\''+vtEscAttr(f.id)+'\')">Copier</button></div>';
+      h+='</div>';
+    }
     if(prix.length)h+='<div class="vt-jrn"><b>Historique prix</b><br>'+prix.map(function(p){return vtFmtD(p.d)+' — '+esc(p.n)+' — '+fmt(p.p)+' × '+p.q}).join('<br>')+'</div>';
     h+='<div class="vt-acts"><button class="btn btn-ghost btn-sm" onclick="vtCopyAdr(\''+vtEscAttr(f.id)+'\')">✉️ Copier l\'adresse</button>';
     h+='<button class="btn btn-ghost btn-sm" onclick="vtOpenFo(\''+vtEscAttr(f.id)+'\')">✏️ Modifier</button></div></div>';
@@ -5336,6 +5370,10 @@ function vtOpenFo(id){
   h+='<div class="form-group"><label class="form-label">Contact</label><input type="text" class="form-input" id="vtgContact" value="'+esc(f.contact||'')+'"></div>';
   h+='<div class="form-group"><label class="form-label">Telephone</label><input type="text" class="form-input" id="vtgTel" value="'+esc(f.tel||'')+'"></div>';
   h+='<div class="form-group"><label class="form-label">Delai (jours)</label><input type="number" min="0" class="form-input" id="vtgDelai" value="'+esc(f.delaiJours||'')+'"></div>';
+  h+='<div class="form-group full"><label class="form-label">Site internet</label><input type="url" class="form-input" id="vtgSite" value="'+esc(f.site||'')+'" placeholder="www.fournisseur.ch"></div>';
+  h+='<div class="form-group"><label class="form-label">Identifiant du site</label><input type="text" class="form-input" id="vtgLogin" autocomplete="off" value="'+esc(f.login||'')+'"></div>';
+  h+='<div class="form-group"><label class="form-label">Mot de passe</label><input type="text" class="form-input" id="vtgMdp" autocomplete="off" value="'+esc(vtDec(f.mdp))+'"></div>';
+  h+='<div class="form-group full"><p style="font-size:.7rem;color:var(--text3);margin:.1rem 0 0">Acces brouilles dans l\'appareil et repris dans la sauvegarde GitHub (gist prive), exclus de l\'export JSON. N\'y mets pas un mot de passe critique (banque, messagerie).</p></div>';
   h+='<div class="form-group"><label class="form-label">Langue du mail</label><select class="form-input" id="vtgLang">'+vtOpt([['fr','Francais'],['de','Allemand']],f.langue||'fr')+'</select></div>';
   h+='<div class="form-group full"><label class="form-label">Objet du mail</label><input type="text" class="form-input" id="vtgObjet" value="'+esc(f.objet||'')+'"></div>';
   h+='<div class="form-group"><label class="form-label">Formule d appel</label><input type="text" class="form-input" id="vtgAppel" value="'+esc(f.appel||'')+'" placeholder="Herr Fitzke"></div>';
@@ -5355,6 +5393,7 @@ function vtSaveFo(id){
   d.nom=nom;d.email=vtV('vtgMail');d.contact=vtV('vtgContact');d.tel=vtV('vtgTel');
   d.delaiJours=parseInt(vtV('vtgDelai'),10)||0;d.notes=vtV('vtgNotes');
   d.langue=vtV('vtgLang')||'fr';d.objet=vtV('vtgObjet');d.appel=vtV('vtgAppel');
+  d.site=vtV('vtgSite');d.login=vtV('vtgLogin');d.mdp=vtEnc(vtV('vtgMdp'));
   if(!cur)a.push(d);
   vtSetFo(a);vtCloseModal();toast('Enregistre');vtRender();
 }
@@ -5566,10 +5605,13 @@ function vtDelArt(id){
 }
 
 // ---------- export / import registre ----------
+function vtFoSansAcces(){
+  return vtGetFo().map(function(f){var c=JSON.parse(JSON.stringify(f));delete c.mdp;delete c.login;return c});
+}
 function vtFillIO(){
   var io=document.getElementById('vtIO');if(!io)return;
-  io.value=JSON.stringify({equipements:vtGetEq(),fournisseurs:vtGetFo(),catalogue:vtGetCat()},null,1);
-  toast('Registre charge');
+  io.value=JSON.stringify({equipements:vtGetEq(),fournisseurs:vtFoSansAcces(),catalogue:vtGetCat()},null,1);
+  toast('Registre charge — sans les acces');
 }
 function vtCopyIO(){var io=document.getElementById('vtIO');if(io&&io.value)vtCopy(io.value,'JSON copie');else toast('Charge d\'abord le registre')}
 function vtImportIO(){
@@ -5579,7 +5621,13 @@ function vtImportIO(){
   if(!d||!Array.isArray(d.equipements)){toast('Il faut { equipements: [...] }');return}
   if(!confirm('Remplacer tout le registre ventilation ?'))return;
   var eq=d.equipements.map(function(e){if(!e.id)e.id=vtNewId();return e});
-  var fo=(d.fournisseurs||[]).map(function(f){if(!f.id)f.id=vtNewId();return f});
+  var anciens=vtGetFo();
+  var fo=(d.fournisseurs||[]).map(function(f){
+    if(!f.id)f.id=vtNewId();
+    var a=vtById(anciens,f.id);
+    if(a){if(!f.login&&a.login)f.login=a.login;if(!f.mdp&&a.mdp)f.mdp=a.mdp}
+    return f;
+  });
   var ca=(d.catalogue||[]).map(function(a){if(!a.id)a.id=vtNewId();return a});
   vtSetEq(eq);vtSetFo(fo);vtSetCat(ca);vtSetPan({});vtSetSel({});
   toast('Import termine — '+eq.length+' equip. / '+ca.length+' article(s)');vtRender();
