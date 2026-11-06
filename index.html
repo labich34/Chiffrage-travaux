@@ -902,6 +902,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <div class="filter-bar">
       <select class="form-input" id="vtFilterSite" style="width:auto;padding:.35rem .75rem;font-size:.78rem" onchange="vtRenderPeriodiques()"><option value="all">Tous sites</option><option value="GD">Gland</option><option value="NC">Nyon Centre</option><option value="ND">Nyon Drive</option></select>
       <span style="margin-left:auto"></span>
+      <button class="btn btn-ghost btn-sm" onclick="vtExportPDF()">📄 Rapport PDF</button>
       <button class="btn btn-primary btn-sm" onclick="vtOpenEq('')">+ Équipement</button>
     </div>
     <div id="vtList"></div>
@@ -4948,7 +4949,7 @@ function ghRestoreVersion(versionId){
 var LS_VT_EQ='maint_vent_eq',LS_VT_FO='maint_vent_fo',LS_VT_PAN='maint_vent_panier',LS_VT_SIG='maint_vent_signature';
 var LS_VT_CAT='maint_vent_catalogue',LS_VT_SEL='maint_vent_cat_sel',LS_VT_CSITE='maint_vent_cat_site';
 var VT_SITES=[['GD','Gland'],['NC','Nyon Centre'],['ND','Nyon Drive']];
-var VT_CATS=[['filtre','Filtre a remplacer'],['nettoyage','Nettoyage'],['controle','Controle / revision']];
+var VT_CATS=[['filtre','Filtre à remplacer'],['nettoyage','Nettoyage'],['controle','Contrôle / révision']];
 var VT_SIG_DEF="Fabien\nTechnicien de maintenance\nMcDonald's La Cote";
 
 function vtGetEq(){try{var a=JSON.parse(localStorage.getItem(LS_VT_EQ)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
@@ -5365,6 +5366,154 @@ function vtDelFo(id){
   vtSetFo(a);vtSetEq(eq);vtCloseModal();toast('Supprime');vtRender();
 }
 
+// ---------- rapport PDF des periodiques ----------
+function vtPdfEtatLabel(s){
+  if(s.j===null)return 'À initialiser';
+  if(s.j<0)return 'En retard '+(-s.j)+' j';
+  if(s.j===0)return "Aujourd'hui";
+  return 'Dans '+s.j+' j';
+}
+function vtPdfCouleur(k){
+  if(k==='r')return [191,42,42];
+  if(k==='o')return [184,104,16];
+  if(k==='c')return [37,99,175];
+  return [27,122,70];
+}
+function vtExportPDF(){
+  if(!window.jspdf||!window.jspdf.jsPDF){toast('Librairie PDF non chargee — reconnecte-toi une fois');return}
+  var fsEl=document.getElementById('vtFilterSite'),fs=fsEl?fsEl.value:'all';
+  var eq=vtGetEq().filter(function(e){return fs==='all'||e.site===fs});
+  if(!eq.length){toast('Aucun periodique a exporter');return}
+  toast('Generation du PDF...');
+
+  eq=eq.slice().sort(function(a,b){
+    var ja=vtEtat(a).j,jb=vtEtat(b).j;
+    return (ja===null?-9999:ja)-(jb===null?-9999:jb);
+  });
+
+  var doc=new window.jspdf.jsPDF('p','mm','a4');
+  var PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight();
+  var M=14,W=PW-M*2,y=0,page=1;
+  var COLS=[72,20,22,18,24,26];            // tache / zone / dernier / freq / echeance / etat
+  var auj=vtFmtD(vtToday());
+
+  function pied(){
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(130,130,130);
+    doc.text("McDonald's La Côte — rapport généré le "+auj,M,PH-8);
+    doc.text('Page '+page,PW-M,PH-8,{align:'right'});
+  }
+  function nouvellePage(){pied();doc.addPage();page++;y=M;}
+  function place(h){if(y+h>PH-16){nouvellePage();return true}return false}
+
+  // ----- en-tete -----
+  doc.setFillColor(29,40,71);doc.rect(0,0,PW,30,'F');
+  doc.setFillColor(255,199,44);doc.rect(0,30,PW,1.6,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(255,255,255);
+  doc.text('Entretiens périodiques — ventilation',M,15);
+  doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(225,225,225);
+  doc.text("McDonald's La Côte   ·   "+(fs==='all'?'Gland, Nyon Centre, Nyon Drive':vtSiteName(fs))+"   ·   au "+auj,M,23);
+  y=40;
+
+  // ----- synthese -----
+  var nR=0,nC=0,nV=0,i,k;
+  for(i=0;i<eq.length;i++){k=vtEtat(eq[i]).k;if(k==='r'||k==='o')nR++;else if(k==='c')nC++;else nV++}
+  var cases=[['À traiter',nR,[191,42,42]],['À commander',nC,[37,99,175]],['À jour',nV,[27,122,70]]];
+  var cw=(W-8)/3;
+  for(i=0;i<3;i++){
+    var x=M+i*(cw+4);
+    doc.setFillColor(246,247,249);doc.rect(x,y,cw,16,'F');
+    doc.setFillColor(cases[i][2][0],cases[i][2][1],cases[i][2][2]);doc.rect(x,y,1.8,16,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(15);
+    doc.setTextColor(cases[i][2][0],cases[i][2][1],cases[i][2][2]);
+    doc.text(String(cases[i][1]),x+6,y+11);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(90,90,90);
+    doc.text(cases[i][0],x+16,y+11);
+  }
+  y+=24;
+
+  // ----- tableaux par site -----
+  function enTeteTableau(){
+    doc.setFillColor(236,239,242);doc.rect(M,y,W,7,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(70,70,70);
+    var t=['Tâche','Zone','Dernier','Tous les','Prochaine','État'],x=M+2,j;
+    for(j=0;j<t.length;j++){doc.text(t[j],x,y+4.8);x+=COLS[j]}
+    y+=7;
+  }
+  var sites=(fs==='all')?['GD','NC','ND']:[fs];
+  for(var s=0;s<sites.length;s++){
+    var lot=eq.filter(function(e){return e.site===sites[s]});
+    if(!lot.length)continue;
+    place(26);
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(29,40,71);
+    doc.text(vtSiteName(sites[s])+'  ('+lot.length+')',M,y+4);
+    y+=8;
+    enTeteTableau();
+    for(i=0;i<lot.length;i++){
+      var e=lot[i],st=vtEtat(e);
+      var nom=doc.splitTextToSize(String(e.nom||''),COLS[0]-3);
+      var sous=[];
+      if(e.reference)sous.push('ref. '+e.reference+' x'+(e.qte||1));
+      if(vtPreavis(e)>7)sous.push('à commander '+vtPreavis(e)+' j avant');
+      if(e.derniereCommande)sous.push('cmd. '+vtFmtD(e.derniereCommande));
+      if(e.notes)sous.push(String(e.notes));
+      var hl=Math.max(7,nom.length*3.6+3.4)+(sous.length?3.6:0);
+      if(place(hl)){
+        doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(29,40,71);
+        doc.text(vtSiteName(sites[s])+'  (suite)',M,y+4);y+=7;
+        enTeteTableau();
+      }
+      if(i%2===1){doc.setFillColor(250,250,251);doc.rect(M,y,W,hl,'F')}
+      var c=vtPdfCouleur(st.k);
+      doc.setFillColor(c[0],c[1],c[2]);doc.rect(M,y,1.3,hl,'F');
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(35,35,35);
+      doc.text(nom,M+3,y+4.6);
+      var x2=M+COLS[0];
+      doc.setTextColor(95,95,95);
+      doc.text(String(e.zone||'—'),x2,y+4.6);x2+=COLS[1];
+      doc.setTextColor(35,35,35);
+      doc.text(vtFmtD(e.derniereDate),x2,y+4.6);x2+=COLS[2];
+      doc.setTextColor(95,95,95);
+      doc.text(e.frequenceJours?e.frequenceJours+' j':'—',x2,y+4.6);x2+=COLS[3];
+      doc.setFont('helvetica','bold');doc.setTextColor(35,35,35);
+      doc.text(st.ech?vtFmtD(st.ech):'—',x2,y+4.6);x2+=COLS[4];
+      doc.setTextColor(c[0],c[1],c[2]);doc.setFontSize(7.5);
+      doc.text(vtPdfEtatLabel(st),x2,y+4.6);
+      if(sous.length){
+        doc.setFont('helvetica','normal');doc.setFontSize(6.6);doc.setTextColor(145,145,145);
+        doc.text(doc.splitTextToSize(sous.join('   ·   '),W-6)[0],M+3,y+hl-2);
+      }
+      doc.setDrawColor(226,229,233);doc.setLineWidth(0.1);
+      doc.line(M,y+hl,M+W,y+hl);
+      y+=hl;
+    }
+    y+=7;
+  }
+
+  // ----- a commander dans les 3 mois -----
+  var cmd=eq.filter(function(e){var st=vtEtat(e);return (e.cmdFo||e.reference)&&st.j!==null&&st.j<=92});
+  if(cmd.length){
+    place(24);
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(29,40,71);
+    doc.text('Commandes à prévoir sous 3 mois',M,y+4);
+    y+=8;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(60,60,60);
+    for(i=0;i<cmd.length;i++){
+      if(place(6))void 0;
+      var ce=cmd[i],cst=vtEtat(ce),fo=vtFoNom(ce.cmdFo||ce.fournisseurId);
+      doc.setTextColor(60,60,60);
+      doc.text('•  '+vtSiteName(ce.site)+' — '+String(ce.nom||''),M+1,y+4);
+      doc.setTextColor(120,120,120);
+      doc.text((fo?fo+'  ·  ':'')+'échéance '+vtFmtD(cst.ech),PW-M,y+4,{align:'right'});
+      y+=5.6;
+    }
+    y+=4;
+  }
+
+  pied();
+  doc.save('periodiques-ventilation-'+vtToday()+'.pdf');
+  toast('PDF genere');
+}
+
 // ---------- catalogue : gestion des articles ----------
 function vtRenderCatalogue(){
   var box=document.getElementById('vtCatList');if(!box)return;
@@ -5479,7 +5628,27 @@ function vtSeed(){
   ]);
   if(v<3)vtSeedPeriodiques();
   if(v<4)vtSeedBanquettes();
-  localStorage.setItem('maint_vent_seed','4');
+  if(v<5)vtAccents();
+  localStorage.setItem('maint_vent_seed','5');
+}
+function vtAccents(){
+  // remplace les libelles seedes par leur version accentuee ; une valeur modifiee par l'utilisateur est laissee telle quelle
+  var MAP={
+    'Changement filtres a air monobloc':'Changement filtres \u00e0 air monobloc',
+    'Changement filtres a graisse monobloc':'Changement filtres \u00e0 graisse monobloc',
+    'Verification lumiere de securite':'V\u00e9rification lumi\u00e8re de s\u00e9curit\u00e9',
+    'Changement filtres coca':'Changement filtres Coca',
+    'Aseptisation ligne coca':'Aseptisation ligne Coca'
+  };
+  var ZONES={'Batiment':'B\u00e2timent'};
+  var NOTES={'Frequence et dernier passage a definir':'Fr\u00e9quence et dernier passage \u00e0 d\u00e9finir'};
+  var a=vtGetEq(),i,ch=false;
+  for(i=0;i<a.length;i++){
+    if(MAP[a[i].nom]){a[i].nom=MAP[a[i].nom];ch=true}
+    if(ZONES[a[i].zone]){a[i].zone=ZONES[a[i].zone];ch=true}
+    if(NOTES[a[i].notes]){a[i].notes=NOTES[a[i].notes];ch=true}
+  }
+  if(ch)vtSetEq(a);
 }
 function vtSeedBanquettes(){
   vtSeedAdd({id:'vrk',nom:'Reinhold Keller GmbH',email:'Bjoern.Fitzke@reinhold-keller.de',
