@@ -4739,7 +4739,7 @@ var LS_GH_GIST='maint_gh_gist_id';
 var LS_GH_SYNC='maint_last_sync';
 var LS_GH_HASH='maint_last_hash';
 var GIST_FILENAME='maintenance_lacote_backup.json';
-var ghSyncInterval=null;
+var ghSyncInterval=null,ghSyncEnCours=false,ghDerniereAuto=0;
 
 function ghObfuscate(t){var r='';for(var i=0;i<t.length;i++){r+=String.fromCharCode(t.charCodeAt(i)^42)}return btoa(r)}
 function ghDeobfuscate(t){try{var d=atob(t);var r='';for(var i=0;i<d.length;i++){r+=String.fromCharCode(d.charCodeAt(i)^42)}return r}catch(e){return''}}
@@ -4836,16 +4836,25 @@ function ghSyncNow(){
   });
 }
 
-function ghAutoSync(){
+function ghAutoSync(signaler){
   var token=ghGetToken();var gistId=ghGetGistId();
   if(!token||!gistId)return;
+  if(ghSyncEnCours)return;                      // une sauvegarde est deja en vol
+  var now=(new Date()).getTime();
+  if(now-ghDerniereAuto<20000)return;           // anti-rebond : 20 s entre deux tentatives
   var payload=ghBuildPayload();
   var hash=simpleHash(payload);
   var lastHash=localStorage.getItem(LS_GH_HASH)||'';
-  if(hash===lastHash)return;
+  if(hash===lastHash)return;                    // rien n'a change : aucune requete
+  ghDerniereAuto=now;ghSyncEnCours=true;
   ghSetStatus('syncing');
   ghUpdateGist(token,gistId,payload,function(ok,info){
-    if(!ok){ghSetStatus('error');return}
+    ghSyncEnCours=false;
+    if(!ok){
+      ghSetStatus('error');
+      if(signaler)toast('Sauvegarde auto impossible : '+info);
+      return;
+    }
     localStorage.setItem(LS_GH_SYNC,new Date().toISOString());
     localStorage.setItem(LS_GH_HASH,hash);
     ghSetStatus('ok');
@@ -4855,8 +4864,20 @@ function ghAutoSync(){
 
 function ghStartAutoSync(){
   if(ghSyncInterval)clearInterval(ghSyncInterval);
-  ghSyncInterval=setInterval(ghAutoSync,3600000);
+  ghSyncInterval=setInterval(function(){ghAutoSync(false)},3600000);
+  // a l'ouverture : l'intervalle d'une heure n'arrive jamais a echeance sur telephone
+  setTimeout(function(){ghAutoSync(true)},2500);
+  if(!ghVisibiliteBranchee){
+    ghVisibiliteBranchee=true;
+    document.addEventListener('visibilitychange',function(){
+      // en quittant l'app : on pousse la saisie qui vient d'etre faite
+      // en revenant : on rattrape ce qui n'etait pas parti
+      ghAutoSync(document.visibilityState==='visible');
+    });
+    window.addEventListener('pagehide',function(){ghAutoSync(false)});
+  }
 }
+var ghVisibiliteBranchee=false;
 
 function ghSetStatus(s){
   var dot=document.getElementById('ghStatusDot');
