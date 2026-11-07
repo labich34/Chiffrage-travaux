@@ -1648,6 +1648,36 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 // ========== SAISIE UNIFIEE ==========
 var uMode='intervention';
 var uSelectedSite=null;
+// Le site choisi reste actif 24 h : une journee entiere sur le meme restaurant
+// ne demande qu'une seule selection.
+var LS_LASTSITE='maint_last_site';
+function setLastSite(id){
+  try{
+    if(!id||id==='FORM'){localStorage.removeItem(LS_LASTSITE);return}
+    localStorage.setItem(LS_LASTSITE,JSON.stringify({s:id,t:(new Date()).getTime()}));
+  }catch(e){}
+}
+function getLastSite(){
+  try{
+    var raw=localStorage.getItem(LS_LASTSITE);
+    if(!raw)return null;
+    var o=JSON.parse(raw);
+    if(!o||!o.s)return null;
+    if((new Date()).getTime()-(o.t||0)>86400000){localStorage.removeItem(LS_LASTSITE);return null}
+    return o.s;
+  }catch(e){return null}
+}
+function appliquerDernierSite(){
+  var id=getLastSite();
+  if(!id)return false;
+  var btn=document.getElementById('uSbtn_'+id);
+  if(!btn)return false;                       // site supprime entre-temps
+  uSelectedSite=id;
+  document.querySelectorAll('#uSiteGrid .tt-site-btn').forEach(function(b){b.classList.remove('selected')});
+  btn.classList.add('selected');
+  showDeplInfoUnified();showTTDeplInfo();
+  return true;
+}
 var uRush=false;
 
 var U_SITE_LIST=[
@@ -1671,10 +1701,12 @@ function buildUSiteGrid(){
       '</button>';
   });
   grid.innerHTML=html;
+  appliquerDernierSite();
 }
 
 function selectUSite(id){
   uSelectedSite=id;
+  setLastSite(id);
   document.querySelectorAll('#uSiteGrid .tt-site-btn').forEach(function(b){b.classList.remove('selected')});
   document.getElementById('uSbtn_'+id).classList.add('selected');
   showDeplInfoUnified();
@@ -1882,6 +1914,7 @@ function resetUnifiedForm(){
   applyDelegUI();
   uSelectedSite=null;
   document.querySelectorAll('#uSiteGrid .tt-site-btn').forEach(function(b){b.classList.remove('selected')});
+  appliquerDernierSite();   // on reste sur le meme restaurant tant que la journee dure
   // Reset champs deplacement exceptionnel
   var deDateEl=document.getElementById('deDate');
   if(deDateEl){
