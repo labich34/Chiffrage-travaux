@@ -1,4 +1,4 @@
-var CACHE_NAME = 'maint-v3';
+var CACHE_NAME = 'maint-v4';
 var ASSETS = [
   './',
   './index.html',
