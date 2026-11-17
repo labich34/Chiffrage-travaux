@@ -429,6 +429,9 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .tst-in{width:100%;padding:.46rem .5rem;background:var(--bg4);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:.82rem;font-family:inherit;-webkit-appearance:none}
 .tst-in:focus{outline:none;border-color:rgba(255,199,44,.4)}
 .tst-sublbl{font-size:.58rem;font-weight:800;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin:.3rem 0 .18rem}
+.tst-flag:empty{display:none}
+.tst-hmin{text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.05em;font-weight:700;font-size:.95rem;padding:.55rem .3rem}
+.tst-hmin::-webkit-input-placeholder{font-weight:500;letter-spacing:.05em}
 .tst-chips{display:flex;flex-wrap:wrap;gap:.22rem;margin-bottom:.3rem}
 .tst-chip{padding:.24rem .46rem;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass);color:var(--text3);font-size:.65rem;font-weight:600;cursor:pointer;white-space:nowrap;line-height:1.2}
 .tst-chip.on{background:var(--green-dim);border-color:rgba(52,211,153,.45);color:var(--green)}
@@ -6164,6 +6167,57 @@ function tstFillHours(r){
   var parts=splitHours(rest,free.length);
   for(i=0;i<free.length;i++)r.heures[free[i]]=parts[i]||0;
 }
+// Les 2 derniers chiffres sont toujours les minutes : 830 -> 08:30, 1730 -> 17:30
+function tstSplitHM(v){
+  var d=String(v===null||v===undefined?'':v).replace(/[^0-9]/g,''),h,m;
+  if(!d.length)return null;
+  if(d.length>4)d=d.slice(0,4);
+  if(d.length===1){h=parseInt(d,10);m=0}
+  else if(d.length===2){
+    h=parseInt(d,10);m=0;
+    if(h>23){h=parseInt(d.charAt(0),10);m=parseInt(d.charAt(1),10)*10}
+  }else if(d.length===3){
+    h=parseInt(d.charAt(0),10);m=parseInt(d.slice(1),10);
+    if(m>59){h=parseInt(d.slice(0,2),10);m=parseInt(d.charAt(2),10)*10}
+  }else{h=parseInt(d.slice(0,2),10);m=parseInt(d.slice(2),10)}
+  if(!isFinite(h)||!isFinite(m))return null;
+  return {d:d,h:h,m:m};
+}
+function tstMaskHM(el){
+  var o=tstSplitHM(el.value),d,out;
+  if(!o){if(el.value!=='')el.value='';return}
+  d=o.d;
+  if(d.length<=1)out=d;
+  else if(d.length===2)out=(parseInt(d,10)<=23)?d:(d.charAt(0)+':'+d.charAt(1));
+  else if(d.length===3)out=(parseInt(d.slice(1),10)<=59)?(d.charAt(0)+':'+d.slice(1)):(d.slice(0,2)+':'+d.charAt(2));
+  else out=d.slice(0,2)+':'+d.slice(2);
+  if(el.value!==out)el.value=out;
+}
+function tstNormHM(v){
+  var o=tstSplitHM(v);
+  if(!o)return '';
+  var h=o.h,m=o.m;
+  if(h>23)h=23;
+  if(m>59)m=59;
+  return tstPad(h)+':'+tstPad(m);
+}
+function tstHMKey(e,el){
+  if(!e)return;
+  if(e.key==='Enter'||e.keyCode===13){if(e.preventDefault)e.preventDefault();el.blur()}
+}
+function tstHMInputHTML(id,val,handler){
+  return '<input type="text" class="tst-in tst-hmin" id="'+id+'" value="'+esc(val||'')+'" placeholder="--:--"'+
+    ' inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5"'+
+    ' oninput="tstMaskHM(this)" onblur="'+handler+'" onkeydown="tstHMKey(event,this)">';
+}
+function tstMissHTML(r,dur){
+  var miss=[];
+  if(dur<=0)miss.push('horaires');
+  if(!r.site)miss.push('site');
+  if(!r.travaux.length)miss.push('type de travail');
+  if(!miss.length)return '';
+  return '\u26a0 \u00e0 compl\u00e9ter : '+miss.join(', ');
+}
 function tstAddMin(hm,mins){
   var p=String(hm||'00:00').split(':');
   var t=(parseInt(p[0],10)||0)*60+(parseInt(p[1],10)||0)+mins;
@@ -6359,21 +6413,21 @@ function tstCommit(rows){
   }
   return {inter:nI,temps:nT,skip:nSkip,bad:nBad};
 }
-function tstChipsHTML(sel,fn,idx,heures,fnH){
+function tstChipsHTML(sel,fn,idx,heures,fnH,pfx){
   var h='',i,def,on,hv;
   h+='<div class="tst-sublbl">\uD83D\uDCB0 Chiffrables</div><div class="tst-chips">';
   for(i=0;i<TRAVAUX.length;i++){
     def=TRAVAUX[i];if(!def.chiffrable)continue;
     on=sel.indexOf(def.id)>=0;
     h+='<button type="button" class="tst-chip'+(on?' on':'')+'" onclick="'+fn+'('+idx+',\''+def.id+'\')">'+def.icon+' '+esc(def.label)+'</button>';
-    if(on&&fnH){hv=(heures&&heures[def.id])||0;h+='<span class="tst-hm"><input type="number" min="0" step="0.25" value="'+hv+'" onchange="'+fnH+'('+idx+',\''+def.id+'\',this.value)">h</span>'}
+    if(on&&fnH){hv=(heures&&heures[def.id])||0;h+='<span class="tst-hm"><input type="number" id="'+pfx+'H'+idx+'_'+def.id+'" min="0" step="0.25" inputmode="decimal" value="'+hv+'" onchange="'+fnH+'('+idx+',\''+def.id+'\',this.value)">h</span>'}
   }
   h+='</div><div class="tst-sublbl">\uD83D\uDCCB Suivi</div><div class="tst-chips">';
   for(i=0;i<TRAVAUX.length;i++){
     def=TRAVAUX[i];if(def.chiffrable)continue;
     on=sel.indexOf(def.id)>=0;
     h+='<button type="button" class="tst-chip nc'+(on?' on':'')+'" onclick="'+fn+'('+idx+',\''+def.id+'\')">'+def.icon+' '+esc(def.label)+'</button>';
-    if(on&&fnH){hv=(heures&&heures[def.id])||0;h+='<span class="tst-hm"><input type="number" min="0" step="0.25" value="'+hv+'" onchange="'+fnH+'('+idx+',\''+def.id+'\',this.value)">h</span>'}
+    if(on&&fnH){hv=(heures&&heures[def.id])||0;h+='<span class="tst-hm"><input type="number" id="'+pfx+'H'+idx+'_'+def.id+'" min="0" step="0.25" inputmode="decimal" value="'+hv+'" onchange="'+fnH+'('+idx+',\''+def.id+'\',this.value)">h</span>'}
   }
   h+='</div>';
   return h;
@@ -6386,12 +6440,13 @@ function tstSiteSelHTML(val,fn,idx){
   return h+'</select>';
 }
 function tstRowHTML(r,i,fnSet,fnTog,fnDel,label,fnH){
+  var pfx=String(fnSet).replace(/Set$/,'');
   var dur=tstDur(r.start,r.end);
   var warn=(!r.site||!r.travaux.length||dur<=0);
   var hs=tstSumHeures(r);
-  var h='<div class="tst-line'+(r.cid?' done':(warn?' warn':''))+'">';
+  var h='<div class="tst-line'+(r.cid?' done':(warn?' warn':''))+'" id="'+pfx+'L'+i+'">';
   h+='<div class="tst-lh"><span class="tst-ln">'+label+' '+(i+1)+'</span>';
-  h+='<span class="tst-dur">'+(dur>0?fH(dur):'—')+'</span>';
+  h+='<span class="tst-dur" id="'+pfx+'D'+i+'">'+(dur>0?fH(dur):'—')+'</span>';
   if(r.cid){h+='<span class="tst-ln" style="color:var(--green)">✓ enregistré</span>';}
   else{h+='<button type="button" class="tst-del" onclick="'+fnDel+'('+i+')">✕</button>';}
   h+='</div>';
@@ -6399,24 +6454,22 @@ function tstRowHTML(r,i,fnSet,fnTog,fnDel,label,fnH){
     h+='<div class="tst-help" style="margin:0">'+tstDateFR(r.date)+' · '+r.start+'→'+r.end+' · '+esc(r.site)+'</div></div>';
     return h;
   }
-  if(warn){
-    var miss=[];
-    if(dur<=0)miss.push('horaires');
-    if(!r.site)miss.push('site');
-    if(!r.travaux.length)miss.push('type de travail');
-    h+='<div class="tst-flag">⚠ à compléter : '+miss.join(', ')+'</div>';
-  }
+  h+='<div class="tst-flag" id="'+pfx+'W'+i+'">'+(warn?tstMissHTML(r,dur):'')+'</div>';
+  h+='<div class="tst-g3" style="margin-bottom:.12rem">'+
+    '<div class="tst-sublbl" style="margin:0">Début</div>'+
+    '<div class="tst-sublbl" style="margin:0">Fin</div>'+
+    '<div class="tst-sublbl" style="margin:0">Site</div></div>';
   h+='<div class="tst-g3">';
-  h+='<input type="time" class="tst-in" value="'+esc(r.start)+'" onchange="'+fnSet+'('+i+',\'start\',this.value)">';
-  h+='<input type="time" class="tst-in" value="'+esc(r.end)+'" onchange="'+fnSet+'('+i+',\'end\',this.value)">';
+  h+=tstHMInputHTML(pfx+'S'+i,r.start,pfx+'Time('+i+',\'start\',this)');
+  h+=tstHMInputHTML(pfx+'E'+i,r.end,pfx+'Time('+i+',\'end\',this)');
   h+=tstSiteSelHTML(r.site,fnSet,i);
   h+='</div>';
   if(r.showDate){
     h+='<div class="tst-g2"><input type="date" class="tst-in" value="'+esc(r.date)+'" onchange="'+fnSet+'('+i+',\'date\',this.value)"><div></div></div>';
   }
-  h+=tstChipsHTML(r.travaux,fnTog,i,r.heures||{},fnH);
-  if(dur>0&&r.travaux.length&&Math.abs(hs-dur)>0.02)h+='<div class="tst-flag">⚠ heures des métiers '+fH(hs)+' · durée '+fH(dur)+'</div>';
-  h+='<input type="text" class="tst-in" value="'+esc(r.note)+'" placeholder="Note / détail (optionnel)" onchange="'+fnSet+'('+i+',\'note\',this.value)">';
+  h+=tstChipsHTML(r.travaux,fnTog,i,r.heures||{},fnH,pfx);
+  h+='<div class="tst-flag" id="'+pfx+'X'+i+'">'+((dur>0&&r.travaux.length&&Math.abs(hs-dur)>0.02)?('⚠ heures des métiers '+fH(hs)+' · durée '+fH(dur)):'')+'</div>';
+  h+='<input type="text" class="tst-in" id="'+pfx+'N'+i+'" value="'+esc(r.note)+'" placeholder="Note / détail (optionnel)" oninput="'+pfx+'Note('+i+',this.value)">';
   h+='</div>';
   return h;
 }
@@ -6449,12 +6502,78 @@ function jrRender(){
     else if(du>0&&rows[i].site&&rows[i].travaux.length)ready++;
   }
   document.getElementById('jrRows').innerHTML=h;
-  var obj=8.4,rest=obj-tot;
-  document.getElementById('jrTotal').innerHTML=
-    '<div class="tst-tot"><span>Total du '+tstDateFR(date)+' · '+ready+' à enregistrer'+(done?' · '+done+' déjà fait':'')+'</span><b>'+fH(tot)+'</b></div>'+
-    '<p class="tst-help" style="margin:.3rem 0 0">Journée contractuelle 8h24 — '+(rest>0?('reste '+fH(rest)):('+'+fH(-rest)+' au-delà'))+'</p>';
+  jrFoot(date,tot,ready,done);
   jrRenderArchive();
   jrStore();
+}
+function jrFoot(date,tot,ready,done){
+  var el=document.getElementById('jrTotal');
+  if(!el)return;
+  var rest=8.4-tot;
+  el.innerHTML=
+    '<div class="tst-tot"><span>Total du '+tstDateFR(date)+' · '+ready+' à enregistrer'+(done?' · '+done+' déjà fait':'')+'</span><b>'+fH(tot)+'</b></div>'+
+    '<p class="tst-help" style="margin:.3rem 0 0">Journée contractuelle 8h24 — '+(rest>0?('reste '+fH(rest)):('+'+fH(-rest)+' au-delà'))+'</p>';
+}
+// Mise a jour legere : ne reconstruit aucun champ, garde le focus/clavier
+function jrLight(){
+  var date=jrCurDate(),rows=jrRowsFor(date),i,j,r,du,hs,el,ids,tot=0,ready=0,done=0,warn;
+  for(i=0;i<rows.length;i++){
+    r=rows[i];du=tstDur(r.start,r.end);hs=tstSumHeures(r);tot+=du;
+    if(r.cid){done++;continue}
+    if(du>0&&r.site&&r.travaux.length)ready++;
+    el=document.getElementById('jrD'+i);if(el)el.textContent=du>0?fH(du):'—';
+    warn=(du<=0||!r.site||!r.travaux.length);
+    el=document.getElementById('jrL'+i);if(el)el.className='tst-line'+(warn?' warn':'');
+    el=document.getElementById('jrW'+i);if(el)el.innerHTML=warn?tstMissHTML(r,du):'';
+    el=document.getElementById('jrX'+i);
+    if(el)el.innerHTML=(du>0&&r.travaux.length&&Math.abs(hs-du)>0.02)?('⚠ heures des métiers '+fH(hs)+' · durée '+fH(du)):'';
+    ids=r.travaux||[];
+    for(j=0;j<ids.length;j++){
+      el=document.getElementById('jrH'+i+'_'+ids[j]);
+      if(el&&document.activeElement!==el)el.value=(r.heures&&r.heures[ids[j]])||0;
+    }
+  }
+  jrFoot(date,tot,ready,done);
+  jrRenderArchive();
+  jrStore();
+}
+// Saisie clavier des horaires (texte + pave numerique)
+function jrTime(i,k,el){
+  var rows=jrRowsFor(jrCurDate());
+  if(!rows[i]||rows[i].cid)return;
+  var v=tstNormHM(el.value);
+  if(el.value!==v)el.value=v;
+  if(rows[i][k]===v){jrLight();return}
+  rows[i][k]=v;
+  tstFillHours(rows[i]);
+  if(k==='end'&&v&&rows[i+1]&&!rows[i+1].cid&&!rows[i+1].start){
+    rows[i+1].start=v;
+    tstFillHours(rows[i+1]);
+    var nx=document.getElementById('jrS'+(i+1));
+    if(nx)nx.value=v;
+  }
+  jrLight();
+}
+function jrNote(i,v){
+  var rows=jrRowsFor(jrCurDate());
+  if(!rows[i]||rows[i].cid)return;
+  rows[i].note=v;
+  jrStore();
+}
+// Filet de securite : recupere ce qui est tape si le blur n'a pas eu lieu
+function jrSyncInputs(){
+  var rows=jrRowsFor(jrCurDate()),i,el,v,ch;
+  for(i=0;i<rows.length;i++){
+    if(rows[i].cid)continue;
+    ch=false;
+    el=document.getElementById('jrS'+i);
+    if(el){v=tstNormHM(el.value);if(v!==rows[i].start){rows[i].start=v;ch=true}}
+    el=document.getElementById('jrE'+i);
+    if(el){v=tstNormHM(el.value);if(v!==rows[i].end){rows[i].end=v;ch=true}}
+    el=document.getElementById('jrN'+i);
+    if(el&&el.value!==rows[i].note)rows[i].note=el.value;
+    if(ch)tstFillHours(rows[i]);
+  }
 }
 function jrRenderArchive(){
   var keys=[],k,i,h='';
@@ -6470,6 +6589,7 @@ function jrRenderArchive(){
   if(el)el.innerHTML=h||'<p class="tst-help" style="margin:0">Aucune journée enregistrée depuis cet onglet.</p>';
 }
 function jrSet(i,k,v){
+  jrSyncInputs();
   var rows=jrRowsFor(jrCurDate());
   if(!rows[i]||rows[i].cid)return;
   rows[i][k]=v;
@@ -6484,9 +6604,10 @@ function jrHours(i,id,v){
   if(!rows[i].heuresLock)rows[i].heuresLock={};
   rows[i].heures[id]=parseFloat(String(v).replace(',','.'))||0;
   rows[i].heuresLock[id]=1;
-  jrRender();
+  jrLight();
 }
 function jrTog(i,id){
+  jrSyncInputs();
   var rows=jrRowsFor(jrCurDate());
   if(!rows[i]||rows[i].cid)return;
   var a=rows[i].travaux,p=a.indexOf(id);
@@ -6497,6 +6618,7 @@ function jrTog(i,id){
   jrRender();
 }
 function jrDel(i){
+  jrSyncInputs();
   var date=jrCurDate(),rows=jrRowsFor(date);
   if(!rows[i]||rows[i].cid)return;
   rows.splice(i,1);
@@ -6504,6 +6626,7 @@ function jrDel(i){
   jrRender();
 }
 function jrAddRow(){
+  jrSyncInputs();
   var date=jrCurDate(),rows=jrRowsFor(date);
   rows.push(jrNewRow(date,rows[rows.length-1]));
   jrRender();
@@ -6561,6 +6684,7 @@ function jrToday(){
   jrRender();
 }
 function jrSave(){
+  jrSyncInputs();
   var date=jrCurDate(),rows=jrRowsFor(date),i,ok=[];
   for(i=0;i<rows.length;i++){
     var r=rows[i];
