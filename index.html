@@ -192,7 +192,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .tt-site-btn .tt-code{font-size:.65rem;color:var(--text3);font-weight:500}
 .tt-time-row{display:flex;gap:.5rem;align-items:center}
 .tt-time-row .tt-input{flex:1;background:rgba(10,15,30,.5);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:.6rem .7rem;color:var(--accent);font-size:1.1rem;font-weight:600;text-align:center;font-family:inherit;transition:all .25s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.tt-time-row .tt-input{font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.tt-time-row .tt-input{min-width:0;width:100%;font-variant-numeric:tabular-nums;letter-spacing:.05em}
 .tt-time-row .tt-input::-webkit-input-placeholder{color:var(--text3);font-weight:500}
 .tt-time-row .tt-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,199,44,.08)}
 .tt-time-row .tt-sep{font-size:1.2rem;font-weight:700;color:var(--text3)}
@@ -428,11 +428,11 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .tst-del{background:none;border:0;color:var(--text3);font-size:.95rem;cursor:pointer;padding:0 .15rem;line-height:1}
 .tst-g3{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:.32rem;margin-bottom:.38rem}
 .tst-g2{display:grid;grid-template-columns:1fr 1fr;gap:.32rem;margin-bottom:.38rem}
-.tst-in{width:100%;padding:.46rem .5rem;background:var(--bg4);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:.82rem;font-family:inherit;-webkit-appearance:none}
+.tst-in{width:100%;min-width:0;padding:.46rem .5rem;background:var(--bg4);border:1px solid var(--glass-border);border-radius:10px;color:var(--text);font-size:.82rem;font-family:inherit;-webkit-appearance:none}
 .tst-in:focus{outline:none;border-color:rgba(255,199,44,.4)}
 .tst-sublbl{font-size:.58rem;font-weight:800;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin:.3rem 0 .18rem}
 .tst-flag:empty{display:none}
-.tst-hmin{text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.05em;font-weight:700;font-size:.95rem;padding:.55rem .3rem}
+.tst-hmin{min-width:0;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.05em;font-weight:700;font-size:.95rem;padding:.55rem .3rem}
 .tst-hmin::-webkit-input-placeholder{font-weight:500;letter-spacing:.05em}
 .tst-chips{display:flex;flex-wrap:wrap;gap:.22rem;margin-bottom:.3rem}
 .tst-chip{padding:.24rem .46rem;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass);color:var(--text3);font-size:.65rem;font-weight:600;cursor:pointer;white-space:nowrap;line-height:1.2}
@@ -534,9 +534,9 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
             <button type="button" onclick="resetStartTo00()" title="Repartir à 00:00 (nouvelle journée)" style="background:none;border:none;color:var(--text3);font-size:.68rem;cursor:pointer;padding:.1rem .35rem;border-radius:4px">⟲ 00:00</button>
           </label>
           <div class="tt-time-row">
-            <input type="text" class="tt-input" id="uStart" placeholder="--:--" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" oninput="tstMaskHM(this);calcUDuration()" onchange="uTimeNorm(this)" onblur="uTimeNorm(this)" onkeydown="tstHMKey(event,this)">
+            <input type="text" class="tt-input" id="uStart" placeholder="--:--" size="5" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" oninput="tstMaskHM(this);calcUDuration()" onchange="uTimeNorm(this)" onblur="uTimeNorm(this)" onkeydown="tstHMKey(event,this)">
             <span class="tt-sep">→</span>
-            <input type="text" class="tt-input" id="uEnd" placeholder="--:--" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" oninput="tstMaskHM(this);calcUDuration()" onchange="uTimeNorm(this)" onblur="uTimeNorm(this)" onkeydown="tstHMKey(event,this)">
+            <input type="text" class="tt-input" id="uEnd" placeholder="--:--" size="5" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" oninput="tstMaskHM(this);calcUDuration()" onchange="uTimeNorm(this)" onblur="uTimeNorm(this)" onkeydown="tstHMKey(event,this)">
           </div>
           <div class="tt-dur" id="uDurBox" style="display:none">
             <div class="tt-dur-val" id="uDurVal"></div>
@@ -6221,7 +6221,7 @@ function tstHMKey(e,el){
 }
 function tstHMInputHTML(id,val,handler){
   return '<input type="text" class="tst-in tst-hmin" id="'+id+'" value="'+esc(val||'')+'" placeholder="--:--"'+
-    ' inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5"'+
+    ' size="5" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5"'+
     ' oninput="tstMaskHM(this)" onblur="'+handler+'" onkeydown="tstHMKey(event,this)">';
 }
 function tstMissHTML(r,dur){
