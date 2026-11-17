@@ -192,6 +192,8 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 .tt-site-btn .tt-code{font-size:.65rem;color:var(--text3);font-weight:500}
 .tt-time-row{display:flex;gap:.5rem;align-items:center}
 .tt-time-row .tt-input{flex:1;background:rgba(10,15,30,.5);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:.6rem .7rem;color:var(--accent);font-size:1.1rem;font-weight:600;text-align:center;font-family:inherit;transition:all .25s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tt-time-row .tt-input{font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.tt-time-row .tt-input::-webkit-input-placeholder{color:var(--text3);font-weight:500}
 .tt-time-row .tt-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,199,44,.08)}
 .tt-time-row .tt-sep{font-size:1.2rem;font-weight:700;color:var(--text3)}
 .tt-dur{text-align:center;padding:.6rem;background:var(--glass);border-radius:var(--radius-xs);margin-top:.5rem;border:1px solid var(--glass-border)}
@@ -532,9 +534,9 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
             <button type="button" onclick="resetStartTo00()" title="Repartir à 00:00 (nouvelle journée)" style="background:none;border:none;color:var(--text3);font-size:.68rem;cursor:pointer;padding:.1rem .35rem;border-radius:4px">⟲ 00:00</button>
           </label>
           <div class="tt-time-row">
-            <input type="time" class="tt-input" id="uStart" oninput="calcUDuration()">
+            <input type="text" class="tt-input" id="uStart" placeholder="--:--" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" oninput="tstMaskHM(this);calcUDuration()" onchange="uTimeNorm(this)" onblur="uTimeNorm(this)" onkeydown="tstHMKey(event,this)">
             <span class="tt-sep">→</span>
-            <input type="time" class="tt-input" id="uEnd" oninput="calcUDuration()">
+            <input type="text" class="tt-input" id="uEnd" placeholder="--:--" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" oninput="tstMaskHM(this);calcUDuration()" onchange="uTimeNorm(this)" onblur="uTimeNorm(this)" onkeydown="tstHMKey(event,this)">
           </div>
           <div class="tt-dur" id="uDurBox" style="display:none">
             <div class="tt-dur-val" id="uDurVal"></div>
@@ -2104,6 +2106,17 @@ function calcUDuration(){
   redistributeTags('fTagsTT');
 }
 
+// Saisie des horaires au clavier numerique : normalise a la sortie du champ
+function uTimeNorm(el){
+  if(!el)return;
+  var v=tstNormHM(el.value);
+  if(el.value!==v)el.value=v;
+  calcUDuration();
+}
+function uSyncTimes(){
+  uTimeNorm(document.getElementById('uStart'));
+  uTimeNorm(document.getElementById('uEnd'));
+}
 function showDeplInfoUnified(){
   var el=document.getElementById('fDeplInfo');
   if(!el)return;
@@ -2224,6 +2237,7 @@ function ttOverlap(date,start,end,ignoreId){
   return null;
 }
 function saveUnified(){
+  uSyncTimes();
   // Branche ECONOMIE DIRECTE
   if(uMode==='ecodirecte'){
     var edDate=document.getElementById('edDate').value;
