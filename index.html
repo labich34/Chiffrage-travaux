@@ -6818,18 +6818,18 @@ var JT_MODELS={
   C602:{nom:'Taylor C602',sous:'Combiné frappé + sundae',img:'M_C602',freq:90,
     info:'Remplacement au moins tous les 3 mois (tune-up). Kit tune-up complet X49463-59 · kit pompes X56200-10 · lubrifiant Taylor Hi-Performance 048232 · outil 048260.',
     secs:[
-      {t:'Porte frappé (shake)',p:[
+      {t:'Côté frappé (shake)',p:[
         {k:'033493',ref:'033493',nom:'Joint torique de porte 6″',en:'6″ freezer door O-ring',loc:'Rainure arrière de la porte frappé, entre porte et cylindre.',q:'1',col:'Noir',lub:false,img:'033493'},
         {k:'020571',ref:'020571',nom:'Joint torique robinet de tirage 1-1/16″',en:'Draw valve O-ring 1-1/16″ OD × .139 W',loc:'Deux joints sur le robinet de tirage de la porte frappé.',q:'2',col:'Noir',lub:true,img:'020571'},
         {k:'084696',ref:'084696',old:'036053',nom:'Joint d’arbre du spinner',en:'Spinner shaft seal',loc:'Entre robinet de tirage et axe du spinner. Poser avec l’outil 035460.',q:'1',col:'Noir',lub:true,img:'084696'},
-        {k:'053890',ref:'053890',nom:'Joint torique port sirop 11 mm',en:'Syrup port O-ring 11 mm ID × 2 mm, green',loc:'4 joints sur les bouchons/ports sirop + 2 par ligne de sirop (raccords).',q:'4 + lignes',col:'Vert',lub:null,img:'053890'}]},
-      {t:'Porte sundae (soft serve)',p:[
+        {k:'053890',ref:'053890',nom:'Joint torique port sirop 11 mm',en:'Syrup port O-ring 11 mm ID × 2 mm, green',loc:'4 joints sur les bouchons/ports sirop + 2 par ligne de sirop (raccords).',q:'4 + lignes',col:'Vert',lub:null,img:'053890'},
+        {k:'032560',ref:'032560',nom:'Joint d’arbre batteur (boot seal) — frappé',en:'Beater drive shaft seal',loc:'Sur l’arbre du cylindre frappé. Lubrifier et remplir de graisse Taylor.',q:'1',col:'Noir',lub:true,img:'032560'}]},
+      {t:'Côté sundae (soft serve)',p:[
         {k:'048926',ref:'048926',nom:'Joint de porte HT 4″ double',en:'Door gasket HT 4″ double',loc:'Rainure arrière de la porte sundae, entre porte et cylindre.',q:'1',col:'Noir',lub:false,img:'048926'},
         {k:'014402',ref:'014402',nom:'Joint torique robinet de tirage 7/8″',en:'Draw valve O-ring 7/8″ OD × .103 W',loc:'Trois joints sur le robinet de tirage sundae.',q:'3',col:'Noir',lub:true,img:'014402'},
         {k:'041923',ref:'041923',nom:'Joint torique capuchon de robinet 1-11/16″',en:'Draw valve cap O-ring 1-11/16″ OD',loc:'Entre le capuchon isolé (cycle thermique) et le bec de la porte sundae.',q:'1',col:'Noir',lub:null,img:'041923'},
-        {k:'015872',ref:'015872',nom:'Joint torique vis de réglage 1/4″',en:'Adjustment screw O-ring 1/4″ OD × .070 W',loc:'Sur la vis de réglage du débit du robinet sundae.',q:'1',col:'Noir',lub:null,img:'015872'}]},
-      {t:'Arbre batteur (les deux côtés)',p:[
-        {k:'032560',ref:'032560',nom:'Joint d’arbre batteur (boot seal)',en:'Beater drive shaft seal',loc:'Un joint sur l’arbre de chaque cylindre. Remplir de graisse Taylor.',q:'2',col:'Noir',lub:true,img:'032560'}]},
+        {k:'015872',ref:'015872',nom:'Joint torique vis de réglage 1/4″',en:'Adjustment screw O-ring 1/4″ OD × .070 W',loc:'Sur la vis de réglage du débit du robinet sundae.',q:'1',col:'Noir',lub:null,img:'015872'},
+        {k:'032560_su',ref:'032560',nom:'Joint d’arbre batteur (boot seal) — sundae',en:'Beater drive shaft seal',loc:'Sur l’arbre du cylindre sundae. Lubrifier et remplir de graisse Taylor.',q:'1',col:'Noir',lub:true,img:'032560'}]},
       {t:'Pompes — kit X56200-10',p:[
         {k:'086097',ref:'086097',old:'053527',nom:'Joint de clapet de pompe simplifiée',en:'Simplified pump valve gasket',loc:'Trous du capuchon de valve, chaque pompe (frappé + sundae).',q:'2',col:'Noir',lub:false,img:'086097'},
         {k:'020051',ref:'020051',nom:'Joint torique de pompe 2-1/8″',en:'Pump O-ring 2-1/8″ OD × .139 W, red',loc:'Un sur le piston + un sur le capuchon de valve, chaque pompe.',q:'4',col:'Rouge',lub:false,img:'020051'},
@@ -6896,6 +6896,12 @@ function jtGet(){
   if(!o.log||typeof o.log!=='object')o.log={};
   if(!o.refs||typeof o.refs!=='object')o.refs={};
   if(!o.photos||typeof o.photos!=='object')o.photos={};
+  o.machines.forEach(function(m){
+    if(m.model!=='C602')return;
+    var a=o.log[m.id+'|032560'],b=o.log[m.id+'|032560_su'];
+    if(Array.isArray(a)&&a.length&&!b)o.log[m.id+'|032560_su']=JSON.parse(JSON.stringify(a));
+  });
+  if(o.photos['C602|032560']&&!o.photos['C602|032560_su'])o.photos['C602|032560_su']=o.photos['C602|032560'];
   return o;
 }
 function jtSet(o){try{localStorage.setItem(LS_JT,JSON.stringify(o))}catch(e){toast('Stockage plein — photo trop lourde ?')}}
