@@ -103,7 +103,7 @@ function okWeek(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   try {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(500).json({ err: 'Stockage Blob non connecté au projet' });
+    if (!process.env.BLOB_READ_WRITE_TOKEN) { console.error('NETT: BLOB_READ_WRITE_TOKEN absent'); return res.status(500).json({ err: 'Stockage Blob non connecté au projet' }); }
     const key = String(req.headers['x-key'] || '');
     const body = (req.body && typeof req.body === 'object') ? req.body : {};
     let cfg = await getCfg(false);
@@ -197,6 +197,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(400).json({ err: 'Action inconnue' });
   } catch (e) {
+    console.error('NETT error', e && e.stack || e);
     return res.status(500).json({ err: 'Erreur serveur : ' + (e && e.message ? e.message : e) });
   }
 };
