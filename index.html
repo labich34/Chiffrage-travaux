@@ -1019,6 +1019,7 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
   <div class="card">
     <div class="card-title">🧽 Nettoyage cuisine — suivi hebdo</div>
     <p style="font-size:.78rem;color:var(--text3);margin-bottom:.6rem">En ligne : l’équipier coche depuis son téléphone (lien par resto), tu vois tout ici. Remise à zéro chaque lundi. <span style="text-decoration:underline dotted;cursor:pointer" onclick="nettSetUrl()">Adresse : <span id="nettUrlLbl"></span></span></p>
+    <div id="nettRecup" style="display:none;margin:.2rem 0 .8rem;padding:.7rem .8rem;border-radius:var(--radius-sm);background:var(--accent-dim);border:1px solid rgba(255,199,44,.3);font-size:.8rem;line-height:1.45"></div>
     <iframe id="nettFrame" class="nt-frame" title="Nettoyage cuisine" allow="web-share; clipboard-write"></iframe>
   </div>
 </div>
@@ -6829,6 +6830,7 @@ function nettInit(){
   var u=nettGetUrl()+'/?embed=1';
   if(f&&f.getAttribute('src')!==u)f.setAttribute('src',u);
   var l=document.getElementById('nettUrlLbl');if(l)l.textContent=nettGetUrl().replace(/^https?:\/\//,'');
+  nettRecupUI('');
 }
 function nettSetUrl(){
   var v=prompt('Adresse de la page Nettoyage (Vercel) :',nettGetUrl());
@@ -6837,6 +6839,36 @@ function nettSetUrl(){
   if(v)localStorage.setItem('nett_url',v);else localStorage.removeItem('nett_url');
   nettInit();
 }
+function nettOld(){
+  var o=null,p={},n=0,k;
+  try{o=JSON.parse(localStorage.getItem('nett_v1')||'null')}catch(e){}
+  try{p=JSON.parse(localStorage.getItem('nett_photos')||'{}')||{}}catch(e){p={}}
+  for(k in p){if(p.hasOwnProperty(k))n++}
+  if((!o||!o.eq)&&!n)return null;
+  return {eq:o&&o.eq?o.eq:null,photos:p,nPh:n};
+}
+function nettRecupUI(msg){
+  var box=document.getElementById('nettRecup');if(!box)return;
+  var old=nettOld();
+  if(!old||localStorage.getItem('nett_migre')==='1'){box.style.display='none';return}
+  box.style.display='block';
+  box.innerHTML=(msg?'<b>'+esc(msg)+'</b><br>':'')+'📦 Ta version test est encore sur ce téléphone : listes + <b>'+old.nPh+' photo(s)</b>. <button class="btn btn-primary btn-sm" style="margin-top:.45rem" onclick="nettRecup()">📥 Récupérer dans la version en ligne</button>';
+}
+function nettRecup(){
+  var old=nettOld(),f=document.getElementById('nettFrame');if(!old||!f||!f.contentWindow)return;
+  var org=nettGetUrl().replace(/^(https?:\/\/[^\/]+).*$/,'$1');
+  f.contentWindow.postMessage({nettImport:1,eq:old.eq,photos:old.photos},org);
+  nettRecupUI('Envoi en cours…');
+}
+window.addEventListener('message',function(ev){
+  var d=ev.data;if(!d||d.nett!==1)return;
+  if(ev.origin!==nettGetUrl().replace(/^(https?:\/\/[^\/]+).*$/,'$1'))return;
+  if(d.importProg)nettRecupUI('Envoi '+d.importProg.i+' / '+d.importProg.n+'…');
+  if(d.importRes){
+    if(d.importRes.ok){localStorage.setItem('nett_migre','1');nettRecupUI('');toast('Photos et listes récupérées ✓')}
+    else nettRecupUI(d.importRes.err||('Terminé avec '+d.importRes.fail+' échec(s) — réessaie'));
+  }
+});
 function nettBadge(){}
 window.addEventListener('message',function(ev){
   var d=ev.data;if(!d||d.nett!==1)return;

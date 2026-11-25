@@ -375,6 +375,26 @@ function resize(){
     try{window.parent.postMessage(msg,'*')}catch(e){}
   },40);
 }
+// ---------- import depuis l'ancienne version locale (app GitHub Pages) ----------
+var IMPORT_ORIGINS=['https://labich34.github.io'];
+window.addEventListener('message',function(ev){
+  var d=ev.data;if(!d||d.nettImport!==1)return;
+  if(IMPORT_ORIGINS.indexOf(ev.origin)<0)return;
+  var src=ev.source,org=ev.origin;
+  function reply(o){o.nett=1;try{src.postMessage(o,org)}catch(e){}}
+  if(!isAdmin()){reply({importRes:{ok:false,err:'Connecte-toi d’abord avec ton code admin dans la page Nettoyage.'}});return}
+  var jobs=[],k,id;
+  if(d.eq)for(k in d.eq){if(d.eq.hasOwnProperty(k)&&S.data.sites[k]&&Array.isArray(d.eq[k]))jobs.push({a:'eq',site:k,eq:d.eq[k]})}
+  if(d.photos)for(id in d.photos){if(d.photos.hasOwnProperty(id)){k=id.split('_')[0];if(S.data.sites[k])jobs.push({a:'photo',site:k,id:id,data:d.photos[id]})}}
+  var i=0,okN=0,fail=0;
+  function next(){
+    if(i>=jobs.length){reply({importRes:{ok:fail===0,n:okN,fail:fail}});toast('Récupération terminée : '+okN+' élément(s)');load(null,true);return}
+    var j=jobs[i++];reply({importProg:{i:i,n:jobs.length}});
+    api('POST',j,function(err){if(err)fail++;else okN++;next()});
+  }
+  if(!jobs.length){reply({importRes:{ok:true,n:0}});return}
+  toast('Récupération en cours…');next();
+});
 var lastLoad=Date.now();
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&S.data&&!S.edit&&Date.now()-lastLoad>30000){lastLoad=Date.now();refresh()}});
 load(null);

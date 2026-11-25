@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Récupération nettoyage</title>
+<meta name="robots" content="noindex">
+<style>
+body{margin:0;font-family:-apple-system,'DM Sans',sans-serif;background:#0C0E13;color:#F2F3F5}
+.wrap{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 30px}
+.box{padding:12px 14px;border-radius:14px;background:rgba(255,199,44,.1);border:1px solid rgba(255,199,44,.3);font-size:.9rem;line-height:1.45;margin-bottom:12px}
+button{font:inherit;font-weight:700;padding:12px;border-radius:12px;border:0;background:#FFC72C;color:#1a1a1a;width:100%;margin-top:8px;cursor:pointer}
+iframe{width:100%;height:900px;border:0;display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="box" id="box"></div>
+  <iframe id="fr" title="Nettoyage" allow="web-share; clipboard-write"></iframe>
+</div>
+<script>
+// Récupère la version test (stockée dans ce navigateur) vers la version en ligne. ES5.
+var URL_NETT='https://nettoyage-coral.vercel.app';
+var ORG=URL_NETT;
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function old(){
+  var o=null,p={},n=0,k;
+  try{o=JSON.parse(localStorage.getItem('nett_v1')||'null')}catch(e){}
+  try{p=JSON.parse(localStorage.getItem('nett_photos')||'{}')||{}}catch(e){p={}}
+  for(k in p){if(p.hasOwnProperty(k))n++}
+  if((!o||!o.eq)&&!n)return null;
+  return {eq:o&&o.eq?o.eq:null,photos:p,nPh:n};
+}
+function ui(msg){
+  var b=document.getElementById('box'),d=old();
+  if(!d){b.innerHTML='Aucune donnée de la version test dans ce navigateur. Si tu l’as remplie dans l’app Maintenance, utilise le bouton dans l’onglet 🧽 de l’app.';return}
+  b.innerHTML=(msg?'<b>'+esc(msg)+'</b><br>':'')+'📦 Données trouvées : listes + <b>'+d.nPh+' photo(s)</b>.<br>1. Connecte-toi ci-dessous avec ton code admin.<br>2. Puis touche :<button onclick="go()">📥 Récupérer dans la version en ligne</button>';
+}
+function go(){var d=old();if(!d)return;document.getElementById('fr').contentWindow.postMessage({nettImport:1,eq:d.eq,photos:d.photos},ORG);ui('Envoi en cours…')}
+window.addEventListener('message',function(ev){
+  var d=ev.data;if(!d||d.nett!==1||ev.origin!==ORG)return;
+  var f=document.getElementById('fr');if(d.h>200)f.style.height=(d.h+10)+'px';
+  if(d.importProg)ui('Envoi '+d.importProg.i+' / '+d.importProg.n+'…');
+  if(d.importRes)ui(d.importRes.ok?'✓ Récupération terminée ('+d.importRes.n+' éléments)':(d.importRes.err||'Échecs : '+d.importRes.fail+' — réessaie'));
+});
+document.getElementById('fr').src=URL_NETT+'/?embed=1';
+ui('');
+</script>
+</body>
+</html>
