@@ -154,6 +154,7 @@ function load(week,silent){
   api('GET',null,function(err,j,st){
     if(j&&j.setup){renderSetup();return}
     if(st===401){lsSet(LS_KEY,null);S.key=null;renderLogin('Code ou lien invalide.');return}
+    if(err&&st!==undefined&&st>=500){$('app').innerHTML='<div class="banner r">Serveur : '+esc(err)+'</div><button class="btn" onclick="load()">Réessayer</button>';resize();return}
     if(!S.key){renderLogin('');return}
     if(err){$('app').innerHTML='<div class="banner r">'+esc(err)+'</div><button class="btn" onclick="load()">Réessayer</button>';resize();return}
     S.data=j;S.week=j.week;
