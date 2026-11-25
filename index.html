@@ -401,9 +401,6 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 @media(max-width:420px){.jt-kpi b{font-size:1.1rem}.jt-kpi span{font-size:.54rem}}
 @media(min-width:1024px){#jtList{display:block}}
 /* ===== NETTOYAGE CUISINE ===== */
-.nt-links{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.9rem}
-.nt-links button{font:inherit;font-size:.74rem;font-weight:600;padding:.55rem .3rem;border-radius:var(--radius-sm);border:1px solid var(--glass-border);background:var(--glass);color:var(--text2);cursor:pointer;line-height:1.25}
-.nt-links button b{display:block;color:var(--accent);font-size:.82rem}
 .nt-frame{width:100%;height:900px;border:0;display:block;background:transparent}
 /* ===== PERIODIQUES VENTILATION ===== */
 .vt-sec{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin:1.3rem 0 .55rem;display:flex;align-items:center;gap:.45rem}
@@ -1021,9 +1018,8 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
 <div class="page" id="page-nettoyage">
   <div class="card">
     <div class="card-title">🧽 Nettoyage cuisine — suivi hebdo</div>
-    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.6rem">L’équipier coche chaque équipement nettoyé. Remise à zéro automatique chaque lundi. Lien équipier par resto :</p>
-    <div class="nt-links" id="nettLinks"></div>
-    <iframe id="nettFrame" class="nt-frame" title="Nettoyage cuisine"></iframe>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:.6rem">En ligne : l’équipier coche depuis son téléphone (lien par resto), tu vois tout ici. Remise à zéro chaque lundi. <span style="text-decoration:underline dotted;cursor:pointer" onclick="nettSetUrl()">Adresse : <span id="nettUrlLbl"></span></span></p>
+    <iframe id="nettFrame" class="nt-frame" title="Nettoyage cuisine" allow="web-share; clipboard-write"></iframe>
   </div>
 </div>
 
@@ -6825,42 +6821,30 @@ goToPage=function(p,dir){
   try{if(p==='jour')jrInit()}catch(e){}
 };
 
-// ========== NETTOYAGE CUISINE (page nettoyage.html en iframe) ==========
-var NETT_SITES=[['GD','Gland'],['NC','Nyon Centre'],['ND','Nyon Drive']];
-function nettUrl(site){var b=location.href.split('#')[0].split('?')[0].replace(/[^\/]*$/,'');return b+'nettoyage.html'+(site?'?site='+site:'')}
+// ========== NETTOYAGE CUISINE (page en ligne sur Vercel, en iframe) ==========
+var NETT_DEF_URL='https://nettoyage-lacote.vercel.app';
+function nettGetUrl(){return (localStorage.getItem('nett_url')||NETT_DEF_URL).replace(/\/+$/,'')}
 function nettInit(){
   var f=document.getElementById('nettFrame');
-  if(f&&!f.getAttribute('src'))f.setAttribute('src','nettoyage.html?embed=1');
-  var box=document.getElementById('nettLinks');
-  if(box&&!box.innerHTML){
-    var h='';
-    NETT_SITES.forEach(function(s){h+='<button onclick="nettShare(\''+s[0]+'\')"><b>🔗 '+esc(s[1])+'</b>Envoyer le lien</button>'});
-    box.innerHTML=h;
-  }
+  var u=nettGetUrl()+'/?embed=1';
+  if(f&&f.getAttribute('src')!==u)f.setAttribute('src',u);
+  var l=document.getElementById('nettUrlLbl');if(l)l.textContent=nettGetUrl().replace(/^https?:\/\//,'');
 }
-function nettShare(site){
-  var u=nettUrl(site),n='';
-  NETT_SITES.forEach(function(s){if(s[0]===site)n=s[1]});
-  var t='Nettoyage cuisine '+n+' : coche chaque équipement nettoyé cette semaine.';
-  if(navigator.share){navigator.share({title:'Nettoyage '+n,text:t,url:u})['catch'](function(){});return}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){toast('Lien copié')},function(){prompt('Lien :',u)});return}
-  prompt('Lien :',u);
+function nettSetUrl(){
+  var v=prompt('Adresse de la page Nettoyage (Vercel) :',nettGetUrl());
+  if(v===null)return;v=v.replace(/^\s+|\s+$/g,'');
+  if(v&&!/^https:\/\//.test(v))v='https://'+v;
+  if(v)localStorage.setItem('nett_url',v);else localStorage.removeItem('nett_url');
+  nettInit();
 }
-function nettResize(h){var f=document.getElementById('nettFrame');if(f&&h>200)f.style.height=(h+10)+'px'}
-function nettBadge(){
-  var o,n=0,d=new Date(),w,mon,k;
-  try{o=JSON.parse(localStorage.getItem('nett_v1')||'null')}catch(e){o=null}
-  if(o&&o.eq&&o.done){
-    d.setHours(0,0,0,0);w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);
-    mon=d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();
-    NETT_SITES.forEach(function(s){
-      var eq=o.eq[s[0]]||[],dn=o.done[s[0]+'|'+mon]||{};
-      eq.forEach(function(e){if(!dn[e.id])n++});
-    });
-  }
-  var b=document.getElementById('nettCnt');
-  if(b){b.textContent=n;b.className='vt-cnt'+(n?'':' zero')}
-}
+function nettBadge(){}
+window.addEventListener('message',function(ev){
+  var d=ev.data;if(!d||d.nett!==1)return;
+  if(ev.origin!==nettGetUrl().replace(/^(https?:\/\/[^\/]+).*$/,'$1'))return;
+  var f=document.getElementById('nettFrame');
+  if(f&&d.h>200)f.style.height=(d.h+10)+'px';
+  if(typeof d.reste==='number'){var b=document.getElementById('nettCnt');if(b){b.textContent=d.reste;b.className='vt-cnt'+(d.reste?'':' zero')}}
+});
 (function(){var g=goToPage;goToPage=function(p,dir){g(p,dir);try{if(p==='nettoyage')nettInit()}catch(e){}}})();
 
 // ========== REFRESH ==========
