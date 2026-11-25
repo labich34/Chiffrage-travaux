@@ -2,7 +2,7 @@
 // Stockage : Vercel Blob (store public, connecté au projet → BLOB_READ_WRITE_TOKEN)
 //   cfg/config-<suffixe aléatoire>.json   { salt, hash, keys:{GD,NC,ND} }
 //   <SITE>/eq/<ts>-<suffixe>.json           [{id,nom}]
-//   <SITE>/done/<lundi>/<id>                coche (date = uploadedAt)
+//   <SITE>/done/<lundi>/<id>/<pid>          coche (date = uploadedAt, pid = qui : id collaborateur, 'admin' ou '_' lien resto)
 //   <SITE>/photo/<id>-<suffixe>.jpg         photo équipement
 const { put, list, del } = require('@vercel/blob');
 const crypto = require('crypto');
@@ -54,7 +54,7 @@ async function getCfg(force) {
   return cfgCache;
 }
 async function saveCfg(c) {
-  const clean = { salt: c.salt, hash: c.hash, keys: c.keys };
+  const clean = { salt: c.salt, hash: c.hash, keys: c.keys, people: c.people || {} };
   const prev = await listAll('cfg/');
   await put('cfg/config.json', JSON.stringify(clean), { access: 'public', addRandomSuffix: true, contentType: 'application/json', cacheControlMaxAge: 60 });
   if (prev.length) await del(prev.map(x => x.url));
@@ -64,20 +64,25 @@ async function saveCfg(c) {
 function auth(cfg, key) {
   if (!cfg || !key) return null;
   if (safeEq(hash(key, cfg.salt), cfg.hash)) return { role: 'admin' };
-  for (const s in cfg.keys) if (safeEq(key, cfg.keys[s])) return { role: 'equipier', site: s };
+  for (const s in cfg.keys) if (safeEq(key, cfg.keys[s])) return { role: 'equipier', site: s, pid: '_' };
+  const pp = cfg.people || {};
+  for (const pid in pp) if (pp[pid] && safeEq(key, pp[pid].key)) return { role: 'equipier', site: pp[pid].site, pid };
   return null;
 }
 
 async function readSite(site, week, prune) {
   const blobs = await listAll(site + '/');
-  const eqB = [], done = {}, photos = {}, old = [];
+  const eqB = [], done = {}, by = {}, photos = {}, old = [];
   const lim = addWeeks(curMonday(), -KEEP_WEEKS);
   for (const b of blobs) {
     const rest = b.pathname.slice(site.length + 1);
     if (rest.startsWith('eq/')) eqB.push(b);
     else if (rest.startsWith('done/')) {
-      const parts = rest.split('/'); // done/<lundi>/<id>
-      if (parts[1] === week) done[parts[2]] = new Date(b.uploadedAt).getTime();
+      const parts = rest.split('/'); // done/<lundi>/<id>[/<pid>]
+      if (parts[1] === week) {
+        const t = new Date(b.uploadedAt).getTime();
+        if (!done[parts[2]] || t > done[parts[2]]) { done[parts[2]] = t; by[parts[2]] = parts[3] || '_'; }
+      }
       if (parts[1] < lim) old.push(b.url);
     } else if (rest.startsWith('photo/')) {
       const f = rest.slice(6), id = f.slice(0, f.lastIndexOf('-'));
@@ -94,7 +99,7 @@ async function readSite(site, week, prune) {
   }
   const ph = {};
   for (const id in photos) ph[id] = photos[id].url;
-  return { nom: SITES[site], eq, done, photos: ph };
+  return { nom: SITES[site], eq, done, by, photos: ph };
 }
 
 function okId(s) { return typeof s === 'string' && /^[A-Za-z0-9_]{1,40}$/.test(s); }
@@ -122,7 +127,8 @@ module.exports = async function handler(req, res) {
       return res.json({ setup: true });
     }
 
-    const who = auth(cfg, key);
+    let who = auth(cfg, key);
+    if (!who && key) { cfg = await getCfg(true); who = auth(cfg, key); }
     if (!who) return res.status(401).json({ err: 'Code ou lien invalide' });
     const cur = curMonday();
 
@@ -132,12 +138,17 @@ module.exports = async function handler(req, res) {
       if (who.role === 'equipier') {
         out.site = who.site;
         out.sites[who.site] = await readSite(who.site, week, false);
+        delete out.sites[who.site].by; // les noms ne sont visibles que par l'admin
       } else {
         const ks = Object.keys(SITES);
         const prune = Math.random() < 0.2;
         const r = await Promise.all(ks.map(s => readSite(s, week, prune)));
         ks.forEach((s, i) => { out.sites[s] = r[i]; });
         out.keys = cfg.keys;
+        const people = cfg.people || {}, names = { admin: 'Toi', _: 'Lien resto' };
+        for (const pid in people) names[pid] = people[pid].nom;
+        ks.forEach(s => { const b = out.sites[s].by; for (const id in b) b[id] = names[b[id]] || 'Lien supprimé'; });
+        out.people = people;
       }
       return res.json(out);
     }
@@ -149,9 +160,13 @@ module.exports = async function handler(req, res) {
 
     if (body.a === 'toggle') {
       if (!okId(body.id)) return res.status(400).json({ err: 'Équipement' });
-      const path = site + '/done/' + cur + '/' + body.id;
-      if (body.on) await put(path, '1', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'text/plain' });
-      else await del(path).catch(() => {});
+      const base = site + '/done/' + cur + '/' + body.id;
+      const pid = who.role === 'admin' ? 'admin' : who.pid;
+      if (body.on) await put(base + '/' + pid, '1', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'text/plain' });
+      else {
+        const marks = (await listAll(base + '/')).map(x => x.url);
+        await del(marks.concat([base])).catch(() => {});
+      }
       return res.json({ ok: true, t: Date.now() });
     }
 
@@ -185,6 +200,23 @@ module.exports = async function handler(req, res) {
       if (!okId(body.id)) return res.status(400).json({ err: 'Équipement' });
       const old = await listAll(site + '/photo/' + body.id + '-');
       if (old.length) await del(old.map(x => x.url));
+      return res.json({ ok: true });
+    }
+
+    if (body.a === 'addPerson') {
+      const nom = String(body.nom || '').trim().slice(0, 40);
+      if (!nom) return res.status(400).json({ err: 'Nom manquant' });
+      const c = await getCfg(true);
+      c.people = c.people || {};
+      const pid = 'p' + rnd(8), k = rnd(14);
+      c.people[pid] = { nom, site, key: k };
+      await saveCfg(c);
+      return res.json({ ok: true, pid, person: c.people[pid] });
+    }
+
+    if (body.a === 'delPerson') {
+      const c = await getCfg(true);
+      if (c.people && c.people[body.pid]) { delete c.people[body.pid]; await saveCfg(c); }
       return res.json({ ok: true });
     }
 

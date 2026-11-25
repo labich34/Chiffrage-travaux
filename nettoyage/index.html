@@ -234,7 +234,8 @@ function render(){
     h+='<div class="item'+(t?' done':'')+(isCur?'':' ro')+(S.busy[e.id]?' busy':'')+'" onclick="toggle(\''+e.id+'\')">';
     h+='<div class="ph '+phCls+'" onclick="event.stopPropagation();tapPhoto(\''+e.id+'\')">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">':(admin?'<span class="cam">📷</span><span>Ajouter</span>':'<span class="cam" style="opacity:.4">🧽</span>'))+'</div>';
     h+='<div class="info"><div class="nm">'+esc(e.nom)+'</div>';
-    h+='<div class="st">'+(t?'✓ Fait '+fmtTs(t):'Pas encore fait')+'</div></div>';
+    var who=(admin&&t&&st.by&&st.by[e.id])?' · <b>'+esc(st.by[e.id])+'</b>':'';
+    h+='<div class="st">'+(t?'✓ Fait '+fmtTs(t)+who:'Pas encore fait')+'</div></div>';
     h+='<div class="chk">✓</div></div>';
   }
   if(!eq.length)h+='<div class="empty">Aucun équipement dans la liste.</div>';
@@ -251,9 +252,46 @@ function render(){
 }
 function restant(s){var n=0;for(var i=0;i<s.eq.length;i++){if(!s.done[s.eq[i].id])n++}return n}
 
-function eqLink(k){return location.origin+location.pathname+'?k='+encodeURIComponent(S.data.keys[k])}
+function keyLink(key){return location.origin+location.pathname+'?k='+encodeURIComponent(key)}
+function eqLink(k){return keyLink(S.data.keys[k])}
+function pLink(pid){return keyLink(S.data.people[pid].key)}
+function renderPeople(){
+  var pp=S.data.people||{},h='<div class="sec">Collaborateurs (lien personnel)</div><div class="hint">Chaque collaborateur a son propre lien. Quand il coche, <b>tu vois son nom</b> ; lui ne le voit pas. « Supprimer » coupe son accès.</div>',pid,n=0;
+  for(var i=0;i<SITE_ORDER.length;i++){var k=SITE_ORDER[i];
+    for(pid in pp){if(!pp.hasOwnProperty(pid)||pp[pid].site!==k)continue;n++;
+      h+='<div class="lnk"><b>'+esc(pp[pid].nom)+'</b> <span style="color:var(--txt3);font-size:.8rem">· '+esc(S.data.sites[k].nom)+'</span><code>'+esc(pLink(pid))+'</code><div class="row">';
+      h+='<button onclick="sharePerson(\''+pid+'\')">📤 Envoyer</button><button onclick="copyText(pLink(\''+pid+'\'),\'Lien copié\')">📋 Copier</button><button onclick="delPerson(\''+pid+'\',this)">🗑 Supprimer</button></div></div>';
+    }
+  }
+  if(!n)h+='<div class="hint" style="font-style:italic">Aucun collaborateur pour l’instant.</div>';
+  h+='<div class="lnk"><b>➕ Ajouter un collaborateur</b><div class="ed" style="margin-top:8px"><input id="pNom" placeholder="Nom du collaborateur" maxlength="40"></div>';
+  h+='<div class="row">';
+  for(i=0;i<SITE_ORDER.length;i++)h+='<button onclick="addPerson(\''+SITE_ORDER[i]+'\',this)">'+esc(S.data.sites[SITE_ORDER[i]].nom)+'</button>';
+  h+='</div><div class="hint" style="margin:8px 0 0">Écris le nom, puis touche son resto : son lien unique est créé.</div></div>';
+  return h;
+}
+function addPerson(site,btn){
+  var el=$('pNom'),nom=el?el.value.replace(/^\s+|\s+$/g,''):'';
+  if(!nom){toast('Écris d’abord le nom');if(el)el.focus();return}
+  btn.disabled=true;
+  api('POST',{a:'addPerson',site:site,nom:nom},function(err,j){
+    btn.disabled=false;if(err){toast(err);return}
+    S.data.people=S.data.people||{};S.data.people[j.pid]=j.person;toast(nom+' ajouté ✓');render();
+    sharePerson(j.pid);
+  });
+}
+function delPerson(pid,btn){
+  if(btn.getAttribute('data-sure')!=='1'){btn.setAttribute('data-sure','1');btn.textContent='Sûr ?';return}
+  api('POST',{a:'delPerson',site:S.data.people[pid].site,pid:pid},function(err){if(err){toast(err);return}delete S.data.people[pid];toast('Accès supprimé');render()});
+}
+function sharePerson(pid){
+  var p=S.data.people[pid],u=pLink(pid),n=S.data.sites[p.site].nom,t='Salut '+p.nom+' ! Voici ton lien pour le nettoyage cuisine '+n+' : coche chaque équipement nettoyé dans la semaine. Ajoute-le à ton écran d’accueil.';
+  if(navigator.share){navigator.share({title:'Nettoyage '+n,text:t,url:u})['catch'](function(){});return}
+  copyText(u,'Lien copié');
+}
 function renderLinks(){
-  var h='<div class="sec">Liens équipiers</div><div class="hint">Chaque lien ouvre uniquement la page de son resto : l’équipier coche, il ne voit rien d’autre et ne peut rien modifier. Si un lien circule trop, « Nouveau lien » désactive l’ancien.</div>';
+  var h=renderPeople();
+  h+='<div class="sec">Liens resto (sans nom)</div><div class="hint">Lien commun à tout le resto : les coches apparaissent comme « Lien resto ». « Nouveau lien » désactive l’ancien.</div>';
   for(var i=0;i<SITE_ORDER.length;i++){var k=SITE_ORDER[i];
     h+='<div class="lnk"><b>'+esc(S.data.sites[k].nom)+'</b><code>'+esc(eqLink(k))+'</code><div class="row">';
     h+='<button onclick="shareLink(\''+k+'\')">📤 Envoyer</button><button onclick="copyText(eqLink(\''+k+'\'),\'Lien copié\')">📋 Copier</button><button onclick="regen(\''+k+'\',this)">🔄 Nouveau lien</button></div></div>';
@@ -274,7 +312,7 @@ function shiftWeek(n){
 function toggle(id){
   if(S.week!==S.data.cur||S.busy[id])return;
   var st=site(),on=!st.done[id],prev=st.done[id];
-  if(on)st.done[id]=Date.now();else delete st.done[id];
+  if(on){st.done[id]=Date.now();if(st.by)st.by[id]='Toi'}else delete st.done[id];
   S.busy[id]=1;render();
   if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
   api('POST',{a:'toggle',site:S.site,id:id,on:on},function(err){
