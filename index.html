@@ -6827,7 +6827,8 @@ var NETT_DEF_URL='https://nettoyage-coral.vercel.app';
 function nettGetUrl(){return (localStorage.getItem('nett_url')||NETT_DEF_URL).replace(/\/+$/,'')}
 function nettInit(){
   var f=document.getElementById('nettFrame');
-  var u=nettGetUrl()+'/?embed=1';
+  var ak=localStorage.getItem('nett_admin_key');
+  var u=nettGetUrl()+'/?embed=1'+(ak?'#k='+encodeURIComponent(ak):'');
   if(f&&f.getAttribute('src')!==u)f.setAttribute('src',u);
   var l=document.getElementById('nettUrlLbl');if(l)l.textContent=nettGetUrl().replace(/^https?:\/\//,'');
   nettRecupUI('');
@@ -6863,6 +6864,7 @@ function nettRecup(){
 window.addEventListener('message',function(ev){
   var d=ev.data;if(!d||d.nett!==1)return;
   if(ev.origin!==nettGetUrl().replace(/^(https?:\/\/[^\/]+).*$/,'$1'))return;
+  if(d.hasOwnProperty('adminKey')){if(d.adminKey)localStorage.setItem('nett_admin_key',String(d.adminKey));else localStorage.removeItem('nett_admin_key')}
   if(d.importProg)nettRecupUI('Envoi '+d.importProg.i+' / '+d.importProg.n+'…');
   if(d.importRes){
     if(d.importRes.ok){localStorage.setItem('nett_migre','1');nettRecupUI('');toast('Photos et listes récupérées ✓')}

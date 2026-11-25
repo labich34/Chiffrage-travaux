@@ -119,6 +119,10 @@ var Q=parseQS();
 var EMBED=Q.embed==='1';
 if(EMBED)document.body.className='embed';
 if(Q.k)lsSet(LS_KEY,Q.k);
+var PARENT_ORIGIN='https://labich34.github.io';
+var HK=/[#&]k=([^&]+)/.exec(location.hash||'');
+if(HK&&!Q.k){try{lsSet(LS_KEY,decodeURIComponent(HK[1]))}catch(e){}}
+function tellParentKey(k){if(!EMBED||window.parent===window)return;try{window.parent.postMessage({nett:1,adminKey:k},PARENT_ORIGIN)}catch(e){}}
 
 var S={key:lsGet(LS_KEY),data:null,week:null,site:lsGet(LS_SITE)||'GD',filter:'all',edit:false,draft:null,busy:{},photoId:null,ovId:null,delSure:null};
 
@@ -153,11 +157,12 @@ function load(week,silent){
   if(!silent)$('app').innerHTML='<div class="spin">Chargement…</div>';
   api('GET',null,function(err,j,st){
     if(j&&j.setup){renderSetup();return}
-    if(st===401){lsSet(LS_KEY,null);S.key=null;renderLogin('Code ou lien invalide.');return}
+    if(st===401){lsSet(LS_KEY,null);S.key=null;tellParentKey(null);renderLogin('Code ou lien invalide.');return}
     if(err&&st!==undefined&&st>=500){$('app').innerHTML='<div class="banner r">Serveur : '+esc(err)+'</div><button class="btn" onclick="load()">Réessayer</button>';resize();return}
     if(!S.key){renderLogin('');return}
     if(err){$('app').innerHTML='<div class="banner r">'+esc(err)+'</div><button class="btn" onclick="load()">Réessayer</button>';resize();return}
     S.data=j;S.week=j.week;
+    if(j.role==='admin')tellParentKey(S.key);
     if(j.role==='equipier')S.site=j.site;
     else if(!j.sites[S.site])S.site='GD';
     render();
@@ -181,7 +186,7 @@ function renderLogin(msg){
   '<input id="lk" type="password" placeholder="Code" onkeydown="if(event.keyCode===13)doLogin()"><button class="btn acc" onclick="doLogin()">Entrer</button></div>';resize();
 }
 function doLogin(){var v=$('lk').value.replace(/^\s+|\s+$/g,'');if(!v)return;S.key=v;lsSet(LS_KEY,v);load()}
-function logout(){lsSet(LS_KEY,null);S.key=null;S.data=null;renderLogin('')}
+function logout(){lsSet(LS_KEY,null);S.key=null;tellParentKey(null);S.data=null;renderLogin('')}
 
 // ---------- rendu principal ----------
 function isAdmin(){return S.data&&S.data.role==='admin'}
