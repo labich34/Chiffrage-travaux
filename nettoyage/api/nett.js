@@ -178,7 +178,11 @@ module.exports = async function handler(req, res) {
       for (const e of body.eq) {
         if (!e || !okId(e.id)) continue;
         const nom = String(e.nom || '').trim().slice(0, 60);
-        if (nom) eq.push({ id: e.id, nom });
+        if (!nom) continue;
+        const it = { id: e.id, nom };
+        const f = parseInt(e.freq, 10);
+        if (f >= 2 && f <= 4 && okWeek(e.start)) { it.freq = f; it.start = e.start; }
+        eq.push(it);
       }
       await put(site + '/eq/' + Date.now() + '.json', JSON.stringify(eq), { access: 'public', addRandomSuffix: true, contentType: 'application/json' });
       return res.json({ ok: true });

@@ -80,6 +80,11 @@ body.embed .wrap{padding:0 0 10px}
 .ed button{font:inherit;width:40px;height:42px;border-radius:10px;border:1px solid var(--bd);background:rgba(255,255,255,.04);color:var(--txt2);cursor:pointer;flex:0 0 auto}
 .ed button.del{color:var(--red)}
 .ed button.del.sure{background:var(--red);color:#fff;width:auto;padding:0 10px;font-size:.78rem;font-weight:700}
+.tag{display:inline-block;font-size:.66rem;font-weight:700;color:var(--acc);background:rgba(255,199,44,.12);border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+.later{opacity:.55;cursor:default}
+.later .chk{display:none}
+.ed2{display:flex;gap:6px;margin:-2px 0 14px}
+.ed2 select{flex:1;min-width:0;font:inherit;font-size:.85rem;padding:9px 8px;border-radius:10px;border:1px solid var(--bd);background:#161922;color:var(--txt)}
 .hint{font-size:.82rem;color:var(--txt3);margin-bottom:12px;line-height:1.45}
 /* login */
 .login{max-width:380px;margin:12vh auto 0;text-align:center}
@@ -193,7 +198,7 @@ function isAdmin(){return S.data&&S.data.role==='admin'}
 function site(){return S.data.sites[S.site]}
 function render(){
   if(S.edit){renderEdit();return}
-  var d=S.data,st=site(),eq=st.eq,done=st.done,ph=st.photos,admin=isAdmin();
+  var d=S.data,st=site(),eq=dueList(st,S.week),later=laterList(st,S.week),done=st.done,ph=st.photos,admin=isAdmin();
   var mon=pd(S.week),sun=addDays(mon,6),isCur=S.week===d.cur,i;
   var nDone=0;for(i=0;i<eq.length;i++){if(done[eq[i].id])nDone++}
   var reste=eq.length-nDone;
@@ -233,12 +238,19 @@ function render(){
     var src=ph[e.id],phCls=src?'has':(admin?'add':'');
     h+='<div class="item'+(t?' done':'')+(isCur?'':' ro')+(S.busy[e.id]?' busy':'')+'" onclick="toggle(\''+e.id+'\')">';
     h+='<div class="ph '+phCls+'" onclick="event.stopPropagation();tapPhoto(\''+e.id+'\')">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">':(admin?'<span class="cam">📷</span><span>Ajouter</span>':'<span class="cam" style="opacity:.4">🧽</span>'))+'</div>';
-    h+='<div class="info"><div class="nm">'+esc(e.nom)+'</div>';
+    h+='<div class="info"><div class="nm">'+esc(e.nom)+(FREQ_TAG[e.freq]&&e.start?'<span class="tag">'+FREQ_TAG[e.freq]+'</span>':'')+'</div>';
     var who=(admin&&t&&st.by&&st.by[e.id])?' · <b>'+esc(st.by[e.id])+'</b>':'';
     h+='<div class="st">'+(t?'✓ Fait '+fmtTs(t)+who:'Pas encore fait')+'</div></div>';
     h+='<div class="chk">✓</div></div>';
   }
-  if(!eq.length)h+='<div class="empty">Aucun équipement dans la liste.</div>';
+  if(admin&&later.length){
+    h+='<div class="sec">Pas à faire cette semaine ('+later.length+')</div>';
+    for(i=0;i<later.length;i++){var lx=later[i],nx=nextDue(lx,S.week),lsrc=ph[lx.id];
+      h+='<div class="item later"><div class="ph'+(lsrc?' has':'')+'" onclick="tapPhoto(\''+lx.id+'\')">'+(lsrc?'<img src="'+esc(lsrc)+'" alt="" loading="lazy">':'<span class="cam" style="opacity:.4">🧽</span>')+'</div>';
+      h+='<div class="info"><div class="nm">'+esc(lx.nom)+'<span class="tag">'+(FREQ_TAG[lx.freq]||'')+'</span></div><div class="st">Prochain : '+(nx?'semaine '+isoWeek(pd(nx))+' (lun. '+dm(pd(nx))+')':'—')+'</div></div></div>';
+    }
+  }
+  if(!eq.length)h+='<div class="empty">'+(st.eq.length?'Rien à nettoyer cette semaine.':'Aucun équipement dans la liste.')+'</div>';
   else if(!shown)h+='<div class="empty">Rien à faire, tout est nettoyé ✓</div>';
 
   h+='<div class="foot"><button class="btn" onclick="refresh()">↻ Actualiser</button>';
@@ -250,7 +262,14 @@ function render(){
   $('app').innerHTML=h;
   resize();
 }
-function restant(s){var n=0;for(var i=0;i<s.eq.length;i++){if(!s.done[s.eq[i].id])n++}return n}
+var FREQ_LBL={1:'Chaque semaine',2:'Toutes les 2 semaines',3:'Toutes les 3 semaines',4:'Toutes les 4 semaines (≈ 1×/mois)'};
+var FREQ_TAG={2:'1×/2 sem.',3:'1×/3 sem.',4:'1×/mois'};
+function weeksBetween(a,b){return Math.round((pd(b)-pd(a))/(7*864e5))}
+function isDue(e,w){var f=+e.freq||1;if(f<=1||!e.start)return true;var n=weeksBetween(e.start,w);return ((n%f)+f)%f===0}
+function nextDue(e,w){for(var i=1;i<=8;i++){var x=ymd(addDays(pd(w),7*i));if(isDue(e,x))return x}return null}
+function dueList(s,w){var r=[];for(var i=0;i<s.eq.length;i++){var e=s.eq[i];if(isDue(e,w)||s.done[e.id])r.push(e)}return r}
+function laterList(s,w){var r=[];for(var i=0;i<s.eq.length;i++){var e=s.eq[i];if(!isDue(e,w)&&!s.done[e.id])r.push(e)}return r}
+function restant(s){var l=dueList(s,S.data.week),n=0;for(var i=0;i<l.length;i++){if(!s.done[l[i].id])n++}return n}
 
 function keyLink(key){return location.origin+location.pathname+'?k='+encodeURIComponent(key)}
 function eqLink(k){return keyLink(S.data.keys[k])}
@@ -362,24 +381,36 @@ function photoChosen(ev){
 }
 
 // ---------- édition de la liste (admin) ----------
-function startEdit(){var eq=site().eq,d=[];for(var i=0;i<eq.length;i++)d.push({id:eq[i].id,nom:eq[i].nom});S.draft=d;S.edit=true;S.delSure=null;render()}
+function startEdit(){var eq=site().eq,d=[];for(var i=0;i<eq.length;i++)d.push({id:eq[i].id,nom:eq[i].nom,freq:+eq[i].freq||1,start:eq[i].start||null});S.draft=d;S.edit=true;S.delSure=null;render()}
 function renderEdit(){
   var d=S.draft,h='<div class="top"><div class="ttl">⚙️ Liste — '+esc(site().nom)+'</div></div>';
-  h+='<div class="hint">Renomme, change l’ordre (↑ ↓), supprime ou ajoute. Puis « Enregistrer ». Les photos se prennent sur la page principale en touchant 📷.</div>';
+  h+='<div class="hint">Renomme, change l’ordre (↑ ↓), supprime ou ajoute. Pour chaque équipement, choisis la <b>fréquence</b> et, si besoin, la <b>semaine du prochain nettoyage</b> : il n’apparaîtra que ces semaines-là. Puis « Enregistrer ». Les photos se prennent sur la page principale en touchant 📷.</div>';
   for(var i=0;i<d.length;i++){
     h+='<div class="ed"><input value="'+esc(d[i].nom)+'" oninput="S.draft['+i+'].nom=this.value">';
     h+='<button onclick="mv('+i+',-1)" '+(i===0?'disabled':'')+'>↑</button><button onclick="mv('+i+',1)" '+(i===d.length-1?'disabled':'')+'>↓</button>';
     h+='<button class="del'+(S.delSure===i?' sure':'')+'" onclick="rm('+i+')">'+(S.delSure===i?'Supprimer':'🗑')+'</button></div>';
+    h+='<div class="ed2"><select onchange="setFreq('+i+',this.value)">';
+    for(var f=1;f<=4;f++)h+='<option value="'+f+'"'+((d[i].freq||1)===f?' selected':'')+'>'+FREQ_LBL[f]+'</option>';
+    h+='</select>';
+    if((d[i].freq||1)>1){
+      var cur=S.data.cur,sel=d[i].start&&isDue(d[i],cur)?cur:(d[i].start?nextDue(d[i],cur):cur);
+      h+='<select onchange="S.draft['+i+'].start=this.value">';
+      for(var w=0;w<8;w++){var wk=ymd(addDays(pd(cur),7*w));h+='<option value="'+wk+'"'+(wk===sel?' selected':'')+'>'+(w===0?'Cette sem. ':'')+'S'+isoWeek(pd(wk))+' · '+dm(pd(wk))+'</option>'}
+      h+='</select>';
+      d[i].start=sel;
+    }
+    h+='</div>';
   }
   h+='<div class="ed"><input id="newEq" placeholder="Nouvel équipement…" onkeydown="if(event.keyCode===13)addEq()"><button onclick="addEq()" style="width:auto;padding:0 14px;color:var(--acc)">＋</button></div>';
   h+='<div class="foot"><button class="btn acc" id="saveBtn" onclick="saveEq()">✓ Enregistrer</button><button class="btn sm" onclick="S.edit=false;render()">Annuler</button></div>';
   $('app').innerHTML=h;resize();
 }
+function setFreq(i,v){var e=S.draft[i];e.freq=+v||1;if(e.freq>1&&!e.start)e.start=S.data.cur;renderEdit()}
 function mv(i,n){var d=S.draft,j=i+n;if(j<0||j>=d.length)return;var t=d[i];d[i]=d[j];d[j]=t;S.delSure=null;renderEdit()}
 function rm(i){if(S.delSure!==i){S.delSure=i;renderEdit();return}S.draft.splice(i,1);S.delSure=null;renderEdit()}
 function addEq(){var v=$('newEq').value.replace(/^\s+|\s+$/g,'');if(!v)return;S.draft.push({id:S.site+'_'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),nom:v.slice(0,60)});renderEdit();var n=$('newEq');if(n)n.focus()}
 function saveEq(){
-  var d=[],i;for(i=0;i<S.draft.length;i++){var n=String(S.draft[i].nom||'').replace(/^\s+|\s+$/g,'');if(n)d.push({id:S.draft[i].id,nom:n.slice(0,60)})}
+  var d=[],i;for(i=0;i<S.draft.length;i++){var n=String(S.draft[i].nom||'').replace(/^\s+|\s+$/g,'');if(n){var it={id:S.draft[i].id,nom:n.slice(0,60)};if((S.draft[i].freq||1)>1&&S.draft[i].start){it.freq=S.draft[i].freq;it.start=S.draft[i].start}d.push(it)}}
   $('saveBtn').disabled=true;
   api('POST',{a:'eq',site:S.site,eq:d},function(err){
     if(err){toast(err);$('saveBtn').disabled=false;return}
@@ -389,7 +420,7 @@ function saveEq(){
 
 // ---------- partage ----------
 function bilanText(){
-  var st=site(),eq=st.eq,mon=pd(S.week),sun=addDays(mon,6),faits=0,reste=[],i;
+  var st=site(),eq=dueList(st,S.week),mon=pd(S.week),sun=addDays(mon,6),faits=0,reste=[],i;
   for(i=0;i<eq.length;i++){if(st.done[eq[i].id])faits++;else reste.push(eq[i].nom)}
   var t='🧽 Nettoyage '+st.nom+' — Semaine '+isoWeek(mon)+' ('+dm(mon)+' → '+dm(sun)+')\nFait : '+faits+' / '+eq.length+'\n';
   if(reste.length){t+='\nReste à faire :\n';for(i=0;i<reste.length;i++)t+='• '+reste[i]+'\n'}else t+='\nTout est fait ✓\n';
