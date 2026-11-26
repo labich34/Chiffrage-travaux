@@ -511,14 +511,14 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     <button class="nav-tab" data-page="saisie"><span class="nt-i" style="color:var(--blue);font-weight:800">+</span><span class="nt-l">Saisie</span></button>
     <button class="nav-tab" data-page="jour"><span class="nt-i">📅</span><span class="nt-l">Journée</span></button>
     <button class="nav-tab" data-page="historique"><span class="nt-i">🗂</span><span class="nt-l">Histo.</span></button>
+    <button class="nav-tab" data-page="nettoyage"><span class="nt-i">🧽</span><span class="nt-l">Nettoy.<span class="vt-cnt zero" id="nettCnt">0</span></span></button>
+    <button class="nav-tab" data-page="periodiques"><span class="nt-i">🌬</span><span class="nt-l">Périod.<span class="vt-cnt zero" id="vtCntP">0</span></span></button>
+    <button class="nav-tab" data-page="joints"><span class="nt-i">🍦</span><span class="nt-l">Joints<span class="vt-cnt zero" id="jtCnt">0</span></span></button>
+    <button class="nav-tab" data-page="commandes"><span class="nt-i">🛒</span><span class="nt-l">Cmd.<span class="vt-cnt zero" id="vtCntC">0</span></span></button>
+    <button class="nav-tab" data-page="fournisseurs"><span class="nt-i">🤝</span><span class="nt-l">Fourn.</span></button>
     <button class="nav-tab" data-page="interventions"><span class="nt-i">📋</span><span class="nt-l">Interv.</span></button>
     <button class="nav-tab" data-page="temps"><span class="nt-i">⏱</span><span class="nt-l">Temps</span></button>
     <button class="nav-tab" data-page="rapport"><span class="nt-i">📈</span><span class="nt-l">Rapport</span></button>
-    <button class="nav-tab" data-page="periodiques"><span class="nt-i">🌬</span><span class="nt-l">Périod.<span class="vt-cnt zero" id="vtCntP">0</span></span></button>
-    <button class="nav-tab" data-page="joints"><span class="nt-i">🍦</span><span class="nt-l">Joints<span class="vt-cnt zero" id="jtCnt">0</span></span></button>
-    <button class="nav-tab" data-page="nettoyage"><span class="nt-i">🧽</span><span class="nt-l">Nettoy.<span class="vt-cnt zero" id="nettCnt">0</span></span></button>
-    <button class="nav-tab" data-page="commandes"><span class="nt-i">🛒</span><span class="nt-l">Cmd.<span class="vt-cnt zero" id="vtCntC">0</span></span></button>
-    <button class="nav-tab" data-page="fournisseurs"><span class="nt-i">🤝</span><span class="nt-l">Fourn.</span></button>
     <button class="nav-tab" data-page="config"><span class="nt-i">⚙️</span><span class="nt-l">Config</span></button>
     <button class="nav-tab" data-page="doc"><span class="nt-i">📖</span><span class="nt-l">Guide</span></button>
   </div>
@@ -1270,13 +1270,48 @@ tbody tr:hover td{background:var(--glass-hover);color:var(--text)}
     </p>
   </div>
 
-  <div class="card" style="border-color:var(--accent)">
-    <div class="card-title" style="color:var(--accent)">9. Données techniques</div>
+  <div class="card">
+    <div class="card-title">9. Les onglets de l’application</div>
     <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
-      <strong>Stockage</strong> — Toutes les données sont stockées localement dans le navigateur (localStorage). Aucune donnée n'est envoyée sur internet. L'application fonctionne entièrement hors-ligne.<br><br>
+      Le menu se trouve en bas de l’écran (molette). Les onglets, dans l’ordre :<br><br>
+      <strong>📊 Dashboard</strong> — vue d’ensemble du mois : anneau de progression vers l’objectif, économie totale, KPI cliquables, coûts interne / externe par mois, heures par site et par type de travaux, coûts par restaurant, dernières interventions.<br><br>
+      <strong>+ Saisie</strong> — enregistrement d’une <em>intervention</em> (site, horaires, types de travaux, matériaux, pièces), du <em>temps de travail</em>, d’un <em>déplacement exceptionnel</em> ou d’une <em>économie directe</em> (garantie, négociation…). Une intervention peut être marquée « déléguée » : ses heures sont valorisées au taux délégué et sorties de ton temps personnel.<br><br>
+      <strong>📅 Journée</strong> — fiche journalière créée automatiquement. Les travaux s’enchaînent (la fin de l’un devient le début du suivant), le brouillon est sauvegardé en continu et « Reprendre la veille » recopie la journée précédente. « Enregistrer la journée » crée les saisies correspondantes.<br><br>
+      <strong>🗂 Historique</strong> — toutes les saisies (interventions + temps de travail) dans une seule liste, pour repérer doublons et erreurs.<br><br>
+      <strong>🧽 Nettoyage</strong> — suivi hebdomadaire du nettoyage des équipements de cuisine par restaurant, en ligne avec les équipiers (détail en section 10).<br><br>
+      <strong>🌬 Périodiques</strong> — registre ventilation de Gland, Nyon Centre et Nyon Drive : nettoyages, remplacements de filtres et contrôles avec leurs échéances, rapport PDF. Le badge indique les échéances proches ou dépassées.<br><br>
+      <strong>🍦 Joints</strong> — suivi du remplacement des joints des machines desserts (Taylor C602, Taylor C708, Carpigiani K4) : date notée à chaque changement pendant le nettoyage, badge quand un remplacement est dû.<br><br>
+      <strong>🛒 Commandes</strong> — panier de filtres et consommables groupé par fournisseur, avec le mail de commande rédigé et prêt à copier.<br><br>
+      <strong>🤝 Fournisseurs</strong> — fiches fournisseurs ventilation, catalogue des articles commandés régulièrement, signature des mails et export / import du registre.<br><br>
+      <strong>📋 Interventions</strong> — liste détaillée des interventions, filtrable (toutes, spécialisées, standard).<br><br>
+      <strong>⏱ Temps</strong> — synthèse du temps de travail, export CSV des heures et gestion des absences / congés (chaque jour ouvré d’absence retire 8.4 h de l’objectif d’heures contrat).<br><br>
+      <strong>📈 Rapport</strong> — rapport personnalisé sur une période (PDF ou HTML interactif à envoyer par mail), export / import des données, classeur mensuel archivé automatiquement et rapport trimestriel pour la demande de prime.<br><br>
+      <strong>⚙️ Config</strong> — sauvegarde automatique GitHub Gist, objectif mensuel, heures contrat, taux délégué / sous-traitance et travaux personnalisés.<br><br>
+      <strong>📖 Guide</strong> — ce document.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">10. Nettoyage cuisine (équipiers)</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong>Principe</strong> — Pour chaque restaurant, une liste des équipements de cuisine à nettoyer, avec une photo de chacun. L’équipier coche « fait » depuis son propre téléphone ; tout repart à zéro chaque lundi (heure suisse). Le vendredi, le filtre « Reste à faire » montre ce qui n’a pas été fait.<br><br>
+      <strong>En ligne</strong> — Cette partie est hébergée sur Vercel (nettoyage-coral.vercel.app) pour que les coches des équipiers arrivent en direct. L’onglet 🧽 affiche cette page ; le badge donne le total restant à faire sur les 3 restos.<br><br>
+      <strong>Accès administrateur</strong> — Un code admin, choisi à la première installation, donne accès aux 3 restaurants, aux photos, aux listes et aux liens. Il n’est saisi qu’une fois : l’application le retient.<br><br>
+      <strong>Liens collaborateurs</strong> — En bas de la page : écrire le nom du collaborateur puis toucher son restaurant crée un <em>lien personnel unique</em>, à envoyer avec 📤. Le collaborateur n’a aucun code à taper ; il ne voit que son restaurant, peut seulement cocher et ne voit aucun nom. Toi, tu vois qui a coché (« ✓ Fait mar. 24.11 à 14:32 · Kevin »). « Supprimer » coupe son accès immédiatement. Les liens « resto » (sans nom) existent aussi : leurs coches apparaissent comme « Lien resto », et « Nouveau lien » désactive l’ancien.<br><br>
+      <strong>Photos</strong> — Touche 📷 sur un équipement pour le photographier ; touche la photo pour l’agrandir ou la changer.<br><br>
+      <strong>Liste et fréquences</strong> — « ⚙️ Modifier la liste » : renommer, réordonner, ajouter, supprimer. Pour chaque équipement : chaque semaine, toutes les 2, 3 ou 4 semaines (≈ 1×/mois), avec la semaine du prochain nettoyage. Un équipement n’apparaît, avec sa photo, que les semaines où il est à faire ; les autres sont regroupés (pour toi seulement) sous « Pas à faire cette semaine » avec la date du prochain passage.<br><br>
+      <strong>Bilan</strong> — « 📤 Envoyer le bilan de la semaine » prépare un message avec ce qui est fait et ce qui reste. Les 12 dernières semaines restent consultables avec ◀.<br><br>
+      <strong>Écran d’accueil</strong> — Les équipiers ajoutent leur lien à l’écran d’accueil (iPhone : Safari → Partager → Sur l’écran d’accueil ; Android : Chrome → ⋮ → Ajouter à l’écran d’accueil).
+    </p>
+  </div>
+
+  <div class="card" style="border-color:var(--accent)">
+    <div class="card-title" style="color:var(--accent)">11. Données techniques</div>
+    <p style="color:var(--text2);font-size:.85rem;line-height:1.7">
+      <strong>Stockage</strong> — Les données de maintenance sont stockées localement sur l’appareil (localStorage) ; l’application fonctionne hors-ligne. Deux exceptions : la <em>sauvegarde GitHub Gist</em> (si elle est connectée dans Config, copie privée toutes les heures, restaurable depuis n’importe quel appareil) et le <em>nettoyage cuisine</em>, hébergé en ligne sur Vercel (listes, photos et coches des équipiers).<br><br>
       <strong>Export/Import</strong> — Les données peuvent être exportées en JSON (sauvegarde complète) et réimportées. L'export inclut : interventions, contrats, temps de travail, déplacements exceptionnels, configuration.<br><br>
       <strong>Sites couverts</strong> — Gland (GD), Nyon Centre (NC), Nyon Drive (ND), Divers/Crèche, Siège/Thibault, Formation.<br><br>
-      <strong>Version</strong> — Application mono-fichier HTML, compatible ES5, hébergée sur GitHub Pages.
+      <strong>Version</strong> — Application mono-fichier HTML, compatible ES5, hébergée sur GitHub Pages ; page Nettoyage hébergée sur Vercel (stockage Vercel Blob).
     </p>
   </div>
   </div>
@@ -1769,7 +1804,7 @@ function ecoPieces(i){
 }
 
 // ========== NAV ==========
-var TAB_ORDER=['dashboard','saisie','jour','historique','interventions','temps','rapport','periodiques','joints','nettoyage','commandes','fournisseurs','config','doc'];
+var TAB_ORDER=['dashboard','saisie','jour','historique','nettoyage','periodiques','joints','commandes','fournisseurs','interventions','temps','rapport','config','doc'];
 
 function goToPage(pageName,direction){
   var tabs=document.querySelectorAll('.nav-tab');
@@ -1823,14 +1858,14 @@ var AN_TABS=[
   {id:'saisie',ic:'+',name:'Saisie',blue:true},
   {id:'jour',ic:'📅',name:'Journée'},
   {id:'historique',ic:'🗂',name:'Historique'},
+  {id:'nettoyage',ic:'🧽',name:'Nettoyage'},
+  {id:'periodiques',ic:'🌬',name:'Périodiques'},
+  {id:'joints',ic:'🍦',name:'Joints'},
+  {id:'commandes',ic:'🛒',name:'Commandes'},
+  {id:'fournisseurs',ic:'🤝',name:'Fournisseurs'},
   {id:'interventions',ic:'📋',name:'Interventions'},
   {id:'temps',ic:'⏱',name:'Temps'},
   {id:'rapport',ic:'📈',name:'Rapport'},
-  {id:'periodiques',ic:'🌬',name:'Périodiques'},
-  {id:'joints',ic:'🍦',name:'Joints'},
-  {id:'nettoyage',ic:'🧽',name:'Nettoyage'},
-  {id:'commandes',ic:'🛒',name:'Commandes'},
-  {id:'fournisseurs',ic:'🤝',name:'Fournisseurs'},
   {id:'config',ic:'⚙️',name:'Config'},
   {id:'doc',ic:'📖',name:'Guide'}
 ];
