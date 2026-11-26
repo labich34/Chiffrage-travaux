@@ -97,6 +97,10 @@ body.embed .wrap{padding:0 0 10px}
 .ov img{max-width:100%;max-height:66vh;border-radius:14px}
 .ov .ov-nm{font-weight:700;font-size:1.1rem;margin:14px 0}
 .ov .ov-b{display:flex;gap:8px;width:100%;max-width:420px}
+.cf-box{background:#161922;border:1px solid var(--bd);border-radius:18px;padding:20px 16px 16px;width:100%;max-width:380px;text-align:center}
+.cf-ic{font-size:1.8rem;margin-bottom:6px}
+.cf-t{font-weight:700;font-size:1.05rem}
+.cf-n{color:var(--txt2);font-size:.92rem;margin:6px 0 16px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(20px);background:#1f2430;border:1px solid var(--bd);color:var(--txt);padding:11px 18px;border-radius:12px;font-size:.88rem;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .spin{text-align:center;color:var(--txt3);padding:50px 0}
@@ -105,6 +109,14 @@ body.embed .wrap{padding:0 0 10px}
 <body>
 <div class="wrap" id="app"><div class="spin">Chargement…</div></div>
 
+<div class="ov" id="cf" onclick="if(event.target===this)cfClose()">
+  <div class="cf-box">
+    <div class="cf-ic">↩️</div>
+    <div class="cf-t">Décocher cet équipement ?</div>
+    <div class="cf-n" id="cfNm"></div>
+    <div class="ov-b"><button class="btn" onclick="cfClose()">Non</button><button class="btn acc" onclick="cfYes()">Oui, décocher</button></div>
+  </div>
+</div>
 <div class="ov" id="ov">
   <img id="ovImg" alt="">
   <div class="ov-nm" id="ovNm"></div>
@@ -236,7 +248,7 @@ function render(){
     if(S.filter==='todo'&&t)continue;
     shown++;
     var src=ph[e.id],phCls=src?'has':(admin?'add':'');
-    h+='<div class="item'+(t?' done':'')+(isCur?'':' ro')+(S.busy[e.id]?' busy':'')+'" onclick="toggle(\''+e.id+'\')">';
+    h+='<div class="item'+(t?' done':'')+(isCur?'':' ro')+(S.busy[e.id]?' busy':'')+'" data-id="'+e.id+'" onclick="toggle(\''+e.id+'\')">';
     h+='<div class="ph '+phCls+'" onclick="event.stopPropagation();tapPhoto(\''+e.id+'\')">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">':(admin?'<span class="cam">📷</span><span>Ajouter</span>':'<span class="cam" style="opacity:.4">🧽</span>'))+'</div>';
     h+='<div class="info"><div class="nm">'+esc(e.nom)+(FREQ_TAG[e.freq]&&e.start?'<span class="tag">'+FREQ_TAG[e.freq]+'</span>':'')+'</div>';
     var who=(admin&&t&&st.by&&st.by[e.id])?' · <b>'+esc(st.by[e.id])+'</b>':'';
@@ -328,9 +340,19 @@ function shiftWeek(n){
   else{w=ymd(addDays(pd(S.week),7*n));if(w>S.data.cur)w=S.data.cur}
   S.week=w;load(w);
 }
-function toggle(id){
+var cfId=null;
+// en mode intégré (iframe très haute), placer la fenêtre à hauteur de l'équipement touché
+function placeOv(el,id){
+  if(!EMBED){el.style.justifyContent='';el.style.paddingTop='';return}
+  var it=document.querySelector('.item[data-id="'+id+'"]'),y=it?it.getBoundingClientRect().top:20;
+  el.style.justifyContent='flex-start';el.style.paddingTop=Math.max(20,y-60)+'px';
+}
+function cfClose(){$('cf').className='ov';cfId=null}
+function cfYes(){var id=cfId;cfClose();if(id)toggle(id,true)}
+function toggle(id,sure){
   if(S.week!==S.data.cur||S.busy[id])return;
   var st=site(),on=!st.done[id],prev=st.done[id];
+  if(!on&&!sure){cfId=id;$('cfNm').textContent=eqNom(id);placeOv($('cf'),id);$('cf').className='ov on';return}
   if(on){st.done[id]=Date.now();if(st.by)st.by[id]='Toi'}else delete st.done[id];
   S.busy[id]=1;render();
   if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
@@ -352,7 +374,7 @@ function tapPhoto(id){
   if(src){
     S.ovId=id;$('ovImg').src=src;$('ovNm').textContent=eqNom(id);
     $('ovBtns').innerHTML=(isAdmin()?'<button class="btn acc" onclick="ovChange()">📷 Changer</button>':'')+'<button class="btn" onclick="ovClose()">Fermer</button>';
-    $('ov').className='ov on';
+    placeOv($('ov'),id);$('ov').className='ov on';
   }else if(isAdmin()){S.photoId=id;$('file').click()}
 }
 function ovClose(){$('ov').className='ov';S.ovId=null}
