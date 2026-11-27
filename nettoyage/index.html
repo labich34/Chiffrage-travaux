@@ -279,6 +279,7 @@ function render(){
   h+='<div class="foot"><button class="btn" onclick="refresh()">↻ Actualiser</button>';
   h+='<button class="btn acc" onclick="shareBilan()">📤 Envoyer le bilan de la semaine</button>';
   if(admin)h+='<button class="btn sm" onclick="startEdit()">⚙️ Modifier la liste de '+esc(st.nom)+'</button>';
+  if(admin&&nNotes(st))h+='<button class="btn sm" id="cpBtn" onclick="copyNotes(this)">📋 Copier les explications de '+esc(st.nom)+' vers les autres restos</button>';
   h+='</div>';
 
   if(admin)h+=renderLinks();
@@ -350,6 +351,33 @@ function shiftWeek(n){
   if(n===0)w=S.data.cur;
   else{w=ymd(addDays(pd(S.week),7*n));if(w>S.data.cur)w=S.data.cur}
   S.week=w;load(w);
+}
+function normNom(n){return String(n||'').toLowerCase().replace(/\s+/g,' ').replace(/^\s+|\s+$/g,'')}
+function nNotes(st){var n=0;for(var i=0;i<st.eq.length;i++){if(st.eq[i].note)n++}return n}
+function copyNotes(btn){
+  if(btn.getAttribute('data-sure')!=='1'){btn.setAttribute('data-sure','1');btn.textContent='Confirmer : remplir les explications vides des autres restos';return}
+  btn.disabled=true;
+  var src=site(),map={},i,k;
+  for(i=0;i<src.eq.length;i++){if(src.eq[i].note)map[normNom(src.eq[i].nom)]=src.eq[i].note}
+  var targets=[],res={};
+  for(i=0;i<SITE_ORDER.length;i++){k=SITE_ORDER[i];if(k!==S.site)targets.push(k)}
+  var j=0;
+  function next(){
+    if(j>=targets.length){
+      var parts=[];for(var t in res){if(res.hasOwnProperty(t))parts.push(S.data.sites[t].nom+' : '+res[t])}
+      toast('Copié ✓ '+parts.join(' · '));render();return;
+    }
+    var t=targets[j++],tst=S.data.sites[t],eq=[],n=0;
+    for(var x=0;x<tst.eq.length;x++){
+      var e=tst.eq[x],it={id:e.id,nom:e.nom};if(e.freq&&e.start){it.freq=e.freq;it.start=e.start}
+      var nt=e.note||'';
+      if(!nt&&map[normNom(e.nom)]){nt=map[normNom(e.nom)];n++}
+      if(nt)it.note=nt;eq.push(it);
+    }
+    if(!n){res[t]=0;next();return}
+    api('POST',{a:'eq',site:t,eq:eq},function(err){if(err){res[t]='erreur';next();return}tst.eq=eq;res[t]=n;next()});
+  }
+  next();
 }
 var FUN_EMO=['👍','👌','😎','😀'];
 function docPos(el){var r=el.getBoundingClientRect();return {x:r.left+r.width/2+(window.scrollX||0),y:r.top+r.height/2+(window.scrollY||0),top:r.top+(window.scrollY||0)}}
