@@ -4,7 +4,9 @@
 //   <SITE>/eq/<ts>-<suffixe>.json           [{id,nom}]
 //   <SITE>/done/<lundi>/<id>/<pid>          coche (date = uploadedAt, pid = qui : id collaborateur, 'admin' ou '_' lien resto)
 //   <SITE>/photo/<id>-<suffixe>.jpg         photo équipement
-const { put, list, del } = require('@vercel/blob');
+//   video/<aléatoire>.<ext>                 vidéo tuto (référencée par l'URL dans la liste, partageable entre restos)
+const { put, list, del, issueSignedToken } = require('@vercel/blob');
+const { handleUploadPresigned } = require('@vercel/blob/client');
 const crypto = require('crypto');
 
 const SITES = { GD: 'Gland', NC: 'Nyon Centre', ND: 'Nyon Drive' };
@@ -154,6 +156,20 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method !== 'POST') return res.status(405).json({ err: 'Méthode' });
+
+    // ---------- envoi direct d'une vidéo depuis le téléphone (admin) ----------
+    if (body.type === 'blob.generate-presigned-url') {
+      if (who.role !== 'admin') return res.status(403).json({ error: 'Réservé à l’admin' });
+      const r = await handleUploadPresigned({
+        body, request: req,
+        getSignedToken: async (pathname) => {
+          if (!/^video\/[A-Za-z0-9]{8,40}\.(mp4|mov|m4v|webm|3gp)$/.test(pathname)) throw new Error('Nom de fichier vidéo invalide');
+          const token = await issueSignedToken({ pathname, operations: ['put'], maximumSizeInBytes: 150 * 1024 * 1024, allowedContentTypes: ['video/*'] });
+          return { token, urlOptions: { maximumSizeInBytes: 150 * 1024 * 1024, allowedContentTypes: ['video/*'] } };
+        }
+      });
+      return res.json(r);
+    }
     const site = body.site;
     if (!SITES[site]) return res.status(400).json({ err: 'Site' });
     if (who.role === 'equipier' && site !== who.site) return res.status(403).json({ err: 'Accès refusé' });
@@ -182,6 +198,7 @@ module.exports = async function handler(req, res) {
         const it = { id: e.id, nom };
         const note = String(e.note || '').trim().slice(0, 300);
         if (note) it.note = note;
+        if (typeof e.video === 'string' && /^https:\/\/[a-z0-9.-]+\.blob\.vercel-storage\.com\/video\/[A-Za-z0-9_.-]+$/.test(e.video)) it.video = e.video;
         const f = parseInt(e.freq, 10);
         if (f >= 2 && f <= 4 && okWeek(e.start)) { it.freq = f; it.start = e.start; }
         eq.push(it);
@@ -224,6 +241,18 @@ module.exports = async function handler(req, res) {
       const c = await getCfg(true);
       if (c.people && c.people[body.pid]) { delete c.people[body.pid]; await saveCfg(c); }
       return res.json({ ok: true });
+    }
+
+    if (body.a === 'cleanVideos') {
+      const used = {};
+      for (const s of Object.keys(SITES)) {
+        const st = await readSite(s, curMonday(), false);
+        st.eq.forEach(e => { if (e.video) used[e.video] = 1; });
+      }
+      const vids = await listAll('video/');
+      const orphans = vids.filter(v => !used[v.url] && Date.now() - new Date(v.uploadedAt).getTime() > 6 * 3600 * 1000).map(v => v.url);
+      if (orphans.length) await del(orphans);
+      return res.json({ ok: true, deleted: orphans.length });
     }
 
     if (body.a === 'regen') {

@@ -82,6 +82,10 @@ body.embed .wrap{padding:0 0 10px}
 .ed button.del.sure{background:var(--red);color:#fff;width:auto;padding:0 10px;font-size:.78rem;font-weight:700}
 .tag{display:inline-block;font-size:.66rem;font-weight:700;color:var(--acc);background:rgba(255,199,44,.12);border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:2px}
 .note{font-size:.8rem;color:var(--org);margin-top:4px;line-height:1.35;white-space:pre-line}
+.vbtn{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font:inherit;font-size:.78rem;font-weight:700;color:#1a1a1a;background:var(--acc);border:0;border-radius:20px;padding:6px 12px;cursor:pointer}
+.ed4{display:flex;gap:6px;margin:-6px 0 16px}
+.ed4 button{flex:1;font:inherit;font-size:.8rem;font-weight:600;padding:9px 6px;border-radius:10px;border:1px solid var(--bd);background:rgba(255,255,255,.04);color:var(--txt);cursor:pointer}
+.ed4 button.v-ok{border-color:rgba(52,211,153,.4);color:var(--grn)}
 .later{opacity:.55;cursor:default}
 .ed3{margin:-8px 0 14px}
 .ed3 textarea{width:100%;font:inherit;font-size:.85rem;padding:9px 11px;border-radius:10px;border:1px solid rgba(251,146,60,.35);background:rgba(251,146,60,.06);color:var(--org);resize:vertical;min-height:40px}
@@ -134,6 +138,13 @@ body.embed .wrap{padding:0 0 10px}
 </div>
 <input type="file" id="file" accept="image/*" capture="environment" style="display:none" onchange="photoChosen(event)">
 <div class="toast" id="toast"></div>
+<input type="file" id="vfile" accept="video/*" style="display:none" onchange="videoChosen(event)">
+<div class="ov" id="vov" onclick="if(event.target===this)vClose()">
+  <video id="vPlayer" controls playsinline preload="metadata" style="max-width:100%;max-height:70vh;border-radius:14px;background:#000"></video>
+  <div class="ov-nm" id="vNm"></div>
+  <div class="ov-b"><button class="btn" onclick="vClose()">Fermer</button></div>
+</div>
+<script src="blob-upload.js" defer></script>
 
 <script>
 // ================= NETTOYAGE CUISINE — client (ES5) =================
@@ -263,6 +274,7 @@ function render(){
     h+='<div class="info"><div class="nm">'+esc(e.nom)+(FREQ_TAG[e.freq]&&e.start?'<span class="tag">'+FREQ_TAG[e.freq]+'</span>':'')+'</div>';
     var who=(admin&&t&&st.by&&st.by[e.id])?' · <b>'+esc(st.by[e.id])+'</b>':'';
     if(e.note)h+='<div class="note">'+esc(e.note)+'</div>';
+    if(e.video)h+='<button class="vbtn" onclick="event.stopPropagation();playVideo(\''+e.id+'\')">▶️ Voir comment faire</button>';
     h+='<div class="st">'+(t?'✓ Fait '+fmtTs(t)+who:'Pas encore fait')+'</div></div>';
     h+='<div class="chk">✓</div></div>';
   }
@@ -279,7 +291,7 @@ function render(){
   h+='<div class="foot"><button class="btn" onclick="refresh()">↻ Actualiser</button>';
   h+='<button class="btn acc" onclick="shareBilan()">📤 Envoyer le bilan de la semaine</button>';
   if(admin)h+='<button class="btn sm" onclick="startEdit()">⚙️ Modifier la liste de '+esc(st.nom)+'</button>';
-  if(admin&&nNotes(st))h+='<button class="btn sm" id="cpBtn" onclick="copyNotes(this)">📋 Copier les explications de '+esc(st.nom)+' vers les autres restos</button>';
+  if(admin&&nNotes(st))h+='<button class="btn sm" id="cpBtn" onclick="copyNotes(this)">📋 Copier explications et vidéos de '+esc(st.nom)+' vers les autres restos</button>';
   h+='</div>';
 
   if(admin)h+=renderLinks();
@@ -353,12 +365,12 @@ function shiftWeek(n){
   S.week=w;load(w);
 }
 function normNom(n){return String(n||'').toLowerCase().replace(/\s+/g,' ').replace(/^\s+|\s+$/g,'')}
-function nNotes(st){var n=0;for(var i=0;i<st.eq.length;i++){if(st.eq[i].note)n++}return n}
+function nNotes(st){var n=0;for(var i=0;i<st.eq.length;i++){if(st.eq[i].note||st.eq[i].video)n++}return n}
 function copyNotes(btn){
-  if(btn.getAttribute('data-sure')!=='1'){btn.setAttribute('data-sure','1');btn.textContent='Confirmer : remplir les explications vides des autres restos';return}
+  if(btn.getAttribute('data-sure')!=='1'){btn.setAttribute('data-sure','1');btn.textContent='Confirmer : compléter les autres restos (sans rien écraser)';return}
   btn.disabled=true;
-  var src=site(),map={},i,k;
-  for(i=0;i<src.eq.length;i++){if(src.eq[i].note)map[normNom(src.eq[i].nom)]=src.eq[i].note}
+  var src=site(),map={},vmap={},i,k;
+  for(i=0;i<src.eq.length;i++){if(src.eq[i].note)map[normNom(src.eq[i].nom)]=src.eq[i].note;if(src.eq[i].video)vmap[normNom(src.eq[i].nom)]=src.eq[i].video}
   var targets=[],res={};
   for(i=0;i<SITE_ORDER.length;i++){k=SITE_ORDER[i];if(k!==S.site)targets.push(k)}
   var j=0;
@@ -370,6 +382,7 @@ function copyNotes(btn){
     var t=targets[j++],tst=S.data.sites[t],eq=[],n=0;
     for(var x=0;x<tst.eq.length;x++){
       var e=tst.eq[x],it={id:e.id,nom:e.nom};if(e.freq&&e.start){it.freq=e.freq;it.start=e.start}
+      var vd=e.video||'';if(!vd&&vmap[normNom(e.nom)]){vd=vmap[normNom(e.nom)];if(!(!e.note&&map[normNom(e.nom)]))n++}if(vd)it.video=vd;
       var nt=e.note||'';
       if(!nt&&map[normNom(e.nom)]){nt=map[normNom(e.nom)];n++}
       if(nt)it.note=nt;eq.push(it);
@@ -378,6 +391,29 @@ function copyNotes(btn){
     api('POST',{a:'eq',site:t,eq:eq},function(err){if(err){res[t]='erreur';next();return}tst.eq=eq;res[t]=n;next()});
   }
   next();
+}
+// ---------- vidéos tuto ----------
+function playUrl(url,nom,id){var v=$('vPlayer');v.src=url;$('vNm').textContent=nom||'';placeOv($('vov'),id);$('vov').className='ov on';try{var p=v.play();if(p&&p['catch'])p['catch'](function(){})}catch(e){}}
+function playVideo(id){var eq=site().eq;for(var i=0;i<eq.length;i++){if(eq[i].id===id&&eq[i].video){playUrl(eq[i].video,eq[i].nom,id);return}}}
+function playDraft(i){var d=S.draft[i];if(d&&d.video)playUrl(d.video,d.nom,null)}
+function vClose(){var v=$('vPlayer');try{v.pause()}catch(e){}v.removeAttribute('src');try{v.load()}catch(e){}$('vov').className='ov'}
+var vTarget=null;
+function pickVideo(i){if(S.upl!=null){toast('Un envoi est déjà en cours');return}if(!window.BlobUpload){toast('Module vidéo en chargement, réessaie');return}vTarget=i;$('vfile').click()}
+function videoChosen(ev){
+  var f=ev.target.files&&ev.target.files[0];ev.target.value='';
+  if(!f||vTarget==null)return;
+  var i=vTarget;vTarget=null;
+  if(f.size>150*1024*1024){toast('Vidéo trop lourde (150 Mo max). Filme plus court.');return}
+  var ext=((f.name||'').split('.').pop()||'').toLowerCase();if(!/^(mp4|mov|m4v|webm|3gp)$/.test(ext))ext=(f.type||'').indexOf('quicktime')>=0?'mov':'mp4';
+  var rnd='';for(var k=0;k<16;k++)rnd+='abcdefghijkmnpqrstuvwxyz23456789'.charAt(Math.floor(Math.random()*32));
+  S.upl=i;S.uplPct=0;renderEdit();
+  window.BlobUpload('video/'+rnd+'.'+ext,f,{access:'public',handleUploadUrl:API,headers:{'x-key':S.key},contentType:f.type||'video/mp4',
+    onUploadProgress:function(p){var pc=Math.round(p.percentage||0);if(pc!==S.uplPct){S.uplPct=pc;var b=document.querySelector('.ed4 button[disabled]');if(b)b.textContent='⏳ Envoi '+pc+' %'}}
+  }).then(function(r){
+    S.upl=null;if(S.draft&&S.draft[i]){S.draft[i].video=r.url}renderEdit();toast('Vidéo envoyée ✓ — touche Enregistrer');
+  },function(err){
+    S.upl=null;renderEdit();toast('Vidéo non envoyée : '+((err&&err.message)||err));
+  });
 }
 var FUN_EMO=['👍','👌','😎','😀'];
 function docPos(el){var r=el.getBoundingClientRect();return {x:r.left+r.width/2+(window.scrollX||0),y:r.top+r.height/2+(window.scrollY||0),top:r.top+(window.scrollY||0)}}
@@ -464,7 +500,7 @@ function photoChosen(ev){
 }
 
 // ---------- édition de la liste (admin) ----------
-function startEdit(){var eq=site().eq,d=[];for(var i=0;i<eq.length;i++)d.push({id:eq[i].id,nom:eq[i].nom,note:eq[i].note||'',freq:+eq[i].freq||1,start:eq[i].start||null});S.draft=d;S.edit=true;S.delSure=null;render()}
+function startEdit(){var eq=site().eq,d=[];for(var i=0;i<eq.length;i++)d.push({id:eq[i].id,nom:eq[i].nom,note:eq[i].note||'',video:eq[i].video||'',freq:+eq[i].freq||1,start:eq[i].start||null});S.draft=d;S.edit=true;S.delSure=null;render()}
 function renderEdit(){
   var d=S.draft,h='<div class="top"><div class="ttl">⚙️ Liste — '+esc(site().nom)+'</div></div>';
   h+='<div class="hint">Renomme, change l’ordre (↑ ↓), supprime ou ajoute. Pour chaque équipement, choisis la <b>fréquence</b> et, si besoin, la <b>semaine du prochain nettoyage</b> : il n’apparaîtra que ces semaines-là. Puis « Enregistrer ». Les photos se prennent sur la page principale en touchant 📷.</div>';
@@ -483,6 +519,7 @@ function renderEdit(){
       d[i].start=sel;
     }
     h+='</div>';
+    h+='<div class="ed4">'+(S.upl===i?'<button disabled>⏳ Envoi '+(S.uplPct||0)+' %</button>':(d[i].video?'<button class="v-ok" onclick="playDraft('+i+')">▶️ Vidéo ✓</button><button onclick="pickVideo('+i+')">🔄 Remplacer</button><button onclick="S.draft['+i+'].video=\'\';renderEdit()">🗑 Retirer</button>':'<button onclick="pickVideo('+i+')">🎬 Ajouter une vidéo</button>'))+'</div>';
     h+='<div class="ed3"><textarea rows="1" maxlength="300" placeholder="Explication (optionnel)" oninput="S.draft['+i+'].note=this.value">'+esc(d[i].note||'')+'</textarea></div>';
   }
   h+='<div class="ed"><input id="newEq" placeholder="Nouvel équipement…" onkeydown="if(event.keyCode===13)addEq()"><button onclick="addEq()" style="width:auto;padding:0 14px;color:var(--acc)">＋</button></div>';
@@ -494,11 +531,12 @@ function mv(i,n){var d=S.draft,j=i+n;if(j<0||j>=d.length)return;var t=d[i];d[i]=
 function rm(i){if(S.delSure!==i){S.delSure=i;renderEdit();return}S.draft.splice(i,1);S.delSure=null;renderEdit()}
 function addEq(){var v=$('newEq').value.replace(/^\s+|\s+$/g,'');if(!v)return;S.draft.push({id:S.site+'_'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),nom:v.slice(0,60)});renderEdit();var n=$('newEq');if(n)n.focus()}
 function saveEq(){
-  var d=[],i;for(i=0;i<S.draft.length;i++){var n=String(S.draft[i].nom||'').replace(/^\s+|\s+$/g,'');if(n){var it={id:S.draft[i].id,nom:n.slice(0,60)};var nt=String(S.draft[i].note||'').replace(/^\s+|\s+$/g,'');if(nt)it.note=nt.slice(0,300);if((S.draft[i].freq||1)>1&&S.draft[i].start){it.freq=S.draft[i].freq;it.start=S.draft[i].start}d.push(it)}}
+  var d=[],i;for(i=0;i<S.draft.length;i++){var n=String(S.draft[i].nom||'').replace(/^\s+|\s+$/g,'');if(n){var it={id:S.draft[i].id,nom:n.slice(0,60)};var nt=String(S.draft[i].note||'').replace(/^\s+|\s+$/g,'');if(nt)it.note=nt.slice(0,300);if(S.draft[i].video)it.video=S.draft[i].video;if((S.draft[i].freq||1)>1&&S.draft[i].start){it.freq=S.draft[i].freq;it.start=S.draft[i].start}d.push(it)}}
   $('saveBtn').disabled=true;
   api('POST',{a:'eq',site:S.site,eq:d},function(err){
     if(err){toast(err);$('saveBtn').disabled=false;return}
     site().eq=d;S.edit=false;toast('Liste enregistrée ✓');render();
+    api('POST',{a:'cleanVideos',site:S.site},function(){});
   });
 }
 
