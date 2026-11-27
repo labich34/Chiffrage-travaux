@@ -81,7 +81,11 @@ body.embed .wrap{padding:0 0 10px}
 .ed button.del{color:var(--red)}
 .ed button.del.sure{background:var(--red);color:#fff;width:auto;padding:0 10px;font-size:.78rem;font-weight:700}
 .tag{display:inline-block;font-size:.66rem;font-weight:700;color:var(--acc);background:rgba(255,199,44,.12);border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+.note{font-size:.8rem;color:var(--org);margin-top:4px;line-height:1.35;white-space:pre-line}
 .later{opacity:.55;cursor:default}
+.ed3{margin:-8px 0 14px}
+.ed3 textarea{width:100%;font:inherit;font-size:.85rem;padding:9px 11px;border-radius:10px;border:1px solid rgba(251,146,60,.35);background:rgba(251,146,60,.06);color:var(--org);resize:vertical;min-height:40px}
+.ed3 textarea::placeholder{color:rgba(251,146,60,.5)}
 .later .chk{display:none}
 .ed2{display:flex;gap:6px;margin:-2px 0 14px}
 .ed2 select{flex:1;min-width:0;font:inherit;font-size:.85rem;padding:9px 8px;border-radius:10px;border:1px solid var(--bd);background:#161922;color:var(--txt)}
@@ -252,6 +256,7 @@ function render(){
     h+='<div class="ph '+phCls+'" onclick="event.stopPropagation();tapPhoto(\''+e.id+'\')">'+(src?'<img src="'+esc(src)+'" alt="" loading="lazy">':(admin?'<span class="cam">📷</span><span>Ajouter</span>':'<span class="cam" style="opacity:.4">🧽</span>'))+'</div>';
     h+='<div class="info"><div class="nm">'+esc(e.nom)+(FREQ_TAG[e.freq]&&e.start?'<span class="tag">'+FREQ_TAG[e.freq]+'</span>':'')+'</div>';
     var who=(admin&&t&&st.by&&st.by[e.id])?' · <b>'+esc(st.by[e.id])+'</b>':'';
+    if(e.note)h+='<div class="note">'+esc(e.note)+'</div>';
     h+='<div class="st">'+(t?'✓ Fait '+fmtTs(t)+who:'Pas encore fait')+'</div></div>';
     h+='<div class="chk">✓</div></div>';
   }
@@ -403,7 +408,7 @@ function photoChosen(ev){
 }
 
 // ---------- édition de la liste (admin) ----------
-function startEdit(){var eq=site().eq,d=[];for(var i=0;i<eq.length;i++)d.push({id:eq[i].id,nom:eq[i].nom,freq:+eq[i].freq||1,start:eq[i].start||null});S.draft=d;S.edit=true;S.delSure=null;render()}
+function startEdit(){var eq=site().eq,d=[];for(var i=0;i<eq.length;i++)d.push({id:eq[i].id,nom:eq[i].nom,note:eq[i].note||'',freq:+eq[i].freq||1,start:eq[i].start||null});S.draft=d;S.edit=true;S.delSure=null;render()}
 function renderEdit(){
   var d=S.draft,h='<div class="top"><div class="ttl">⚙️ Liste — '+esc(site().nom)+'</div></div>';
   h+='<div class="hint">Renomme, change l’ordre (↑ ↓), supprime ou ajoute. Pour chaque équipement, choisis la <b>fréquence</b> et, si besoin, la <b>semaine du prochain nettoyage</b> : il n’apparaîtra que ces semaines-là. Puis « Enregistrer ». Les photos se prennent sur la page principale en touchant 📷.</div>';
@@ -422,6 +427,7 @@ function renderEdit(){
       d[i].start=sel;
     }
     h+='</div>';
+    h+='<div class="ed3"><textarea rows="1" maxlength="300" placeholder="Explication (optionnel)" oninput="S.draft['+i+'].note=this.value">'+esc(d[i].note||'')+'</textarea></div>';
   }
   h+='<div class="ed"><input id="newEq" placeholder="Nouvel équipement…" onkeydown="if(event.keyCode===13)addEq()"><button onclick="addEq()" style="width:auto;padding:0 14px;color:var(--acc)">＋</button></div>';
   h+='<div class="foot"><button class="btn acc" id="saveBtn" onclick="saveEq()">✓ Enregistrer</button><button class="btn sm" onclick="S.edit=false;render()">Annuler</button></div>';
@@ -432,7 +438,7 @@ function mv(i,n){var d=S.draft,j=i+n;if(j<0||j>=d.length)return;var t=d[i];d[i]=
 function rm(i){if(S.delSure!==i){S.delSure=i;renderEdit();return}S.draft.splice(i,1);S.delSure=null;renderEdit()}
 function addEq(){var v=$('newEq').value.replace(/^\s+|\s+$/g,'');if(!v)return;S.draft.push({id:S.site+'_'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),nom:v.slice(0,60)});renderEdit();var n=$('newEq');if(n)n.focus()}
 function saveEq(){
-  var d=[],i;for(i=0;i<S.draft.length;i++){var n=String(S.draft[i].nom||'').replace(/^\s+|\s+$/g,'');if(n){var it={id:S.draft[i].id,nom:n.slice(0,60)};if((S.draft[i].freq||1)>1&&S.draft[i].start){it.freq=S.draft[i].freq;it.start=S.draft[i].start}d.push(it)}}
+  var d=[],i;for(i=0;i<S.draft.length;i++){var n=String(S.draft[i].nom||'').replace(/^\s+|\s+$/g,'');if(n){var it={id:S.draft[i].id,nom:n.slice(0,60)};var nt=String(S.draft[i].note||'').replace(/^\s+|\s+$/g,'');if(nt)it.note=nt.slice(0,300);if((S.draft[i].freq||1)>1&&S.draft[i].start){it.freq=S.draft[i].freq;it.start=S.draft[i].start}d.push(it)}}
   $('saveBtn').disabled=true;
   api('POST',{a:'eq',site:S.site,eq:d},function(err){
     if(err){toast(err);$('saveBtn').disabled=false;return}

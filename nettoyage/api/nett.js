@@ -180,6 +180,8 @@ module.exports = async function handler(req, res) {
         const nom = String(e.nom || '').trim().slice(0, 60);
         if (!nom) continue;
         const it = { id: e.id, nom };
+        const note = String(e.note || '').trim().slice(0, 300);
+        if (note) it.note = note;
         const f = parseInt(e.freq, 10);
         if (f >= 2 && f <= 4 && okWeek(e.start)) { it.freq = f; it.start = e.start; }
         eq.push(it);
