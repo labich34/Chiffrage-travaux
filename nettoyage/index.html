@@ -105,6 +105,12 @@ body.embed .wrap{padding:0 0 10px}
 .cf-ic{font-size:1.8rem;margin-bottom:6px}
 .cf-t{font-weight:700;font-size:1.05rem}
 .cf-n{color:var(--txt2);font-size:.92rem;margin:6px 0 16px}
+.fly{position:absolute;z-index:40;font-size:2rem;pointer-events:none;transform:translate(-50%,-50%);animation:fly .95s ease-out forwards}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}20%{opacity:1;transform:translate(-50%,-150%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-340%) scale(1)}}
+.mile{position:absolute;z-index:41;left:50%;pointer-events:none;background:var(--acc);color:#1a1a1a;font-weight:700;font-size:1.05rem;padding:12px 22px;border-radius:30px;box-shadow:0 8px 30px rgba(0,0,0,.45);white-space:nowrap;animation:mile 1.9s ease-out forwards}
+@keyframes mile{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.08)}25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-12px) scale(1)}}
+.item.pop .chk{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(20px);background:#1f2430;border:1px solid var(--bd);color:var(--txt);padding:11px 18px;border-radius:12px;font-size:.88rem;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .spin{text-align:center;color:var(--txt3);padding:50px 0}
@@ -345,6 +351,26 @@ function shiftWeek(n){
   else{w=ymd(addDays(pd(S.week),7*n));if(w>S.data.cur)w=S.data.cur}
   S.week=w;load(w);
 }
+var FUN_EMO=['👍','👌','😎','😀'];
+function docPos(el){var r=el.getBoundingClientRect();return {x:r.left+r.width/2+(window.scrollX||0),y:r.top+r.height/2+(window.scrollY||0),top:r.top+(window.scrollY||0)}}
+function funCheck(id,before,after,total){
+  var it=document.querySelector('.item[data-id="'+id+'"]');if(!it)return;
+  it.className+=' pop';
+  var chk=it.querySelector('.chk'),p=docPos(chk||it);
+  var f=document.createElement('div');f.className='fly';f.textContent=FUN_EMO[Math.floor(Math.random()*FUN_EMO.length)];
+  f.style.left=p.x+'px';f.style.top=p.y+'px';document.body.appendChild(f);
+  setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f)},1000);
+  var msg=null,reste=total-after;
+  if(reste===1)msg='Plus qu’un ! 🔥';
+  else if(total>=4&&before*2<total&&after*2>=total)msg='À mi-chemin 💪';
+  if(msg){
+    var m=document.createElement('div');m.className='mile';m.textContent=msg;
+    var ip=docPos(it);m.style.top=Math.max(10,ip.top-58)+'px';document.body.appendChild(m);
+    setTimeout(function(){if(m.parentNode)m.parentNode.removeChild(m)},1950);
+    if(navigator.vibrate)try{navigator.vibrate([20,60,20])}catch(e){}
+  }
+}
+function dueCount(st){var l=dueList(st,S.week),n=0;for(var i=0;i<l.length;i++){if(st.done[l[i].id])n++}return {n:n,t:l.length}}
 var cfId=null;
 // en mode intégré (iframe très haute), placer la fenêtre à hauteur de l'équipement touché
 function placeOv(el,id){
@@ -358,8 +384,10 @@ function toggle(id,sure){
   if(S.week!==S.data.cur||S.busy[id])return;
   var st=site(),on=!st.done[id],prev=st.done[id];
   if(!on&&!sure){cfId=id;$('cfNm').textContent=eqNom(id);placeOv($('cf'),id);$('cf').className='ov on';return}
+  var c0=dueCount(st);
   if(on){st.done[id]=Date.now();if(st.by)st.by[id]='Toi'}else delete st.done[id];
   S.busy[id]=1;render();
+  if(on){var c1=dueCount(st);funCheck(id,c0.n,c1.n,c1.t)}
   if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
   api('POST',{a:'toggle',site:S.site,id:id,on:on},function(err){
     delete S.busy[id];
